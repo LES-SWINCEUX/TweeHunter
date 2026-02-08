@@ -79,7 +79,7 @@ Avant de compiler le projet, assure-toi d’avoir :
 
 ## 👤 Auteur
 
-Développé par les GOAT **Antoine Blais**, **Michael Normand** et **Philip Pigeon**
+Développé par **Antoine Blais**, **Michael Normand** et **Philip Pigeon**
 
 ---
 
