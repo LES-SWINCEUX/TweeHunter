@@ -1,0 +1,52 @@
+##############################
+# Qt / qmake
+##############################
+.qmake.stash
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+
+##############################
+# Dossier de génération
+##############################
+debug/
+release/
+build*/
+
+##############################
+# Visual Studio (généré)
+##############################
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+##############################
+# Artéfactes MSVC
+##############################
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.log
+*.exe
+*.dll
+*.lib
+
+##############################
+# Fichier de base de données
+##############################
+Thumbs.db
+.DS_Store
+
+##############################
+# Cache Qt Visual Studio Tools
+##############################
+*.qtvscr
