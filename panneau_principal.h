@@ -21,7 +21,7 @@ private:
     Bouton* boutonOptions = nullptr;
     Bouton* boutonQuitter = nullptr;
 
-    int espacementBoutons = 25;
+    int espacementBoutons = std::max(10, int(height() * 0.04f));
     float echelleBoutons = 0.7f;
 
     void parametrerBoutons(Bouton* bouton, int &hauteur, int &nombre);
