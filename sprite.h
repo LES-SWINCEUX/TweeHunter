@@ -1,7 +1,8 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include <QPixmap>
+#include "spritesheet.h"
+
 #include <QRect>
 #include <QSize>
 #include <QPainter>
@@ -11,24 +12,36 @@
 class Sprite
 {
 public:
-    void setSprite(const QPixmap& pixmap, int colonnes, int lignes);
+    void setSprite(const SpriteSheet& sheet);
+    void setSprite(QSharedPointer<QPixmap> pixmap, int colonnes, int lignes);
+
     void setCycle(int ms);
     void setDecalageImage(int decalage);
 
-    QRect getRectangle(qint64 ms) const;
-
-    void dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth) const;
+    void setClip(int indexDebut, int nombreImages, bool boucle = true);
 
     bool estValide() const;
-    int nombreImages() const;
+
+    QRect getRectangle() const;
+
+    void dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth);
 
 private:
-    QPixmap sprite;
-    int colonnes = 1;
-    int lignes = 1;
+    QRect getRectangle(qint64 tempsMs) const;
+    QRect getRectangleSprite(int indexImage) const;
+
+    static QRect obtenirRectangleEchelle(const QRect& rectangle, const QSize& taille);
+
+    QRect dernierRectangle;
+
+    SpriteSheet spriteSheet;
+
     int cycle = 1000;
     int decalageImage = 0;
-    QRect getRectangleSprite(int indexImage) const;
+
+    int clipStart = 0;
+    int clipCount = -1;
+    bool clipLoop = true;
 };
 
 #endif

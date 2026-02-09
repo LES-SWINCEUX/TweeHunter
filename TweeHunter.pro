@@ -5,24 +5,26 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++17 console
 
 SOURCES += \
-    animation_clock.cpp \
-    bouton.cpp \
-    decoration_menu.cpp \
     main.cpp \
     main_window.cpp \
     menu.cpp \
     panneau_principal.cpp \
-    sprite.cpp
+    decoration_menu.cpp \
+    bouton.cpp \
+    sprite.cpp \
+    spritesheet.cpp \
+    sprite_manager.cpp
 
 HEADERS += \
-    animation_clock.h \
-    bouton.h \
-    decoration_menu.h \
     main_window.h \
     menu.h \
     panneau_menu.h \
     panneau_principal.h \
-    sprite.h
+    decoration_menu.h \
+    bouton.h \
+    sprite.h \
+    spritesheet.h \
+    sprite_manager.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

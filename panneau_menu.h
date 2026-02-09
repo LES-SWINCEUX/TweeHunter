@@ -9,8 +9,7 @@ class PanneauMenu : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PanneauMenu(QWidget* parent = nullptr)
-        : QWidget(parent)
+    PanneauMenu(QWidget* parent = nullptr) : QWidget(parent)
     {
         setAttribute(Qt::WA_TranslucentBackground);
         setMouseTracking(true);

@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QPixmap>
+#include <QSharedPointer>
+#include "sprite_manager.h"
 #include <QDir>
 #include <QPainter>
 #include <QMouseEvent>
@@ -14,9 +16,9 @@ class Bouton : public QWidget
     Q_OBJECT
 
 public:
-    Bouton(const QString& spritePath, int frameCount = 3, QWidget* parent = nullptr);
+    Bouton(const QString& cheminSprite, int nombreImages = 3, QWidget* parent = nullptr);
 
-    void setNombreImages(int count);
+    void setNombreImages(int nombre);
     void setEchelle(float s);
     QSize sizeHint() const override;
 
@@ -33,7 +35,7 @@ protected:
 private:
     enum class Etat { Normal = 0, Selectionne = 1, Clique = 2 };
 
-    QPixmap sprite;
+    QSharedPointer<QPixmap> sprite;
     int images = 3;
     float echelle = 1.0f;
 

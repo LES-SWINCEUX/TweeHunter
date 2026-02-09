@@ -3,15 +3,18 @@
 
 #include "panneau_principal.h"
 #include "decoration_menu.h"
+#include "sprite_manager.h"
 
 #include <QWidget>
 #include <QPixmap>
+#include <QSharedPointer>
 #include <QPainter>
 #include <QDir>
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QResizeEvent>
 #include <iostream>
+#include <algorithm>
 
 class MenuPrincipal : public QWidget
 {
@@ -26,9 +29,10 @@ protected:
     void resizeEvent(QResizeEvent* e) override;
 
 private:
-    QPixmap arrierePlan;
+    QSharedPointer<QPixmap> arrierePlan;
+    QSharedPointer<QPixmap> titreSprite;
+
     QPixmap arrierePlanCache;
-    QPixmap titreSprite;
 
     QTimer timerAnimationTitre;
 
@@ -50,7 +54,6 @@ private:
     void configuerAnimationTitre();
     void afficherArrierePlan(QPainter &painter);
     void afficherTitre(QPainter &painter);
-    void reconstruireCacheArrierePlan();
 };
 
 #endif

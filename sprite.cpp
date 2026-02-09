@@ -1,10 +1,13 @@
 #include "sprite.h"
 
-void Sprite::setSprite(const QPixmap& pixmap, int colonnes, int lignes)
+void Sprite::setSprite(const SpriteSheet& sheet)
 {
-    sprite = pixmap;
-    this->colonnes = std::max(1, colonnes);
-    this->lignes = std::max(1, lignes);
+    spriteSheet = sheet;
+}
+
+void Sprite::setSprite(QSharedPointer<QPixmap> pixmap, int colonnes, int lignes)
+{
+    spriteSheet = SpriteSheet(std::move(pixmap), colonnes, lignes);
 }
 
 void Sprite::setCycle(int ms)
@@ -17,14 +20,16 @@ void Sprite::setDecalageImage(int decalage)
     decalageImage = decalage;
 }
 
-bool Sprite::estValide() const
+void Sprite::setClip(int indexDebut, int nombreImages, bool boucle)
 {
-    return !sprite.isNull() && colonnes > 0 && lignes > 0;
+    clipStart = std::max(0, indexDebut);
+    clipCount = nombreImages;
+    clipLoop = boucle;
 }
 
-int Sprite::nombreImages() const
+bool Sprite::estValide() const
 {
-    return colonnes * lignes;
+    return spriteSheet.estValide();
 }
 
 QRect Sprite::getRectangleSprite(int indexImage) const
@@ -32,58 +37,76 @@ QRect Sprite::getRectangleSprite(int indexImage) const
     if (!estValide()) {
         return QRect();
     }
-
-    const int totalImages = nombreImages();
-    indexImage %= totalImages;
-    if (indexImage < 0) {
-        indexImage += totalImages;
-    }
-
-    const int largeurImage = sprite.width() / colonnes;
-    const int hauteurImage = sprite.height() / lignes;
-
-    const int cx = indexImage % colonnes;
-    const int cy = indexImage / colonnes;
-
-    return QRect(cx * largeurImage, cy * hauteurImage, largeurImage, hauteurImage);
+    return spriteSheet.rectangeImage(indexImage);
 }
 
-QRect Sprite::getRectangle(qint64 timeMs) const
+QRect Sprite::getRectangle() const
+{
+    return dernierRectangle;
+}
+
+QRect Sprite::getRectangle(qint64 tempsMs) const
 {
     if (!estValide()) {
         return QRect();
     }
 
-    const int total = nombreImages();
-    int imageBase = int((timeMs % cycle) * total / cycle);
-    int frame = (imageBase + decalageImage) % total;
+    const int totalSheet = spriteSheet.nombreImages();
+    const int count = (clipCount > 0) ? std::min(clipCount, totalSheet - clipStart) : totalSheet;
+    if (count <= 0) {
+        return QRect();
+    }
 
-    return getRectangleSprite(frame);
+    const int frameBase = int((tempsMs % cycle) * count / cycle);
+    int frame = frameBase + decalageImage;
+
+    if (clipLoop) {
+        frame %= count;
+        if (frame < 0) frame += count;
+    } else {
+        frame = std::clamp(frame, 0, count - 1);
+    }
+
+    return getRectangleSprite(clipStart + frame);
 }
 
-void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth) const
+QRect Sprite::obtenirRectangleEchelle(const QRect& rectangle, const QSize& taille)
+{
+    if (!rectangle.isValid() || !taille.isValid()) {
+        return rectangle;
+    }
+
+    const double srcW = taille.width();
+    const double srcH = taille.height();
+    const double boxW = rectangle.width();
+    const double boxH = rectangle.height();
+
+    const double scale = std::min(boxW / srcW, boxH / srcH);
+    const int w = int(srcW * scale);
+    const int h = int(srcH * scale);
+
+    const int x = rectangle.x() + (rectangle.width() - w) / 2;
+    const int y = rectangle.y() + (rectangle.height() - h) / 2;
+    return QRect(x, y, w, h);
+}
+
+void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth)
 {
     if (!estValide()) {
         return;
     }
 
-    painter.setRenderHint(QPainter::SmoothPixmapTransform, smooth);
-
     const QRect src = getRectangle(temps);
-    if (src.isEmpty() || encadre.isEmpty()) {
-        return;
+    const QRect dest = obtenirRectangleEchelle(encadre, src.size());
+
+    dernierRectangle = dest;
+
+    if (smooth) {
+        painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    }
+    else {
+        painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
     }
 
-    const double sx = double(encadre.width()) / double(src.width());
-    const double sy = double(encadre.height()) / double(src.height());
-    const double s = std::min(sx, sy);
-
-    const int w = int(std::round(src.width() * s));
-    const int h = int(std::round(src.height() * s));
-
-    const int dx = encadre.x() + (encadre.width() - w) / 2;
-    const int dy = encadre.y() + (encadre.height() - h) / 2;
-
-    const QRect dst(dx, dy, w, h);
-    painter.drawPixmap(dst, sprite, src);
+    painter.drawPixmap(dest, spriteSheet.pixmap(), src);
 }

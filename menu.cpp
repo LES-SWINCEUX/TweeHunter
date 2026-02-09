@@ -2,17 +2,17 @@
 
 MenuPrincipal::MenuPrincipal(QWidget *parent) : 
     QWidget(parent),
-    arrierePlan(QDir::currentPath() + "/images/menu/background.png"),
-    titreSprite(QDir::currentPath() + "/images/menu/titre.png")
+    arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
+    titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     panneau = new PanneauPrincipal(this);
 
-    if (arrierePlan.isNull()) {
+    if (!arrierePlan || arrierePlan->isNull()) {
         std::cout << "MENU::Arrière plan non-chargé";
     }
-    if (titreSprite.isNull()) {
+    if (!titreSprite || titreSprite->isNull()) {
         std::cout << "MENU::Titre non-chargé";
     }
 
@@ -40,16 +40,14 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
 
     cannettes = new DecorationMenu(this);
 
-    cannettes->setSprite("/images/sprites/creme_menthe.png");
+    cannettes->setSprite("/images/sprites/twisted_teas.png");
     cannettes->setCycle(1000);
-    cannettes->setNombreDecorations(6);
+    cannettes->setNombreImages(6);
     cannettes->setFPS(30);
 
     cannettes->show();
 
     cannettes->lower();
-
-    reconstruireCacheArrierePlan();
 }
 
 MenuPrincipal::~MenuPrincipal() {
@@ -62,6 +60,8 @@ void MenuPrincipal::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
 
+    painter.fillRect(rect(), Qt::black);
+
     afficherArrierePlan(painter);
 
     afficherTitre(painter);
@@ -72,7 +72,23 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 {
     QWidget::resizeEvent(e);
 
-    reconstruireCacheArrierePlan();
+    arrierePlanCache = QPixmap();
+    if (arrierePlan && !arrierePlan->isNull() && width() > 0 && height() > 0) {
+        QPixmap scaled = arrierePlan->scaled(
+            size(),
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation
+        );
+
+        int x = (scaled.width() - width()) / 2;
+        int y = (scaled.height() - height());
+
+        x = std::max(0, x);
+        y = std::max(0, y);
+
+        QRect crop(x, y, width(), height());
+        arrierePlanCache = scaled.copy(crop);
+    }
 
     if (!panneau) {
         return;
@@ -137,43 +153,26 @@ void MenuPrincipal::configuerAnimationTitre() {
 }
 
 void MenuPrincipal::afficherArrierePlan(QPainter &painter) {
-    if (arrierePlanCache.isNull()) {
-        painter.fillRect(rect(), Qt::black);
+    if (!arrierePlan || arrierePlan->isNull()) {
+        return;
+    }
+        
+
+    if (!arrierePlanCache.isNull()) {
+        painter.drawPixmap(0, 0, arrierePlanCache);
         return;
     }
 
-    painter.drawPixmap(0, 0, arrierePlanCache);
-}
-
-void MenuPrincipal::reconstruireCacheArrierePlan()
-{
-    if (arrierePlan.isNull() || width() <= 0 || height() <= 0) {
-        arrierePlanCache = QPixmap();
-        return;
-    }
-
-    const QPixmap scaled = arrierePlan.scaled(
-        size(),
-        Qt::KeepAspectRatioByExpanding,
-        Qt::SmoothTransformation
-    );
-
-    int x = (scaled.width() - width()) / 2;
-    int y = (scaled.height() - height());
-    x = std::max(0, x);
-    y = std::max(0, y);
-
-    const QRect crop(x, y, width(), height());
-    arrierePlanCache = scaled.copy(crop);
+    painter.drawPixmap(rect(), *arrierePlan);
 }
 
 void MenuPrincipal::afficherTitre(QPainter &painter) {
-    if (titreSprite.isNull()) {
+    if (!titreSprite || titreSprite->isNull()) {
         return;
     }
 
-    const int frameW = titreSprite.width() / nombreImageTitre;
-    const int frameH = titreSprite.height();
+    const int frameW = titreSprite->width() / nombreImageTitre;
+    const int frameH = titreSprite->height();
 
     if (frameW > 0)
     {
@@ -185,7 +184,7 @@ void MenuPrincipal::afficherTitre(QPainter &painter) {
         int drawX = (width() - drawW) / 2;
         int drawY = positionTitreY;
 
-        painter.drawPixmap(QRect(drawX, drawY, drawW, drawH), titreSprite, src);
+        painter.drawPixmap(QRect(drawX, drawY, drawW, drawH), *titreSprite, src);
     }
     else
     {

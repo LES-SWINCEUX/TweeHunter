@@ -1,22 +1,22 @@
 #include "bouton.h"
 
-Bouton::Bouton(const QString& spritePath, int frameCount, QWidget* parent) : 
-    QWidget(parent),
-    sprite(QDir::currentPath() + spritePath),
-    images(frameCount)
+Bouton::Bouton(const QString& cheminSprite, int nombreImages, QWidget* parent)
+    : QWidget(parent),
+    sprite(SpriteManager::instance().getPixmap(QDir::currentPath() + cheminSprite)),
+    images(nombreImages)
 {
     setMouseTracking(true);
     setAttribute(Qt::WA_Hover, true);
-    if (sprite.isNull()) {
-        std::cout << "BOUTON::impossible de charger: " << QDir::currentPath().toStdString() << spritePath.toStdString() << std::endl;
+    if ((!sprite || sprite->isNull())) {
+        std::cout << "BOUTON::impossible de charger: " << QDir::currentPath().toStdString() << cheminSprite.toStdString() << std::endl;
     }
 
     updateTailleImage();
 }
 
-void Bouton::setNombreImages(int count)
+void Bouton::setNombreImages(int nombre)
 {
-    images = std::max(1, count);
+    images = std::max(1, nombre);
     updateTailleImage();
     update();
 }
@@ -30,10 +30,10 @@ void Bouton::setEchelle(float s)
 
 QSize Bouton::tailleImage() const
 {
-    if (sprite.isNull() || images <= 0) {
+    if ((!sprite || sprite->isNull()) || images <= 0) {
         return QSize(0, 0);
     }
-    return QSize(sprite.width() / images, sprite.height());
+    return QSize(sprite->width() / images, sprite->height());
 }
 
 void Bouton::updateTailleImage()
@@ -67,7 +67,7 @@ void Bouton::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
 
-    if (sprite.isNull() || images <= 0) {
+    if ((!sprite || sprite->isNull()) || images <= 0) {
         return;
     }
 
@@ -80,7 +80,7 @@ void Bouton::paintEvent(QPaintEvent*)
     }
 
     const QRect rectangleBouton = rectangeEtat(etat);
-    p.drawPixmap(rect(), sprite, rectangleBouton);
+    p.drawPixmap(rect(), *sprite, rectangleBouton);
 }
 
 void Bouton::enterEvent(QEnterEvent*)

@@ -2,9 +2,12 @@
 #define DECORATION_MENU_H
 
 #include "sprite.h"
-#include "animation_clock.h"
+#include "sprite_manager.h"
+#include "spritesheet.h"
 
 #include <QWidget>
+#include <QTimer>
+#include <QElapsedTimer>
 #include <QVector>
 #include <QRectF>
 #include <QPainter>
@@ -20,9 +23,9 @@ class DecorationMenu : public QWidget
 public:
     DecorationMenu(QWidget* parent = nullptr);
 
-    void setSprite(const QString& qrcPath);
+    void setSprite(const QString& cheminSprite);
     void setZones(const QVector<QRectF>& zones);
-    void setNombreDecorations(int n);
+    void setNombreImages(int nombre);
 
     void setFPS(int fps);
     void setCycle(int ms);
@@ -37,12 +40,13 @@ private:
     int colonnes = 4;
     int lignes = 3;
 
+    QTimer timerAnimation;
+    QElapsedTimer tempsEcouleAnimation;
+
     int fps = 30;
     int cycle = 1000;
 
-    qint64 m_timeMs = 0;
-
-    QRect zone(const QRectF& zn) const;
+    QRect zone(const QRectF& zone) const;
     void redessiner();
 };
 

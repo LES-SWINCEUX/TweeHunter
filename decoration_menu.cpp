@@ -4,18 +4,23 @@ DecorationMenu::DecorationMenu(QWidget* parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_TranslucentBackground);
 
-    connect(&AnimationClock::instance(), &AnimationClock::tick, this, [this](qint64 ms) {
-        m_timeMs = ms;
-        update();
-    });
+    tempsEcouleAnimation.start();
+
+    connect(&timerAnimation, &QTimer::timeout, this, [this]() { update(); });
     setFPS(fps);
-    setNombreDecorations(6);
+    setNombreImages(6);
 }
 
 void DecorationMenu::setFPS(int fps)
 {
     this->fps = std::max(1, fps);
-    AnimationClock::instance().start(this->fps);
+    timerAnimation.setInterval(1000 / fps);
+
+    if (timerAnimation.isActive()) {
+        return;
+    }
+
+    timerAnimation.start();
 }
 
 void DecorationMenu::setCycle(int ms)
@@ -27,29 +32,32 @@ void DecorationMenu::setCycle(int ms)
     update();
 }
 
-void DecorationMenu::setNombreDecorations(int n)
+void DecorationMenu::setNombreImages(int nombre)
 {
-    sprites.resize(std::max(0, n));
+    sprites.resize(std::max(0, nombre));
     redessiner();
     update();
 }
 
-void DecorationMenu::setSprite(const QString& qrcPath)
+void DecorationMenu::setSprite(const QString& cheminSprite)
 {
-    QPixmap sheet(QDir::currentPath() + qrcPath);
-    if (sheet.isNull()) {
-        std::cout << "MENU_DECORATION::impossible de charger ->" << qrcPath.toStdString() << std::endl;
+    QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(cheminSprite.startsWith(":/") ? cheminSprite : (QDir::currentPath() + cheminSprite));
+    if (!pix || pix->isNull()) {
+        std::cout << "MENU_DECORATION::impossible de charger ->" << cheminSprite.toStdString() << std::endl;
         return;
     }
 
+    SpriteSheet sheet(pix, colonnes, lignes);
+
     for (int i = 0; i < sprites.length(); i++) {
-        sprites[i].setSprite(sheet, colonnes, lignes);
+        sprites[i].setSprite(sheet);
         sprites[i].setCycle(cycle);
     }
 
     redessiner();
     update();
 }
+
 
 void DecorationMenu::setZones(const QVector<QRectF>& zones)
 {
@@ -65,13 +73,13 @@ void DecorationMenu::redessiner()
     }
 }
 
-QRect DecorationMenu::zone(const QRectF& zn) const
+QRect DecorationMenu::zone(const QRectF& zone) const
 {
     return QRect(
-        int(zn.x() * width()),
-        int(zn.y() * height()),
-        int(zn.width() * width()),
-        int(zn.height() * height())
+        int(zone.x() * width()),
+        int(zone.y() * height()),
+        int(zone.width() * width()),
+        int(zone.height() * height())
     );
 }
 
@@ -82,7 +90,7 @@ void DecorationMenu::paintEvent(QPaintEvent*)
     }
 
     QPainter p(this);
-    const qint64 ms = m_timeMs;
+    const qint64 ms = tempsEcouleAnimation.elapsed();
 
     const int count = std::min<int>(sprites.size(), zonesN.size());
 
@@ -90,9 +98,9 @@ void DecorationMenu::paintEvent(QPaintEvent*)
     {
         QRect target = zone(zonesN[i]);
 
-        float t = float(ms) / 1000.0f;
-        int bob = int(6.0f * qSin((t * 2.0f) + float(i) * 1.3f));
-        target.translate(0, bob);
+        float temps = float(ms) / 1000.0f;
+        int bonds = int(6.0f * qSin((temps * 2.0f) + float(i) * 1.3f));
+        target.translate(0, bonds);
 
         sprites[i].dessiner(p, target, ms, true);
     }
