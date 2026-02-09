@@ -1,0 +1,49 @@
+#ifndef BOUTTON_H
+#define BOUTTON_H
+
+#include <QWidget>
+#include <QPixmap>
+#include <QDir>
+#include <QPainter>
+#include <QMouseEvent>
+#include <QDebug>
+#include <iostream>
+
+class Bouton : public QWidget
+{
+    Q_OBJECT
+
+public:
+    Bouton(const QString& spritePath, int frameCount = 3, QWidget* parent = nullptr);
+
+    void setNombreImages(int count);
+    void setEchelle(float s);
+    QSize sizeHint() const override;
+
+signals:
+    void clicked();
+
+protected:
+    void paintEvent(QPaintEvent*) override;
+    void enterEvent(QEnterEvent*) override;
+    void leaveEvent(QEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+
+private:
+    enum class Etat { Normal = 0, Selectionne = 1, Clique = 2 };
+
+    QPixmap sprite;
+    int images = 3;
+    float echelle = 1.0f;
+
+    Etat etat = Etat::Normal;
+    bool selectionne = false;
+    bool clique = false;
+
+    QRect rectangeEtat(Etat s) const;
+    QSize tailleImage() const;
+    void updateTailleImage();
+};
+
+#endif
