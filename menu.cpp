@@ -166,29 +166,37 @@ void MenuPrincipal::afficherArrierePlan(QPainter &painter) {
     painter.drawPixmap(rect(), *arrierePlan);
 }
 
-void MenuPrincipal::afficherTitre(QPainter &painter) {
+void MenuPrincipal::afficherTitre(QPainter& painter) {
     if (!titreSprite || titreSprite->isNull()) {
         return;
     }
 
-    const int frameW = titreSprite->width() / nombreImageTitre;
-    const int frameH = titreSprite->height();
-
-    if (frameW > 0)
-    {
-        QRect src(indexImageTitre * frameW, 0, frameW, frameH);
-
-        int drawW = int(width() * echelleTitre);
-        int drawH = (drawW * frameH) / frameW;
-
-        int drawX = (width() - drawW) / 2;
-        int drawY = positionTitreY;
-
-        painter.drawPixmap(QRect(drawX, drawY, drawW, drawH), *titreSprite, src);
+    const int largeurImage = titreSprite->width() / nombreImageTitre;
+    const int hauteurImage = titreSprite->height();
+    if (largeurImage <= 0 || hauteurImage <= 0) {
+        return;
     }
-    else
-    {
-        painter.setPen(Qt::white);
-        painter.drawText(rect(), Qt::AlignCenter, "Invalid titleFrameCount");
+
+    QRect src(indexImageTitre * largeurImage, 0, largeurImage, hauteurImage);
+
+    const float largeurMax = width() * 0.7f;  
+    const float hauteurMax = height() * 0.4f; 
+
+    float largeur = largeurMax;
+    float hauteur = largeur * float(hauteurImage) / float(largeurImage);
+
+    if (hauteur > hauteurMax) {
+        hauteur = hauteurMax;
+        largeur = hauteur * float(largeurImage) / float(hauteurImage);
     }
+
+    const int positionX = (width() - int(largeur)) / 2;
+    int positionY = int(height() * 0.04f) - int(height() * 0.06f);
+    positionY = std::max(0, positionY);
+
+    painter.drawPixmap(
+        QRect(positionX, positionY, int(largeur), int(hauteur)),
+        *titreSprite,
+        src
+    );
 }

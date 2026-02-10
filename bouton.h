@@ -21,6 +21,7 @@ public:
     void setNombreImages(int nombre);
     void setEchelle(float s);
     QSize sizeHint() const override;
+    QSize tailleImage() const;
 
 signals:
     void clicked();
@@ -44,7 +45,6 @@ private:
     bool clique = false;
 
     QRect rectangeEtat(Etat s) const;
-    QSize tailleImage() const;
     void updateTailleImage();
 };
 

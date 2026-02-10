@@ -32,29 +32,46 @@ void PanneauPrincipal::creer()
     connect(boutonQuitter, &Bouton::clicked, this, &PanneauMenu::demanderQuitter);
 }
 
+static float clampf(float v, float lo, float hi)
+{
+    return std::max(lo, std::min(v, hi));
+}
+
 void PanneauPrincipal::positionner()
 {
+    std::vector<Bouton*> boutons = { boutonJouer, boutonScores, boutonOptions, boutonQuitter };
+    boutons.erase(std::remove(boutons.begin(), boutons.end(), nullptr), boutons.end());
+    if (boutons.empty()) return;
+
+    const QSize base = boutons.front()->tailleImage();
+    if (!base.isValid()) return;
+
+    const int nombreBoutons = int(boutons.size());
+
+    espacementBoutons = std::max(10, int(height() * 0.04f));
+
+    const float boutonHauteur = height() * 0.10f;
+    float nouvelleEchelle = boutonHauteur / float(base.height());
+
+    nouvelleEchelle = std::clamp(nouvelleEchelle, 0.25f, 1.2f);
+
+    for (Bouton* bouton : boutons) {
+        bouton->setEchelle(nouvelleEchelle);
+    }
+
     int hauteurTotale = 0;
-    int nombreBoutons = 0;
-
-    parametrerBoutons(boutonJouer, hauteurTotale, nombreBoutons);
-    parametrerBoutons(boutonScores, hauteurTotale, nombreBoutons);
-    parametrerBoutons(boutonOptions, hauteurTotale, nombreBoutons);
-    parametrerBoutons(boutonQuitter, hauteurTotale, nombreBoutons);
-
-    if (nombreBoutons > 1) {
-        hauteurTotale += espacementBoutons * (nombreBoutons - 1);
+    for (Bouton* bouton : boutons) {
+        hauteurTotale += bouton->height();
     }
-    if (nombreBoutons == 0) {
-        return;
-    }
+    hauteurTotale += espacementBoutons * (nombreBoutons - 1);
 
     int y = (height() - hauteurTotale) / 2;
 
-    positionnementBoutons(boutonJouer, y);
-    positionnementBoutons(boutonScores, y);
-    positionnementBoutons(boutonOptions, y);
-    positionnementBoutons(boutonQuitter, y);
+    for (auto* b : boutons) {
+        int x = (width() - b->width()) / 2;
+        b->move(x, y);
+        y += b->height() + espacementBoutons;
+    }
 }
 
 void PanneauPrincipal::parametrerBoutons(Bouton* bouton, int &hauteur, int &total) {

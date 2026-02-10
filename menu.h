@@ -39,8 +39,6 @@ private:
     PanneauMenu* panneau;
     DecorationMenu* cannettes = nullptr;
 
-    const float echelleTitre = 0.55f;
-    const int positionTitreY = -100;
     const int nombreImageTitre = 12;
     const int tempsAnimation = 1000;
     const int tempsAttenteAnimation = 9000;

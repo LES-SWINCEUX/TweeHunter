@@ -40,7 +40,7 @@ void Bouton::updateTailleImage()
 {
     const QSize tailleImage = this->tailleImage();
     if (tailleImage.isValid()) {
-        setFixedSize(int(tailleImage.width() * echelle), int(tailleImage.height() * echelle));
+        setFixedSize(qRound(tailleImage.width() * echelle), qRound(tailleImage.height() * echelle));
     }
 }
 
