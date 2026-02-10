@@ -23,15 +23,14 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
 
     panneau->setGeometry(zonePanneaux);
 
-    connect(panneau, &PanneauMenu::demanderJouer, this, []() {
-        std::cout << "Start game!" << std::endl;
-    });
     connect(panneau, &PanneauMenu::demanderScores, this, []() {
         std::cout << "Demande de scores!" << std::endl;
     });
+
     connect(panneau, &PanneauMenu::demanderOptions, this, []() {
         std::cout << "Demande d'options!" << std::endl;
     });
+
     connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
         qApp->quit();
     });
@@ -48,10 +47,40 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
     cannettes->show();
 
     cannettes->lower();
+
+    overlay = new FadeOverlay(this);
+    overlay->setGeometry(rect());
+    overlay->raise();
+    overlay->hide();
+
+    estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
+    estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+
+    connect(estompeAnimation, &QPropertyAnimation::finished,
+        this, &MenuPrincipal::jouerDemande);
+
+    connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
+        if (fadeEnCours) {
+            return;
+        }
+        fadeEnCours = true;
+
+        setEnabled(false);
+
+        overlay->setAlpha(0);
+        overlay->show();
+        overlay->raise();
+
+        estompeAnimation->stop();
+        estompeAnimation->setDuration(1000);
+        estompeAnimation->setStartValue(0);
+        estompeAnimation->setEndValue(255);
+
+        estompeAnimation->start();
+    });
 }
 
 MenuPrincipal::~MenuPrincipal() {
-    delete panneau;
 }
 
 void MenuPrincipal::paintEvent(QPaintEvent *event)
@@ -90,37 +119,42 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
         arrierePlanCache = scaled.copy(crop);
     }
 
-    if (!panneau) {
-        return;
+    if (panneau) {
+        int decalageY = int(height() * ratioPanneaux);
+
+        QRect zone(
+            0,
+            decalageY,
+            width(),
+            height() - decalageY
+        );
+
+        panneau->setGeometry(zone);
     }
 
-    int decalageY = int(height() * ratioPanneaux);
+    if (cannettes) {
 
-    QRect zone(
-        0,
-        decalageY,
-        width(),
-        height() - decalageY
-    );
+        cannettes->setGeometry(rect());
 
-    panneau->setGeometry(zone);
+        QVector<QRectF> zones = {
+            {0.116f, 0.067f, 0.131f, 0.161f}, // haut-gauche
+            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
 
-    if (!cannettes) return;
+            {0.075f, 0.336f, 0.165f, 0.209f}, // milieu-gauche
+            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
 
-    cannettes->setGeometry(rect());
+            {0.120f, 0.702f, 0.169f, 0.212f}, // bas-gauche
+            {0.742f, 0.718f, 0.162f, 0.217f}, // bas-droite
+        };
 
-    QVector<QRectF> zones = {
-        {0.116f, 0.067f, 0.131f, 0.161f}, // haut-gauche
-        {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
+        cannettes->setZones(zones);
+    }
 
-        {0.075f, 0.336f, 0.165f, 0.209f}, // milieu-gauche
-        {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
 
-        {0.120f, 0.702f, 0.169f, 0.212f}, // bas-gauche
-        {0.742f, 0.718f, 0.162f, 0.217f}, // bas-droite
-    };
-
-    cannettes->setZones(zones);
+    if (overlay) {
+        overlay->setGeometry(rect());
+        overlay->raise();
+    }
 }
 
 void MenuPrincipal::configuerAnimationTitre() {

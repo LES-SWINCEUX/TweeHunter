@@ -14,6 +14,9 @@ Bouton::Bouton(const QString& cheminSprite, int nombreImages, QWidget* parent)
     updateTailleImage();
 }
 
+Bouton::~Bouton() {
+}
+
 void Bouton::setNombreImages(int nombre)
 {
     images = std::max(1, nombre);

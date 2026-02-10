@@ -17,6 +17,7 @@ class Bouton : public QWidget
 
 public:
     Bouton(const QString& cheminSprite, int nombreImages = 3, QWidget* parent = nullptr);
+    ~Bouton();
 
     void setNombreImages(int nombre);
     void setEchelle(float s);
