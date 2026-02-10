@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "menu.h"
+#include "ecran_jeu.h"
 
 #include <QMainWindow>
 
@@ -19,5 +20,6 @@ public:
 
 private:
     MenuPrincipal* menuPrincipal = nullptr;
+    EcranJeu* ecranJeu = nullptr;
 };
 #endif

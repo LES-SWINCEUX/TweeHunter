@@ -6,10 +6,6 @@ PanneauPrincipal::PanneauPrincipal(QWidget* parent) : PanneauMenu(parent)
 }
 
 PanneauPrincipal::~PanneauPrincipal() {
-    delete boutonJouer;
-    delete boutonScores;
-    delete boutonOptions;
-    delete boutonQuitter;
 }
 
 void PanneauPrincipal::creer()
