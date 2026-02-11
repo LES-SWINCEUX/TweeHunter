@@ -1,5 +1,5 @@
-#ifndef MENU_PRINCIPAL_H
-#define MENU_PRINCIPAL_H
+#ifndef RETICULE_H
+#define RETICULE_H
 
 #include <QWidget>
 #include <QPixmap>
@@ -22,6 +22,10 @@ public:
 
 	Reticule(QWidget* parent = nullptr);
 	~Reticule();
+	void setPosition(const QPoint& pos);
+
+protected:
+	void paintEvent(QPaintEvent* event) override;
 
 private:
 

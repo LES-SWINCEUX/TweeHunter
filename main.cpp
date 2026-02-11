@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 
     w.setWindowTitle("TweeHunter");
     w.showMaximized();
+    //w.showFullScreen();
 
     return a.exec();
 }

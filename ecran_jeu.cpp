@@ -31,7 +31,11 @@ EcranJeu::EcranJeu(QWidget* parent)
     fadeInAnim->setEndValue(0);
 
 	//ajout à enlever apres test
-	Reticule* reticule = new Reticule(this);
+    setCursor(Qt::BlankCursor);
+    setMouseTracking(true);
+	reticule = new Reticule(this);
+    reticule->show();
+
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
@@ -80,4 +84,9 @@ void EcranJeu::paintEvent(QPaintEvent*)
     else {
         painter.fillRect(rect(), Qt::black);
     }
+}
+
+void EcranJeu::mouseMoveEvent(QMouseEvent* event)
+{
+    reticule->setPosition(event->pos());
 }
