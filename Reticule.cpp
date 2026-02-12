@@ -1,6 +1,6 @@
 #include "Reticule.h"
 
-Reticule::Reticule(QWidget* parent) : QWidget(parent)
+Reticule::Reticule(QWidget* parent, const QPoint& pos) : QWidget(parent)
 {
 	setAttribute(Qt::WA_TransparentForMouseEvents);
 	setAttribute(Qt::WA_NoSystemBackground);
@@ -22,9 +22,10 @@ Reticule::Reticule(QWidget* parent) : QWidget(parent)
 	//QPixmap scaled = original.scaled(newWidth, newHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 
+
 	setFixedSize(image.size());
 	resize(parent->size());
-
+	setPosition(pos);
 }
 
 Reticule::~Reticule() {

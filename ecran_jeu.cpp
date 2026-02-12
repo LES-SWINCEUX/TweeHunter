@@ -5,6 +5,7 @@
 
 #include "Reticule.h"
 
+
 EcranJeu::EcranJeu(QWidget* parent)
     : QWidget(parent)
 {
@@ -30,10 +31,15 @@ EcranJeu::EcranJeu(QWidget* parent)
     fadeInAnim->setStartValue(255);
     fadeInAnim->setEndValue(0);
 
+
+
 	//ajout à enlever apres test
+    QPoint pos = QCursor::pos();
+	pos = mapFromGlobal(pos);
+
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-	reticule = new Reticule(this);
+	reticule = new Reticule(this,pos);
     reticule->show();
 
 

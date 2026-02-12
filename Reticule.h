@@ -13,6 +13,9 @@
 #include <iostream>
 #include <algorithm>
 
+#include <QCursor>
+#include <QPoint>
+
 using namespace std;
 
 class Reticule : public QWidget
@@ -20,7 +23,7 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule(QWidget* parent = nullptr);
+	Reticule(QWidget* parent, const QPoint& pos);
 	~Reticule();
 	void setPosition(const QPoint& pos);
 
@@ -30,8 +33,6 @@ protected:
 private:
 
 	QPixmap image;
-
-
 
 };
 
