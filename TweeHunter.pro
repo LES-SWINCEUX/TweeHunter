@@ -4,6 +4,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17 console
 
+INCLUDEPATH += $$PWD/SDL3/SDL3-3.4.0/include
+
+LIBS += -L$$PWD/SDL3/SDL3-3.4.0/lib/x64 \
+        -lSDL3
+
 SOURCES += \
     main.cpp \
     main_window.cpp \
