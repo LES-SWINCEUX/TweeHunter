@@ -15,6 +15,9 @@
 
 #include <QCursor>
 #include <QPoint>
+#include <string>
+
+#include "Variete.h"
 
 using namespace std;
 
@@ -23,9 +26,11 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule(QWidget* parent, const QPoint& pos);
+	Reticule();
+	Reticule(QWidget* parent, const QPoint& pos, int choix);
 	~Reticule();
 	void setPosition(const QPoint& pos);
+	string getPath(int choix) const;
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

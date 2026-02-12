@@ -21,7 +21,8 @@ SOURCES += \
     sprite_manager.cpp \
     ecran_jeu.cpp \
     fade_overlay.cpp \
-    Reticule.cpp
+    Reticule.cpp \
+    Variete.cpp
 
 HEADERS += \
     main_window.h \
@@ -35,7 +36,8 @@ HEADERS += \
     sprite_manager.h \
     ecran_jeu.h \
     fade_overlay.h \
-    Reticule.h
+    Reticule.h \
+    Variete.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

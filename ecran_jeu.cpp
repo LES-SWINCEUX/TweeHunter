@@ -32,37 +32,70 @@ EcranJeu::EcranJeu(QWidget* parent)
     fadeInAnim->setEndValue(0);
 
 
-
+    
 	//ajout à enlever apres test
     QPoint pos = QCursor::pos();
 	pos = mapFromGlobal(pos);
 
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-	reticule = new Reticule(this,pos);
+	reticule = new Reticule(this,pos,2); // création du réticule sur la sourie + choix du réticule
     reticule->show();
 
     //Partie joystick de test
+    // --- 1. Initialiser SDL ---
+    if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
+    {
+        qDebug() << "Erreur SDL:" << SDL_GetError();
+        return;
+    }
+    
+    // --- 2. Détecter les manettes ---
+    int count = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&count); // Liste des gamepads
+    qDebug() << "Nombre de manettes détectées:" << count;
+
     SDL_Gamepad* gamepad = nullptr;
 
-    int count = 0;
-    SDL_GetGamepads(&count);
-
-    if (count > 0)
+    if (ids && count > 0)
     {
-        gamepad = SDL_OpenGamepad(0);
-        qDebug() << "Manette ouverte !";
+        // Ouvrir la première manette
+        gamepad = SDL_OpenGamepad(ids[0]);
+        if (gamepad)
+            cout << "Manette ouverte !";
+        else
+            cout << "Erreur ouverture:" << SDL_GetError();
+
+        SDL_free(ids); // libérer la mémoire retournée par SDL_GetGamepads
     }
-    else
-    {
-        qDebug() << "Aucune manette détectée";
+    else {
+        cout << "Nope" << endl;
+
     }
+    
+    
+    // --- 3. Lire le joystick régulièrement ---
+    QTimer* timer = new QTimer(this);
+    timer->start(16); // ~60 Hz
 
+    connect(timer, &QTimer::timeout, this, [=]() {
+        if (!gamepad) return;
 
+        SDL_UpdateGamepads();
 
+        float x = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
+        float y = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
 
+        // Deadzone
+        if (std::fabs(x) < 0.1f) x = 0;
+        if (std::fabs(y) < 0.1f) y = 0;
+
+        qDebug() << "X:" << x << "Y:" << y;
+        });
+
+    
     //Fin de la zone de test
-
+    
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
 {
     qDebug() << "Erreur SDL:" << SDL_GetError();

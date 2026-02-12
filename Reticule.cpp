@@ -1,17 +1,21 @@
 #include "Reticule.h"
 
-Reticule::Reticule(QWidget* parent, const QPoint& pos) : QWidget(parent)
+Reticule::Reticule() {
+}
+
+Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(parent)
 {
 	setAttribute(Qt::WA_TransparentForMouseEvents);
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AlwaysStackOnTop);
 
-	image = QPixmap(QDir::currentPath() + "/images/reticules/reticule.png");
+	image = QPixmap(QString::fromStdString(getPath(choix)));
 	if (image.isNull()) {
 		cout << "RETICULE::impossible de charger: "<<endl;
+		cout << getPath(1) << endl;
 	}
 	else {
-		//cout << "Perfect" << endl;
+		cout << "RETICULE::chargement réussi: " << endl;
 	}
 
 	//Si je voulais redimentionner l'image du reticule:
@@ -29,6 +33,13 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos) : QWidget(parent)
 }
 
 Reticule::~Reticule() {
+}
+
+string Reticule::getPath(int choix) const
+{
+	Variete v;
+
+	return v.findpath(choix);
 }
 
 void Reticule::setPosition(const QPoint& pos)

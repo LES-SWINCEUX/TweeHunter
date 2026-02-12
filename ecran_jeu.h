@@ -16,6 +16,7 @@
 #include <SDL3/SDL.h>
 #include <QTimer>
 #include <QDebug>
+#include <cmath>
 
 class EcranJeu : public QWidget
 {
@@ -44,6 +45,8 @@ private:
     
     Reticule* reticule;
 
+
+    SDL_Gamepad* gamepad = nullptr;
 };
 
 #endif
