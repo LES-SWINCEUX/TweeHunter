@@ -22,7 +22,8 @@ SOURCES += \
     ecran_jeu.cpp \
     fade_overlay.cpp \
     Reticule.cpp \
-    Variete.cpp
+    Variete.cpp \
+    Touches.cpp
 
 HEADERS += \
     main_window.h \
@@ -37,7 +38,8 @@ HEADERS += \
     ecran_jeu.h \
     fade_overlay.h \
     Reticule.h \
-    Variete.h
+    Variete.h \
+    Touches.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

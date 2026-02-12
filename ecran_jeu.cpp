@@ -43,6 +43,7 @@ EcranJeu::EcranJeu(QWidget* parent)
     reticule->show();
 
     //Partie joystick de test
+    /*
     // --- 1. Initialiser SDL ---
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
     {
@@ -93,7 +94,7 @@ EcranJeu::EcranJeu(QWidget* parent)
         qDebug() << "X:" << x << "Y:" << y;
         });
 
-    
+    */
     //Fin de la zone de test
     
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)

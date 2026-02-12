@@ -18,6 +18,7 @@
 #include <string>
 
 #include "Variete.h"
+#include "Touches.h"
 
 using namespace std;
 
@@ -26,7 +27,6 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule();
 	Reticule(QWidget* parent, const QPoint& pos, int choix);
 	~Reticule();
 	void setPosition(const QPoint& pos);
@@ -38,6 +38,16 @@ protected:
 private:
 
 	QPixmap image;
+	Touches touches;
+	int xj;
+	int yj;
+
+	int xini;
+	int yini;
+
+	int posX;
+	int posY;
+
 
 };
 
