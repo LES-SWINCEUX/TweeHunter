@@ -34,7 +34,6 @@ protected:
     void mousePressEvent(QMouseEvent*) override;
     void mouseReleaseEvent(QMouseEvent*) override;
 
-private:
     enum class Etat { Normal = 0, Selectionne = 1, Clique = 2 };
 
     QSharedPointer<QPixmap> sprite;
