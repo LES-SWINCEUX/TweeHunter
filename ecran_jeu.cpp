@@ -33,6 +33,11 @@ EcranJeu::EcranJeu(QWidget* parent)
         });
 }
 
+EcranJeu::~EcranJeu()
+{
+    delete jeu;
+}
+
 void EcranJeu::showEvent(QShowEvent* e)
 {
     QWidget::showEvent(e);
@@ -47,6 +52,9 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->stop();
         fadeInAnim->start();
     }
+    if (!jeu) {
+        jeu = new Jeu(size());
+    }
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -58,10 +66,16 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         overlay->setGeometry(rect());
         overlay->raise();
     }
+    if(jeu) {
+        jeu->setTailleEcran(size());
+	}
 }
 
 void EcranJeu::tick()
 {
+    if (jeu) {
+		jeu->update(elapsed.elapsed());
+    }
     update();
 }
 
@@ -74,5 +88,8 @@ void EcranJeu::paintEvent(QPaintEvent*)
     }
     else {
         painter.fillRect(rect(), Qt::black);
+    }
+    if (jeu) {
+		jeu->dessiner(painter, elapsed.elapsed()); 
     }
 }

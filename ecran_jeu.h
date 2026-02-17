@@ -11,6 +11,7 @@
 #include <QPixmap>
 
 #include "fade_overlay.h"
+#include "jeu.h"
 
 class EcranJeu : public QWidget
 {
@@ -18,6 +19,7 @@ class EcranJeu : public QWidget
 
 public:
     explicit EcranJeu(QWidget* parent = nullptr);
+    ~EcranJeu();
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -34,6 +36,8 @@ private:
     QPropertyAnimation* fadeInAnim = nullptr;
 
     QPixmap background;
+
+    Jeu* jeu = nullptr;
 };
 
 #endif
