@@ -174,7 +174,7 @@ void Jeu::initialiserCiblesParDefaut()
 	ajouterTypeCible(mixte);
 
 	DefinitionTarget legendaire;
-	legendaire.cheminSprite = "/Sprites/golden_twisted_tea.png";
+	legendaire.cheminSprite = "/images/sprites/golden_twisted_tea.png";
 	legendaire.colonnesSprite = 4;
 	legendaire.lignesSprite = 3;
 	legendaire.cycleAnimation = 800;
