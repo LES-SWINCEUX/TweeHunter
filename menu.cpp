@@ -7,33 +7,12 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
 
-    panneau = new PanneauPrincipal(this);
-
     if (!arrierePlan || arrierePlan->isNull()) {
         std::cout << "MENU::Arrière plan non-chargé";
     }
     if (!titreSprite || titreSprite->isNull()) {
         std::cout << "MENU::Titre non-chargé";
     }
-
-    int decalageY = int(height() * ratioPanneaux);
-
-    QRect zonePanneaux = rect();
-    zonePanneaux.setTop(zonePanneaux.top() + decalageY);
-
-    panneau->setGeometry(zonePanneaux);
-
-    connect(panneau, &PanneauMenu::demanderScores, this, []() {
-        std::cout << "Demande de scores!" << std::endl;
-    });
-
-    connect(panneau, &PanneauMenu::demanderOptions, this, []() {
-        std::cout << "Demande d'options!" << std::endl;
-    });
-
-    connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
-        qApp->quit();
-    });
 
     configuerAnimationTitre();
 
@@ -53,31 +32,23 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
     overlay->raise();
     overlay->hide();
 
+    joueurMusique = new QMediaPlayer(this);
+    musiqueMenu = new QAudioOutput(this);
+
+    joueurMusique->setAudioOutput(musiqueMenu);
+    joueurMusique->setSource(QUrl::fromLocalFile(QDir::currentPath() + "/sounds/menu/track_2.mp3"));
+    musiqueMenu->setVolume(this->volumeMax);
+    joueurMusique->play();
+
     estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+
+    estompeMusique = new QPropertyAnimation(musiqueMenu, "volume");
 
     connect(estompeAnimation, &QPropertyAnimation::finished,
         this, &MenuPrincipal::jouerDemande);
 
-    connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
-        if (fadeEnCours) {
-            return;
-        }
-        fadeEnCours = true;
-
-        setEnabled(false);
-
-        overlay->setAlpha(0);
-        overlay->show();
-        overlay->raise();
-
-        estompeAnimation->stop();
-        estompeAnimation->setDuration(1000);
-        estompeAnimation->setStartValue(0);
-        estompeAnimation->setEndValue(255);
-
-        estompeAnimation->start();
-    });
+    afficherPanneauPrincipal();
 }
 
 MenuPrincipal::~MenuPrincipal() {
@@ -233,4 +204,79 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
         *titreSprite,
         src
     );
+}
+
+void MenuPrincipal::afficherOptions() {
+    PanneauMenu* ancienPanneau = panneau;
+
+    panneau = new PanneauOptions(musiqueMenu, this->volumeMax, this);
+
+    panneau->setGeometry(ancienPanneau->geometry());
+
+    ancienPanneau->hide();
+    
+    panneau->show();
+    panneau->raise();
+
+    ancienPanneau->deleteLater();
+
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
+}
+
+void MenuPrincipal::afficherPanneauPrincipal() {
+    PanneauMenu* ancienPanneau = panneau;
+
+    panneau = new PanneauPrincipal(this);
+
+    int decalageY = int(height() * ratioPanneaux);
+
+    QRect zonePanneaux = rect();
+    zonePanneaux.setTop(zonePanneaux.top() + decalageY);
+
+    panneau->setGeometry(zonePanneaux);
+
+    if (ancienPanneau != nullptr) {
+        ancienPanneau->hide();
+
+        panneau->show();
+        panneau->raise();
+
+        ancienPanneau->deleteLater();
+    }
+
+    connect(panneau, &PanneauMenu::demanderScores, this, []() {
+        std::cout << "Demande de scores!" << std::endl;
+        });
+
+    connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
+
+    connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
+        qApp->quit();
+    });
+
+    connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
+        if (fadeEnCours) {
+            return;
+        }
+        fadeEnCours = true;
+
+        setEnabled(false);
+
+        overlay->setAlpha(0);
+        overlay->show();
+        overlay->raise();
+
+        estompeAnimation->stop();
+        estompeAnimation->setDuration(1000);
+        estompeAnimation->setStartValue(0);
+        estompeAnimation->setEndValue(255);
+
+        estompeMusique->setDuration(1000);
+        estompeMusique->setStartValue(musiqueMenu->volume());
+        estompeMusique->setEndValue(0.0);
+
+        estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+
+        estompeAnimation->start();
+    });
 }

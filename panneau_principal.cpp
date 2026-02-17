@@ -6,6 +6,7 @@ PanneauPrincipal::PanneauPrincipal(QWidget* parent) : PanneauMenu(parent)
 }
 
 PanneauPrincipal::~PanneauPrincipal() {
+    std::cout << "Panneau Principal détuit" << std::endl;
 }
 
 void PanneauPrincipal::creer()

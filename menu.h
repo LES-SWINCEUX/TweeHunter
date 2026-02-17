@@ -2,6 +2,7 @@
 #define MENU_PRINCIPAL_H
 
 #include "panneau_principal.h"
+#include "panneau_options.h"
 #include "decoration_menu.h"
 #include "sprite_manager.h"
 #include "fade_overlay.h"
@@ -15,6 +16,8 @@
 #include <QElapsedTimer>
 #include <QResizeEvent>
 #include <QPropertyAnimation>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 #include <iostream>
 #include <algorithm>
 
@@ -41,11 +44,15 @@ private:
 
     QTimer timerAnimationTitre;
 
+    QMediaPlayer* joueurMusique = nullptr;
+    QAudioOutput* musiqueMenu = nullptr;
+
     FadeOverlay* overlay = nullptr;
 
     QPropertyAnimation* estompeAnimation = nullptr;
+    QPropertyAnimation* estompeMusique = nullptr;
 
-    PanneauMenu* panneau;
+    PanneauMenu* panneau = nullptr;
 
     DecorationMenu* cannettes = nullptr;
 
@@ -54,6 +61,7 @@ private:
     const int tempsAttenteAnimation = 9000;
 
     const float ratioPanneaux = 0.25f;
+    const float volumeMax = 0.025f;
 
     int indexImageTitre = 0;
     int imagesAffichees = 0;
@@ -66,6 +74,8 @@ private:
     void configuerAnimationTitre();
     void afficherArrierePlan(QPainter &painter);
     void afficherTitre(QPainter &painter);
+    void afficherOptions();
+    void afficherPanneauPrincipal();
 };
 
 #endif
