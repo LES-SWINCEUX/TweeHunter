@@ -6,8 +6,9 @@ GestionnaireAudio::GestionnaireAudio(QObject* parent) : QObject(parent)
     musicPlayer = new QMediaPlayer(this);
 
     musicPlayer->setAudioOutput(musicOutput);
-    musicOutput->setVolume(this->volumeMax);
-    musicVolumeSetting = 1.0f;
+    musicOutput->setVolume(this->maxMusicVolume);
+    musicVolume = 1.0f;
+    sfxVolume = 1.0f;
 
     connect(musicPlayer, &QMediaPlayer::mediaStatusChanged,
         this, &GestionnaireAudio::onMediaFinished);
@@ -49,20 +50,20 @@ void GestionnaireAudio::setMusicVolume(float v)
     else if (v <= 0.0f) {
         parsedVolume = 0.0f;
     }
-    this->musicVolumeSetting = v;
-    musicOutput->setVolume(v * this->volumeMax);
+    this->musicVolume = v;
+    musicOutput->setVolume(v * this->maxMusicVolume);
 }
 
 float GestionnaireAudio::getMusicVolume() const {
-    return musicOutput->volume() / this->volumeMax;
+    return musicOutput->volume() / this->maxMusicVolume;
 }
 
 float GestionnaireAudio::getMusicVolumeSetting() const {
-    return this->musicVolumeSetting;
+    return this->musicVolume;
 }
 
 float GestionnaireAudio::getMaxMusicVolume() const {
-    return this->volumeMax;
+    return this->maxMusicVolume;
 }
 
 void GestionnaireAudio::stopMusic()
@@ -108,10 +109,29 @@ void GestionnaireAudio::playSfx(QString name)
 
 void GestionnaireAudio::setSfxVolume(float v)
 {
-    sfxVolume = v;
-    for (QSoundEffect* sound : sfx) {
-        sound->setVolume(v);
+    float parsedVolume = v;
+    if (v >= 1.0f) {
+        parsedVolume = 1.0f;
     }
+    else if (v <= 0.0f) {
+        parsedVolume = 0.0f;
+    }
+    sfxVolume = parsedVolume;
+    for (QSoundEffect* sound : sfx) {
+        sound->setVolume(parsedVolume * this->maxSfxVolume);
+    }
+}
+
+float GestionnaireAudio::getSfxVolume() const {
+    return this->sfxVolume;
+}
+
+float GestionnaireAudio::getSfxVolumeSetting() const {
+    return this->sfxVolume * this->maxSfxVolume;
+}
+
+float GestionnaireAudio::getMaxSfxVolume() const {
+    return this->maxSfxVolume;
 }
 
 void GestionnaireAudio::setMusicVolumeAnimation(float v) {
@@ -122,5 +142,5 @@ void GestionnaireAudio::setMusicVolumeAnimation(float v) {
     else if (v <= 0.0f) {
         parsedVolume = 0.0f;
     }
-    musicOutput->setVolume(v * this->volumeMax);
+    musicOutput->setVolume(v * this->maxMusicVolume);
 }

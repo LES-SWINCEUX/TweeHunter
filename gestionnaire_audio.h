@@ -7,7 +7,7 @@
 #include <QSoundEffect>
 #include <QMap>
 
-enum AudioMode { MENU, JEU };
+enum AudioMode { MUSIQUE, SFX };
 
 class GestionnaireAudio : public QObject
 {
@@ -29,17 +29,22 @@ public:
     void stopAndClearMusic();
 
     // SFX
-    void addSfx(QString name, QString path);
-    void playSfx(QString name);
-    void setSfxVolume(float v);
+    void addSFX(QString name, QString path);
+    void playSFX(QString name);
+    void setSFXVolume(float v);
+    float getSFXVolume() const;
+    float getSFXVolumeSetting() const;
+    float getMaxSFXVolume() const;
 
 private slots:
     void onMediaFinished(QMediaPlayer::MediaStatus status);
 
 private:
-    const float volumeMax = 0.025f;
+    const float maxMusicVolume = 0.025f;
+    const float maxSFXVolume = 0.025f;
 
-    float musicVolumeSetting = 0.0f;
+    float musicVolume = 0.0f;
+    float sfxVolume = 0.0f;
 
     QMediaPlayer* musicPlayer;
     QAudioOutput* musicOutput;
@@ -48,7 +53,6 @@ private:
     int index = 0;
 
     QMap<QString, QSoundEffect*> sfx;
-    float sfxVolume = 0.5f;
 
     void setMusicVolumeAnimation(float v);
 };

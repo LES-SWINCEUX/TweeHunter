@@ -1,13 +1,14 @@
 ﻿#include "volume_bouton.h"
 
-VolumeBouton::VolumeBouton(const QString& cheminBouton, GestionnaireAudio* gestionnaireAudio, QWidget* parent)
+VolumeBouton::VolumeBouton(const QString& cheminBouton, GestionnaireAudio* gestionnaireAudio, AudioMode mode, QWidget* parent)
     : Bouton(cheminBouton, 3, parent)
 {
     this->gestionnaireAudio = gestionnaireAudio;
-    this->volume_ = this->gestionnaireAudio->getMusicVolume();
+    this->volume = this->gestionnaireAudio->getMusicVolume();
+    this->mode = mode;
     // Petit comportement pratique: cliquer fait cycler le volume.
     connect(this, &Bouton::clicked, this, [this]() {
-        float v = volume_ + (1.0f / volumeBars);
+        float v = volume + (1.0f / volumeBars);
         if (v > 0.9f && v < 1.0f) {
             v = 1.0f;
         }
@@ -20,8 +21,12 @@ VolumeBouton::VolumeBouton(const QString& cheminBouton, GestionnaireAudio* gesti
 
 void VolumeBouton::setVolume(float v)
 {
-    this->volume_ = v;
-    this->gestionnaireAudio->setMusicVolume(v);
+    this->volume = v;
+    if (this->mode == MUSIQUE) {
+        this->gestionnaireAudio->setMusicVolume(v);
+        return;
+    }
+    this->gestionnaireAudio->setSfxVolume(v);
 }
 
 void VolumeBouton::paintEvent(QPaintEvent* e)
@@ -53,7 +58,7 @@ void VolumeBouton::paintEvent(QPaintEvent* e)
 
     // -------- Barres de volume --------
     {
-        const float v = parseVolume(volume_);
+        const float v = parseVolume(volume);
         const int filled = int(qRound(v * volumeBars));
 
         const int gap = qMax(3, int(barsRect.width() * 0.03));

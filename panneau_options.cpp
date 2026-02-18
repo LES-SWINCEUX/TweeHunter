@@ -12,11 +12,13 @@ PanneauOptions::~PanneauOptions() {
 
 void PanneauOptions::creer()
 {
-    volumeSFX = new VolumeBouton("/images/menu/sfx_spritesheet.png", this->gestionnaireAudio, this);
+    volumeSFX = new VolumeBouton("/images/menu/sfx_spritesheet.png", this->gestionnaireAudio, SFX, this);
     volumeSFX->setEchelle(echelleBoutons);
+
     retourBouton = new Bouton("/images/menu/retour_spritesheet.png", 3, this);
     retourBouton->setEchelle(echelleBoutons);
-    volumeMusique = new VolumeBouton("/images/menu/musique_spritesheet.png", this->gestionnaireAudio, this);
+
+    volumeMusique = new VolumeBouton("/images/menu/musique_spritesheet.png", this->gestionnaireAudio, MUSIQUE, this);
     volumeMusique->setEchelle(echelleBoutons);
 
     connect(retourBouton, &Bouton::clicked, this, &PanneauMenu::demanderRetourOptions);
