@@ -4,12 +4,13 @@
 #include "panneau_menu.h"
 #include "bouton.h"
 #include "volume_bouton.h"
+#include "gestionnaire_audio.h"
 
 class PanneauOptions : public PanneauMenu
 {
     Q_OBJECT
 public:
-    PanneauOptions(QAudioOutput* mixeurVolume, float volumeMax, QWidget* parent = nullptr);
+    PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
     ~PanneauOptions();
 
 protected:
@@ -17,13 +18,14 @@ protected:
     void positionner() override;
 
 private:
-    QAudioOutput* mixeurVolume = nullptr;
+    VolumeBouton* volumeSFX = nullptr;
     Bouton* retourBouton = nullptr;
-    VolumeBouton* volume = nullptr;
+    VolumeBouton* volumeMusique = nullptr;
+
+    GestionnaireAudio* gestionnaireAudio = nullptr;
 
     int espacementBoutons = std::max(10, int(height() * 0.04f));
     float echelleBoutons = 0.7f;
-    float volumeMax = 0.0f;
 };
 
 #endif

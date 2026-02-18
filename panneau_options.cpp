@@ -1,9 +1,8 @@
 ﻿#include "panneau_options.h"
 
-PanneauOptions::PanneauOptions(QAudioOutput* mixeurVolume, float volumeMax, QWidget* parent) : PanneauMenu(parent)
+PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent) : PanneauMenu(parent)
 {
-    this->volumeMax = volumeMax;
-    this->mixeurVolume = mixeurVolume;
+    this->gestionnaireAudio = gestionnaireAudio;
     initialiserPanneau();
 }
 
@@ -13,10 +12,14 @@ PanneauOptions::~PanneauOptions() {
 
 void PanneauOptions::creer()
 {
+    volumeSFX = new VolumeBouton("/images/menu/sfx_spritesheet.png", this->gestionnaireAudio, SFX, this);
+    volumeSFX->setEchelle(echelleBoutons);
+
     retourBouton = new Bouton("/images/menu/retour_spritesheet.png", 3, this);
     retourBouton->setEchelle(echelleBoutons);
-    volume = new VolumeBouton("/images/menu/musique_spritesheet.png", this->mixeurVolume, this->volumeMax, this);
-    volume->setEchelle(echelleBoutons);
+
+    volumeMusique = new VolumeBouton("/images/menu/musique_spritesheet.png", this->gestionnaireAudio, MUSIQUE, this);
+    volumeMusique->setEchelle(echelleBoutons);
 
     connect(retourBouton, &Bouton::clicked, this, &PanneauMenu::demanderRetourOptions);
 }
@@ -28,12 +31,16 @@ static float clampf(float v, float lo, float hi)
 
 void PanneauOptions::positionner()
 {
-    std::vector<Bouton*> boutons = { volume, retourBouton };
+    std::vector<Bouton*> boutons = { volumeMusique, volumeSFX, retourBouton };
     boutons.erase(std::remove(boutons.begin(), boutons.end(), nullptr), boutons.end());
-    if (boutons.empty() || !volume) return;
+    if (boutons.empty() || !volumeMusique) {
+        return;
+    }
 
     const QSize base = boutons.front()->tailleImage();
-    if (!base.isValid()) return;
+    if (!base.isValid()) {
+        return;
+    }
 
     espacementBoutons = std::max(10, int(height() * 0.04f));
 
@@ -41,19 +48,22 @@ void PanneauOptions::positionner()
     float nouvelleEchelle = boutonHauteur / float(base.height());
     nouvelleEchelle = std::clamp(nouvelleEchelle, 0.25f, 1.2f);
 
-    for (Bouton* bouton : boutons)
+    for (Bouton* bouton : boutons) {
         bouton->setEchelle(nouvelleEchelle);
+    }
 
     int hauteurTotale = 0;
-    for (Bouton* bouton : boutons) hauteurTotale += bouton->height();
-    hauteurTotale += volume->height();
+    for (Bouton* bouton : boutons) {
+        hauteurTotale += bouton->height();
+    }
+
     hauteurTotale += espacementBoutons * (int(boutons.size()));
 
     int y = (height() - hauteurTotale) / 2;
 
-    for (auto* b : boutons) {
-        int x = (width() - b->width()) / 2;
-        b->move(x, y);
-        y += b->height() + espacementBoutons;
+    for (Bouton* bouton : boutons) {
+        int x = (width() - bouton->width()) / 2;
+        bouton->move(x, y);
+        y += bouton->height() + espacementBoutons;
     }
 }

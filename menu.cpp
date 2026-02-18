@@ -1,11 +1,13 @@
 ﻿#include "menu.h"
 
-MenuPrincipal::MenuPrincipal(QWidget *parent) : 
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *parent) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
+
+    this->gestionnaireAudio = gestionnaireAudio;
 
     if (!arrierePlan || arrierePlan->isNull()) {
         std::cout << "MENU::Arrière plan non-chargé";
@@ -32,18 +34,22 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
     overlay->raise();
     overlay->hide();
 
-    joueurMusique = new QMediaPlayer(this);
-    musiqueMenu = new QAudioOutput(this);
+    if (this->gestionnaireAudio != nullptr) {
+        this->gestionnaireAudio->setPlaylist({
+            QDir::currentPath() + "/sounds/menu/track_2.mp3",
+            QDir::currentPath() + "/sounds/menu/track_1.mp3",
+            QDir::currentPath() + "/sounds/menu/track_3.mp3"
+        });
 
-    joueurMusique->setAudioOutput(musiqueMenu);
-    joueurMusique->setSource(QUrl::fromLocalFile(QDir::currentPath() + "/sounds/menu/track_2.mp3"));
-    musiqueMenu->setVolume(this->volumeMax);
-    joueurMusique->play();
+        this->gestionnaireAudio->playMusic();
+    }
 
     estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
 
-    estompeMusique = new QPropertyAnimation(musiqueMenu, "volume");
+    if (this->gestionnaireAudio != nullptr) {
+        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+    }
 
     connect(estompeAnimation, &QPropertyAnimation::finished,
         this, &MenuPrincipal::jouerDemande);
@@ -209,7 +215,7 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 void MenuPrincipal::afficherOptions() {
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauOptions(musiqueMenu, this->volumeMax, this);
+    panneau = new PanneauOptions(this->gestionnaireAudio, this);
 
     panneau->setGeometry(ancienPanneau->geometry());
 
@@ -271,11 +277,13 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         estompeAnimation->setStartValue(0);
         estompeAnimation->setEndValue(255);
 
-        estompeMusique->setDuration(1000);
-        estompeMusique->setStartValue(musiqueMenu->volume());
-        estompeMusique->setEndValue(0.0);
+        if (this->gestionnaireAudio != nullptr) {
+            estompeMusique->setDuration(1000);
+            estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
+            estompeMusique->setEndValue(0.0);
 
-        estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+            estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+        }
 
         estompeAnimation->start();
     });

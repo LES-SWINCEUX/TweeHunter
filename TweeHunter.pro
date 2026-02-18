@@ -21,7 +21,8 @@ SOURCES += \
     jeu.cpp \
     mouvement.cpp \
     randomiser.cpp \
-    target.cpp
+    target.cpp \
+    gestionnaire_audio.cpp
 
 HEADERS += \
     main_window.h \
@@ -40,7 +41,8 @@ HEADERS += \
     jeu.h \
     mouvement.h \
     randomiser.h \
-    target.h
+    target.h \
+    gestionnaire_audio.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

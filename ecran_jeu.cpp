@@ -3,17 +3,33 @@
 #include <QPainter>
 #include <algorithm>
 
-EcranJeu::EcranJeu(QWidget* parent)
+EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     : QWidget(parent)
 {
+    this->gestionnaireAudio = gestionnaireAudio;
+    if (gestionnaireAudio != nullptr) {
+        gestionnaireAudio->stopAndClearMusic();
+        gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
+        gestionnaireAudio->playMusic();
+        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+
+        estompeMusique->setDuration(1000);
+        estompeMusique->setStartValue(0.0);
+        estompeMusique->setEndValue(this->gestionnaireAudio->getMusicVolumeSetting());
+
+        estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+
     background = QPixmap(QDir::currentPath() + "/images/jeu/background.png");
     setAttribute(Qt::WA_OpaquePaintEvent);
     elapsed.start();
 
     timer.setInterval(1000 / 60);
+
     connect(&timer, &QTimer::timeout, this, [this]() {
         tick();
-        });
+    });
+
     timer.start();
 
     overlay = new FadeOverlay(this);

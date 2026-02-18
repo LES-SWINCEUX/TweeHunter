@@ -6,6 +6,7 @@
 #include "decoration_menu.h"
 #include "sprite_manager.h"
 #include "fade_overlay.h"
+#include "gestionnaire_audio.h"
 
 #include <QWidget>
 #include <QPixmap>
@@ -16,8 +17,6 @@
 #include <QElapsedTimer>
 #include <QResizeEvent>
 #include <QPropertyAnimation>
-#include <QMediaPlayer>
-#include <QAudioOutput>
 #include <iostream>
 #include <algorithm>
 
@@ -26,7 +25,7 @@ class MenuPrincipal : public QWidget
     Q_OBJECT
 
 public:
-    MenuPrincipal(QWidget* parent = nullptr);
+    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
     ~MenuPrincipal();
 
 signals:
@@ -44,13 +43,13 @@ private:
 
     QTimer timerAnimationTitre;
 
-    QMediaPlayer* joueurMusique = nullptr;
-    QAudioOutput* musiqueMenu = nullptr;
-
     FadeOverlay* overlay = nullptr;
 
-    QPropertyAnimation* estompeAnimation = nullptr;
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+
     QPropertyAnimation* estompeMusique = nullptr;
+
+    QPropertyAnimation* estompeAnimation = nullptr;
 
     PanneauMenu* panneau = nullptr;
 
@@ -61,7 +60,6 @@ private:
     const int tempsAttenteAnimation = 9000;
 
     const float ratioPanneaux = 0.25f;
-    const float volumeMax = 0.025f;
 
     int indexImageTitre = 0;
     int imagesAffichees = 0;

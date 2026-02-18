@@ -1,24 +1,14 @@
 ﻿#include "volume_bouton.h"
 
-#include <QPainterPath>
-#include <QFontMetrics>
-
-static float clamp01(float v)
-{
-    if (v < 0.0f) return 0.0f;
-    if (v > 1.0f) return 1.0f;
-    return v;
-}
-
-VolumeBouton::VolumeBouton(const QString& cheminBouton, QAudioOutput* mixeurVolume, float volumeMax, QWidget* parent)
+VolumeBouton::VolumeBouton(const QString& cheminBouton, GestionnaireAudio* gestionnaireAudio, AudioMode mode, QWidget* parent)
     : Bouton(cheminBouton, 3, parent)
 {
-    this->volumeMax = volumeMax;
-    this->mixeurVolume = mixeurVolume;
-    this->volume_ = mixeurVolume->volume() / this->volumeMax;
+    this->gestionnaireAudio = gestionnaireAudio;
+    this->volume = this->gestionnaireAudio->getMusicVolume();
+    this->mode = mode;
     // Petit comportement pratique: cliquer fait cycler le volume.
     connect(this, &Bouton::clicked, this, [this]() {
-        float v = volume_ + 0.14285f;
+        float v = volume + (1.0f / volumeBars);
         if (v > 0.9f && v < 1.0f) {
             v = 1.0f;
         }
@@ -31,12 +21,12 @@ VolumeBouton::VolumeBouton(const QString& cheminBouton, QAudioOutput* mixeurVolu
 
 void VolumeBouton::setVolume(float v)
 {
-    volume_ = clamp01(v);
-    update();
-    if (this->mixeurVolume == nullptr) {
+    this->volume = v;
+    if (this->mode == MUSIQUE) {
+        this->gestionnaireAudio->setMusicVolume(v);
         return;
     }
-    mixeurVolume->setVolume(volume_ * this->volumeMax);
+    this->gestionnaireAudio->setSfxVolume(v);
 }
 
 void VolumeBouton::paintEvent(QPaintEvent* e)
@@ -68,17 +58,16 @@ void VolumeBouton::paintEvent(QPaintEvent* e)
 
     // -------- Barres de volume --------
     {
-        const int bars = 7;
-        const float v = clamp01(volume_);
-        const int filled = int(qRound(v * bars));
+        const float v = parseVolume(volume);
+        const int filled = int(qRound(v * volumeBars));
 
         const int gap = qMax(3, int(barsRect.width() * 0.03));
-        const int barW = qMax(6, (barsRect.width() - gap * (bars - 1)) / bars);
+        const int barW = qMax(6, (barsRect.width() - gap * (volumeBars - 1)) / volumeBars);
         const int maxH = barsRect.height();
         const int baseY = barsRect.bottom();
 
-        for (int i = 0; i < bars; ++i) {
-            float t = float(i + 1) / float(bars);
+        for (int i = 0; i < volumeBars; ++i) {
+            float t = float(i + 1) / float(volumeBars);
             int h = qMax(6, int(maxH * t));
             int x = barsRect.left() + i * (barW + gap);
             QRect r(x, baseY - h, barW, h);
@@ -97,4 +86,14 @@ void VolumeBouton::paintEvent(QPaintEvent* e)
             }
         }
     }
+}
+
+float VolumeBouton::parseVolume(float volume) {
+    if (volume <= 0.0f) {
+        return 0.0f;
+    }
+    if (volume >= 1.0f) {
+        return 1.0f;
+    }
+    return volume;
 }
