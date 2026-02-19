@@ -2,11 +2,9 @@
 
 Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(parent)
 {
-	xj = pos.x();
-	yj = pos.y();
 
-	posX = xj;//à changer pour une démarche plus propre
-	posY = yj;
+	posX = pos.x();
+	posY = pos.y();
 
 
 	setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -44,7 +42,7 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 		xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX) ; //initialisation du point central du joystick
 		yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
 
-		connect(timer, &QTimer::timeout, this, [=]() {
+		connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
 			if (!gamepad) return;
 			SDL_UpdateGamepads();
 
@@ -55,10 +53,14 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 			if (std::fabs(x) < 0.1f) x = 0;
 			if (std::fabs(y) < 0.1f) y = 0;
 
-			xj = x;
-			yj = y;
+			
+			if (sqrt((x-xini)*(x - xini)+(y-yini)*(y-yini))>protJoystick) { //protection contre les joystick mal calibrés
+				moveJoystick(x, y, parent);
+			}
+			
+			
 
-			qDebug() << "X:" << x << "Y:" << y;
+			//qDebug() << "X:" << x << "Y:" << y;
 
 			});
 
@@ -79,31 +81,25 @@ string Reticule::getPath(int choix) const
 void Reticule::setPosition(const QPoint& pos)
 {
 
-	//int newX = pos.x() - image.width() / 2;
-	//int newY = pos.y() - image.height() / 2;
-	//Très très temporaire : 
-	
-	if(xj<xini+100 && xj > xini - 100) {
-		xj = 0;
-	}
-	
-	if (yj < yini + 100 && yj>yini - 100) {
-	
-		yj = 0;
-	}
+	posX = pos.x() - image.width() / 2;
+	posY = pos.y() - image.height() / 2;
 
-	posX += (xj/25000);
-	posY += (yj/25000);
 
-	if (posX > 1000) posX = 1000;
+	move(posX, posY);
+	update();
+}
+
+void Reticule::moveJoystick(int x, int y, QWidget* parent)
+{
+	int facteurRedu = 1000;
+	posX += (x / facteurRedu);
+	posY += (y / facteurRedu);
+
+	if (posX > (parent->width()-image.width())) posX = parent->width()-image.width();
 	if (posX < 0) posX = 0;
-	if (posY > 600) posY = 600;
+	if (posY > parent->height()-image.height()) posY = parent->height()-image.height();
 	if (posY < 0) posY = 0;
 
-	//cout << "posX: " << posX << " posY: " << posY << endl;
-
-
-	//move(newX, newY);
 	move(posX, posY);
 	update();
 }
@@ -112,7 +108,6 @@ void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this); // redessinage du widget lorsqu'il est mise à jour
 	painter.drawPixmap(0, 0, image);
-	setPosition(QPoint(0, 0));
 }
 
 

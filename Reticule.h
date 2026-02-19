@@ -31,6 +31,7 @@ public:
 	~Reticule();
 	void setPosition(const QPoint& pos);
 	string getPath(int choix) const;
+	void moveJoystick(int x, int y, QWidget* parent);
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -39,14 +40,17 @@ private:
 
 	QPixmap image;
 	Touches touches;
-	int xj;
-	int yj;
 
 	int xini;
 	int yini;
 
 	int posX;
 	int posY;
+
+	int protJoystick=2500;
+
+	int hauteurEcran;
+	int largeurEcran;
 
 
 };
