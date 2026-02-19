@@ -1,10 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QMainWindow>
+
 #include "menu.h"
 #include "ecran_jeu.h"
-
-#include <QMainWindow>
+#include "gestionnaire_audio.h"
 
 class MainWindow : public QMainWindow
 {
@@ -21,5 +22,7 @@ public:
 private:
     MenuPrincipal* menuPrincipal = nullptr;
     EcranJeu* ecranJeu = nullptr;
+
+    GestionnaireAudio* gestionnaireAudio = nullptr;
 };
 #endif

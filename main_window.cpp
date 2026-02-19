@@ -4,6 +4,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowState(Qt::WindowFullScreen);
 
+    gestionnaireAudio = new GestionnaireAudio(this);
+
     afficherMenuPrincipal();
 }
 
@@ -11,8 +13,8 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::afficherMenuPrincipal() {
     if (this->menuPrincipal == nullptr) {
-        this->menuPrincipal = new MenuPrincipal();
-        connect(menuPrincipal, &MenuPrincipal::jouerDemande, this, &MainWindow::afficherEcranJeu);
+        this->menuPrincipal = new MenuPrincipal(gestionnaireAudio, this);
+        connect(this->menuPrincipal, &MenuPrincipal::jouerDemande, this, &MainWindow::afficherEcranJeu);
     }
 
     this->ecranJeu = nullptr;
@@ -22,7 +24,7 @@ void MainWindow::afficherMenuPrincipal() {
 
 void MainWindow::afficherEcranJeu() {
     if (!this->ecranJeu) {
-        this->ecranJeu = new EcranJeu(this);
+        this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this);
     }
 
     this->menuPrincipal = nullptr;

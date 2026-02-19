@@ -6,17 +6,33 @@
 #include "Reticule.h"
 
 
-EcranJeu::EcranJeu(QWidget* parent)
+EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     : QWidget(parent)
 {
+    this->gestionnaireAudio = gestionnaireAudio;
+    if (gestionnaireAudio != nullptr) {
+        gestionnaireAudio->stopAndClearMusic();
+        gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
+        gestionnaireAudio->playMusic();
+        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+
+        estompeMusique->setDuration(1000);
+        estompeMusique->setStartValue(0.0);
+        estompeMusique->setEndValue(this->gestionnaireAudio->getMusicVolumeSetting());
+
+        estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+
     background = QPixmap(QDir::currentPath() + "/images/jeu/background.png");
     setAttribute(Qt::WA_OpaquePaintEvent);
     elapsed.start();
 
     timer.setInterval(1000 / 60);
+
     connect(&timer, &QTimer::timeout, this, [this]() {
         tick();
-        });
+    });
+
     timer.start();
 
     overlay = new FadeOverlay(this);
@@ -107,6 +123,11 @@ EcranJeu::EcranJeu(QWidget* parent)
         });
 }
 
+EcranJeu::~EcranJeu()
+{
+    delete jeu;
+}
+
 void EcranJeu::showEvent(QShowEvent* e)
 {
     QWidget::showEvent(e);
@@ -121,6 +142,9 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->stop();
         fadeInAnim->start();
     }
+    if (!jeu) {
+        jeu = new Jeu(size());
+    }
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -132,10 +156,16 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         overlay->setGeometry(rect());
         overlay->raise();
     }
+    if(jeu) {
+        jeu->setTailleEcran(size());
+	}
 }
 
 void EcranJeu::tick()
 {
+    if (jeu) {
+		jeu->update(elapsed.elapsed());
+    }
     update();
 }
 
@@ -148,6 +178,9 @@ void EcranJeu::paintEvent(QPaintEvent*)
     }
     else {
         painter.fillRect(rect(), Qt::black);
+    }
+    if (jeu) {
+		jeu->dessiner(painter, elapsed.elapsed()); 
     }
 }
 

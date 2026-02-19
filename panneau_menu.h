@@ -23,6 +23,7 @@ signals:
     void demanderOptions();
     void demanderQuitter();
     void demanderRetour();
+    void demanderRetourOptions();
 
 protected:
     void initialiserPanneau()

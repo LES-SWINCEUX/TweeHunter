@@ -2,9 +2,11 @@
 #define MENU_PRINCIPAL_H
 
 #include "panneau_principal.h"
+#include "panneau_options.h"
 #include "decoration_menu.h"
 #include "sprite_manager.h"
 #include "fade_overlay.h"
+#include "gestionnaire_audio.h"
 
 #include <QWidget>
 #include <QPixmap>
@@ -23,7 +25,7 @@ class MenuPrincipal : public QWidget
     Q_OBJECT
 
 public:
-    MenuPrincipal(QWidget* parent = nullptr);
+    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
     ~MenuPrincipal();
 
 signals:
@@ -43,9 +45,13 @@ private:
 
     FadeOverlay* overlay = nullptr;
 
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+
+    QPropertyAnimation* estompeMusique = nullptr;
+
     QPropertyAnimation* estompeAnimation = nullptr;
 
-    PanneauMenu* panneau;
+    PanneauMenu* panneau = nullptr;
 
     DecorationMenu* cannettes = nullptr;
 
@@ -66,6 +72,8 @@ private:
     void configuerAnimationTitre();
     void afficherArrierePlan(QPainter &painter);
     void afficherTitre(QPainter &painter);
+    void afficherOptions();
+    void afficherPanneauPrincipal();
 };
 
 #endif

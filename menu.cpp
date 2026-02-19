@@ -1,13 +1,13 @@
 ﻿#include "menu.h"
 
-MenuPrincipal::MenuPrincipal(QWidget *parent) : 
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *parent) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
 
-    panneau = new PanneauPrincipal(this);
+    this->gestionnaireAudio = gestionnaireAudio;
 
     if (!arrierePlan || arrierePlan->isNull()) {
         std::cout << "MENU::Arrière plan non-chargé";
@@ -15,25 +15,6 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
     if (!titreSprite || titreSprite->isNull()) {
         std::cout << "MENU::Titre non-chargé";
     }
-
-    int decalageY = int(height() * ratioPanneaux);
-
-    QRect zonePanneaux = rect();
-    zonePanneaux.setTop(zonePanneaux.top() + decalageY);
-
-    panneau->setGeometry(zonePanneaux);
-
-    connect(panneau, &PanneauMenu::demanderScores, this, []() {
-        std::cout << "Demande de scores!" << std::endl;
-    });
-
-    connect(panneau, &PanneauMenu::demanderOptions, this, []() {
-        std::cout << "Demande d'options!" << std::endl;
-    });
-
-    connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
-        qApp->quit();
-    });
 
     configuerAnimationTitre();
 
@@ -53,31 +34,27 @@ MenuPrincipal::MenuPrincipal(QWidget *parent) :
     overlay->raise();
     overlay->hide();
 
+    if (this->gestionnaireAudio != nullptr) {
+        this->gestionnaireAudio->setPlaylist({
+            QDir::currentPath() + "/sounds/menu/track_2.mp3",
+            QDir::currentPath() + "/sounds/menu/track_1.mp3",
+            QDir::currentPath() + "/sounds/menu/track_3.mp3"
+        });
+
+        this->gestionnaireAudio->playMusic();
+    }
+
     estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+
+    if (this->gestionnaireAudio != nullptr) {
+        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+    }
 
     connect(estompeAnimation, &QPropertyAnimation::finished,
         this, &MenuPrincipal::jouerDemande);
 
-    connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
-        if (fadeEnCours) {
-            return;
-        }
-        fadeEnCours = true;
-
-        setEnabled(false);
-
-        overlay->setAlpha(0);
-        overlay->show();
-        overlay->raise();
-
-        estompeAnimation->stop();
-        estompeAnimation->setDuration(1000);
-        estompeAnimation->setStartValue(0);
-        estompeAnimation->setEndValue(255);
-
-        estompeAnimation->start();
-    });
+    afficherPanneauPrincipal();
 }
 
 MenuPrincipal::~MenuPrincipal() {
@@ -233,4 +210,81 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
         *titreSprite,
         src
     );
+}
+
+void MenuPrincipal::afficherOptions() {
+    PanneauMenu* ancienPanneau = panneau;
+
+    panneau = new PanneauOptions(this->gestionnaireAudio, this);
+
+    panneau->setGeometry(ancienPanneau->geometry());
+
+    ancienPanneau->hide();
+    
+    panneau->show();
+    panneau->raise();
+
+    ancienPanneau->deleteLater();
+
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
+}
+
+void MenuPrincipal::afficherPanneauPrincipal() {
+    PanneauMenu* ancienPanneau = panneau;
+
+    panneau = new PanneauPrincipal(this);
+
+    int decalageY = int(height() * ratioPanneaux);
+
+    QRect zonePanneaux = rect();
+    zonePanneaux.setTop(zonePanneaux.top() + decalageY);
+
+    panneau->setGeometry(zonePanneaux);
+
+    if (ancienPanneau != nullptr) {
+        ancienPanneau->hide();
+
+        panneau->show();
+        panneau->raise();
+
+        ancienPanneau->deleteLater();
+    }
+
+    connect(panneau, &PanneauMenu::demanderScores, this, []() {
+        std::cout << "Demande de scores!" << std::endl;
+        });
+
+    connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
+
+    connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
+        qApp->quit();
+    });
+
+    connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
+        if (fadeEnCours) {
+            return;
+        }
+        fadeEnCours = true;
+
+        setEnabled(false);
+
+        overlay->setAlpha(0);
+        overlay->show();
+        overlay->raise();
+
+        estompeAnimation->stop();
+        estompeAnimation->setDuration(1000);
+        estompeAnimation->setStartValue(0);
+        estompeAnimation->setEndValue(255);
+
+        if (this->gestionnaireAudio != nullptr) {
+            estompeMusique->setDuration(1000);
+            estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
+            estompeMusique->setEndValue(0.0);
+
+            estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+        }
+
+        estompeAnimation->start();
+    });
 }

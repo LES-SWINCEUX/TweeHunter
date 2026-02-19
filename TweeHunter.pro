@@ -1,4 +1,4 @@
-QT       += core gui
+QT += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -20,7 +20,15 @@ SOURCES += \
     spritesheet.cpp \
     sprite_manager.cpp \
     ecran_jeu.cpp \
+    panneau_options.cpp \
+    volume_bouton.cpp \
     fade_overlay.cpp \
+    jeu.cpp \
+    mouvement.cpp \
+    randomiser.cpp \
+    target.cpp \
+    gestionnaire_audio.cpp
+
     Reticule.cpp \
     Variete.cpp \
     Touches.cpp
@@ -36,6 +44,14 @@ HEADERS += \
     spritesheet.h \
     sprite_manager.h \
     ecran_jeu.h \
+    fade_overlay.h \
+    panneau_options.h \
+    volume_bouton.h \
+    jeu.h \
+    mouvement.h \
+    randomiser.h \
+    target.h \
+    gestionnaire_audio.h
     fade_overlay.h \
     Reticule.h \
     Variete.h \

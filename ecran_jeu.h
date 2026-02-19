@@ -11,6 +11,8 @@
 #include <QPixmap>
 
 #include "fade_overlay.h"
+#include "gestionnaire_audio.h"
+#include "jeu.h"
 #include "Reticule.h"
 
 #include <SDL3/SDL.h>
@@ -23,7 +25,8 @@ class EcranJeu : public QWidget
     Q_OBJECT
 
 public:
-    explicit EcranJeu(QWidget* parent = nullptr);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    ~EcranJeu();
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -39,6 +42,9 @@ private:
     QElapsedTimer elapsed;
 
     FadeOverlay* overlay = nullptr;
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+
+    QPropertyAnimation* estompeMusique = nullptr;
     QPropertyAnimation* fadeInAnim = nullptr;
 
     QPixmap background;
@@ -47,6 +53,8 @@ private:
 
 
     SDL_Gamepad* gamepad = nullptr;
+
+    Jeu* jeu = nullptr;
 };
 
 #endif
