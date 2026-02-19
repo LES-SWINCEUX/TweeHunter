@@ -32,6 +32,9 @@ public:
 	void setPosition(const QPoint& pos);
 	string getPath(int choix) const;
 	void moveJoystick(int x, int y, QWidget* parent);
+	int getX() const;
+	int getY() const;
+	bool tirer() const { return touches.RTpressed(); }
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

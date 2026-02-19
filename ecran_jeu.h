@@ -27,12 +27,14 @@ class EcranJeu : public QWidget
 public:
     EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
     ~EcranJeu();
+    void tire();
 
 protected:
     void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent* e) override;
     void showEvent(QShowEvent* e) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
 
 
 private:
@@ -50,6 +52,7 @@ private:
     QPixmap background;
     
     Reticule* reticule;
+
 
 
     SDL_Gamepad* gamepad = nullptr;

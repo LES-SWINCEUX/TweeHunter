@@ -18,6 +18,7 @@ public:
 
 	bool isJoystickConnected() const { return joystick; }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
+	bool RTpressed() const;
 
 private:
 	bool joystick;

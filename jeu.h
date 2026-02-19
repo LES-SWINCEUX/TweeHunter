@@ -45,6 +45,8 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
+	void Tirer(const int x, const int y);
+
 	void setPause(bool pause) {
 				enPause = pause;
 	}

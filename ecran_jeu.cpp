@@ -58,60 +58,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 	reticule = new Reticule(this,pos,2); // création du réticule sur la sourie + choix du réticule
     reticule->show();
 
-    //Partie joystick de test
-    /*
-    // --- 1. Initialiser SDL ---
-    if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
-    {
-        qDebug() << "Erreur SDL:" << SDL_GetError();
-        return;
-    }
-    
-    // --- 2. Détecter les manettes ---
-    int count = 0;
-    SDL_JoystickID* ids = SDL_GetGamepads(&count); // Liste des gamepads
-    qDebug() << "Nombre de manettes détectées:" << count;
-
-    SDL_Gamepad* gamepad = nullptr;
-
-    if (ids && count > 0)
-    {
-        // Ouvrir la première manette
-        gamepad = SDL_OpenGamepad(ids[0]);
-        if (gamepad)
-            cout << "Manette ouverte !";
-        else
-            cout << "Erreur ouverture:" << SDL_GetError();
-
-        SDL_free(ids); // libérer la mémoire retournée par SDL_GetGamepads
-    }
-    else {
-        cout << "Nope" << endl;
-
-    }
-    
-    
-    // --- 3. Lire le joystick régulièrement ---
-    QTimer* timer = new QTimer(this);
-    timer->start(16); // ~60 Hz
-
-    connect(timer, &QTimer::timeout, this, [=]() {
-        if (!gamepad) return;
-
-        SDL_UpdateGamepads();
-
-        float x = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
-        float y = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
-
-        // Deadzone
-        if (std::fabs(x) < 0.1f) x = 0;
-        if (std::fabs(y) < 0.1f) y = 0;
-
-        qDebug() << "X:" << x << "Y:" << y;
-        });
-
-    */
-    //Fin de la zone de test
+	//activation de sdl pour les manettes
     
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
 {
@@ -121,6 +68,18 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
         });
+
+    QTimer* timer = new QTimer(this);
+    timer->start(16); // ~60 Hz
+    
+    connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
+        if (reticule->tirer()) {
+            tire();
+     
+        }
+        });
+
+
 }
 
 EcranJeu::~EcranJeu()
@@ -145,6 +104,10 @@ void EcranJeu::showEvent(QShowEvent* e)
     if (!jeu) {
         jeu = new Jeu(size());
     }
+}
+
+void EcranJeu::mousePressEvent(QMouseEvent* event) {
+    tire();
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -187,4 +150,8 @@ void EcranJeu::paintEvent(QPaintEvent*)
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 {
     reticule->setPosition(event->pos());
+}
+
+void EcranJeu::tire() {
+    jeu->Tirer(reticule->getX(), reticule->getY());
 }

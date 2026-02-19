@@ -37,11 +37,20 @@ Touches::Touches()
 
     }
 
-    /*middleX=
-    middleY=*/
+
 
 }
 
 Touches::~Touches() {
+}
+
+bool Touches::RTpressed() const {
+    Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
+
+    if (value > 10000) {
+		return true;
+    }
+
+	return false;
 }
 

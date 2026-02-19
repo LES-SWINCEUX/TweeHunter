@@ -88,6 +88,11 @@ void Jeu::reinitialiser()
 	enPause = false;
 }
 
+void Jeu::Tirer(const int x, const int y) {
+	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), 0);
+}
+
+
 void Jeu::nettoyerCiblesInactives()
 {
 	auto it = ciblesActives.begin();

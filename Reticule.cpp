@@ -104,10 +104,20 @@ void Reticule::moveJoystick(int x, int y, QWidget* parent)
 	update();
 }
 
+
 void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this); // redessinage du widget lorsqu'il est mise à jour
 	painter.drawPixmap(0, 0, image);
 }
 
+int Reticule::getX() const
+{ 
+	return posX + image.width() / 2; 
+}
+
+int Reticule::getY() const 
+{
+return posY + image.height() / 2; 
+}
 
