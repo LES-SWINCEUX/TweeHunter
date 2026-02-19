@@ -13,6 +13,12 @@
 #include "fade_overlay.h"
 #include "gestionnaire_audio.h"
 #include "jeu.h"
+#include "Reticule.h"
+
+#include <SDL3/SDL.h>
+#include <QTimer>
+#include <QDebug>
+#include <cmath>
 
 class EcranJeu : public QWidget
 {
@@ -26,6 +32,8 @@ protected:
     void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent* e) override;
     void showEvent(QShowEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+
 
 private:
     void tick();
@@ -40,6 +48,11 @@ private:
     QPropertyAnimation* fadeInAnim = nullptr;
 
     QPixmap background;
+    
+    Reticule* reticule;
+
+
+    SDL_Gamepad* gamepad = nullptr;
 
     Jeu* jeu = nullptr;
 };

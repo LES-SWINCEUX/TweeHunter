@@ -30,15 +30,6 @@ build*/
 ##############################
 # Artéfactes MSVC
 ##############################
-*.obj
-*.pdb
-*.idb
-*.ilk
-*.tlog
-*.log
-*.exe
-*.dll
-*.lib
 
 ##############################
 # Fichier de base de données

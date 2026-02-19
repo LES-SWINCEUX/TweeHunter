@@ -4,6 +4,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17 console
 
+INCLUDEPATH += $$PWD/SDL3/SDL3-3.4.0/include
+
+LIBS += -L$$PWD/SDL3/SDL3-3.4.0/lib/x64 \
+        -lSDL3
+
 SOURCES += \
     main.cpp \
     main_window.cpp \
@@ -22,7 +27,10 @@ SOURCES += \
     mouvement.cpp \
     randomiser.cpp \
     target.cpp \
-    gestionnaire_audio.cpp
+    gestionnaire_audio.cpp \
+    Reticule.cpp \
+    Variete.cpp \
+    Touches.cpp
 
 HEADERS += \
     main_window.h \
@@ -42,7 +50,11 @@ HEADERS += \
     mouvement.h \
     randomiser.h \
     target.h \
-    gestionnaire_audio.h
+    gestionnaire_audio.h \
+    fade_overlay.h \
+    Reticule.h \
+    Variete.h \
+    Touches.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
