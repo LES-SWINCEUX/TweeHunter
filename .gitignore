@@ -37,7 +37,6 @@ build*/
 *.tlog
 *.log
 *.exe
-*.dll
 
 ##############################
 # Fichier de base de données
