@@ -38,7 +38,6 @@ build*/
 *.log
 *.exe
 *.dll
-*.lib
 
 ##############################
 # Fichier de base de données
