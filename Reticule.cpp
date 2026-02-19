@@ -83,12 +83,17 @@ void Reticule::setPosition(const QPoint& pos)
 	//int newY = pos.y() - image.height() / 2;
 	//Très très temporaire : 
 	
-	if(xj<xini+2000 && xj > xini - 2000 && yj < yini + 2000 && yj>yini-2000) {
+	if(xj<xini+100 && xj > xini - 100) {
 		xj = 0;
+	}
+	
+	if (yj < yini + 100 && yj>yini - 100) {
+	
 		yj = 0;
 	}
-	posX += (xj/20000);
-	posY += (yj/20000);
+
+	posX += (xj/25000);
+	posY += (yj/25000);
 
 	if (posX > 1000) posX = 1000;
 	if (posX < 0) posX = 0;

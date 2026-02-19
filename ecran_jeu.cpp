@@ -39,7 +39,7 @@ EcranJeu::EcranJeu(QWidget* parent)
 
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-	reticule = new Reticule(this,pos,2); // création du réticule sur la sourie + choix du réticule
+	reticule = new Reticule(this,pos,3); // création du réticule sur la sourie + choix du réticule
     reticule->show();
 
     //Partie joystick de test
