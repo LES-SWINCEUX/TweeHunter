@@ -150,8 +150,8 @@ void Jeu::initialiserCiblesParDefaut()
 	buff.type = TypeTarget::BUFF;
 	buff.taille = QSizeF(200, 200);
 	buff.pointsScore = 10;
-	buff.vitesseMin = 250.0;
-	buff.vitesseMax = 400.0;
+	buff.vitesseMin = 500.0;
+	buff.vitesseMax = 1000.0;
 	ajouterTypeCible(buff);
 
 	DefinitionTarget debuff;
@@ -162,8 +162,8 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.taille = QSizeF(250, 250);
 	debuff.pointsScore = -15;
-	debuff.vitesseMin = 200.0;
-	debuff.vitesseMax = 250.0;
+	debuff.vitesseMin = 500.0;
+	debuff.vitesseMax = 1250.0;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
@@ -174,8 +174,8 @@ void Jeu::initialiserCiblesParDefaut()
 	mixte.type = TypeTarget::MIXTE;
 	mixte.taille = QSizeF(200, 200);
 	mixte.pointsScore = 20;
-	mixte.vitesseMin = 100.0;
-	mixte.vitesseMax = 250.0;
+	mixte.vitesseMin = 500.0;
+	mixte.vitesseMax = 1250.0;
 	ajouterTypeCible(mixte);
 
 	DefinitionTarget legendaire;
@@ -187,7 +187,7 @@ void Jeu::initialiserCiblesParDefaut()
 	legendaire.taille = QSizeF(200, 200);
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
-	legendaire.vitesseMax = 1050.0;
+	legendaire.vitesseMax = 20050.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
@@ -198,7 +198,7 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.type = TypeTarget::BONUS;
 	bonus.taille = QSizeF(200, 200);
 	bonus.pointsScore = 30;
-	bonus.vitesseMin = 200.0;
-	bonus.vitesseMax = 250.0;
+	bonus.vitesseMin = 500.0;
+	bonus.vitesseMax = 1250.0;
 	ajouterTypeCible(bonus);
 }
