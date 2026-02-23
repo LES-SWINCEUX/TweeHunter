@@ -13,6 +13,7 @@ qrc_*.cpp
 debug/
 release/
 build*/
+SDL3/
 
 ##############################
 # Visual Studio (généré)
@@ -30,6 +31,15 @@ build*/
 ##############################
 # Artéfactes MSVC
 ##############################
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.log
+*.exe
+*.dll
+*.lib
 
 ##############################
 # Fichier de base de données
