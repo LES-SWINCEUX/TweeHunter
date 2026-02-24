@@ -89,6 +89,7 @@ void Jeu::reinitialiser()
 }
 
 void Jeu::Tirer(const int x, const int y) {
+	cout << "Création de la hitbox du tir avec un carré centré sur le réticule avec des cotés = 14" << endl;
 	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), 0);
 }
 

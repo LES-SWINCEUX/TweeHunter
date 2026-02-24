@@ -60,7 +60,7 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 			
 			
 
-			//qDebug() << "X:" << x << "Y:" << y;
+			qDebug() << "Axe du joystick ---> X:" << x << "Y:" << y;
 
 			});
 
@@ -86,6 +86,7 @@ void Reticule::setPosition(const QPoint& pos)
 
 
 	move(posX, posY);
+	cout << "Position du reticule: x=" << posX << " y=" << posY << endl;
 	update();
 }
 
@@ -101,6 +102,7 @@ void Reticule::moveJoystick(int x, int y, QWidget* parent)
 	if (posY < 0) posY = 0;
 
 	move(posX, posY);
+	cout << "Position du reticule: x=" << posX << " y=" << posY << endl;
 	update();
 }
 

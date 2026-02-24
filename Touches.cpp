@@ -48,6 +48,7 @@ bool Touches::RTpressed() const {
     Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     if (value > 10000) {
+		cout << "Tire sur la manette" << endl;
 		return true;
     }
 

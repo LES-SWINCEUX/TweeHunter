@@ -6,6 +6,9 @@
 #include <QList>
 #include <QSizeF>
 #include <QPainter>
+#include <iostream>
+
+using namespace std;
 
 class Jeu
 {

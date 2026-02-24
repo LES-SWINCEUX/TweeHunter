@@ -59,6 +59,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     reticule->show();
 
 	//activation de sdl pour les manettes
+    cout << "Initialisation de SDL3" << endl;
     
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
 {
@@ -75,7 +76,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
         if (reticule->tirer()) {
             tire();
-     
+            
         }
         });
 
@@ -107,6 +108,7 @@ void EcranJeu::showEvent(QShowEvent* e)
 }
 
 void EcranJeu::mousePressEvent(QMouseEvent* event) {
+    cout << "Tire avec la souris" << endl;
     tire();
 }
 
@@ -153,5 +155,6 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
+	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     jeu->Tirer(reticule->getX(), reticule->getY());
 }
