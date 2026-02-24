@@ -36,8 +36,24 @@ Target* Randomiser::genererTarget()
 	QPointF pointDepart = choisirPointDepart(bordDepart);
 	Bord bordArrivee = choisirBordOppose(bordDepart);
 	QPointF pointArrivee = choisirPointArrivee(bordArrivee);
+	TypeTrajectoire traj = choisirTrajectoire();
 
-	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), choisirTrajectoire());
+	std::cout << "Nouvelle cible" << std::endl;
+	std::cout << "Type: " << (int)def.type << std::endl;
+	std::cout << "Spawn: " << (bordDepart == Bord::GAUCHE ? "Gauche" : "Droite")
+		<< " (" << pointDepart.x() << ", " << pointDepart.y() << ")" << std::endl;
+	std::cout << "Destination: " << (bordArrivee == Bord::GAUCHE ? "Gauche" : "Droite")
+		<< " (" << pointArrivee.x() << ", " << pointArrivee.y() << ")" << std::endl;
+	std::cout << "Trajectoire: ";
+	switch (traj) {
+	case TypeTrajectoire::LINEAIRE: std::cout << "Linaire"; break;
+	case TypeTrajectoire::COURBE_HAUT: std::cout << "Courbe_haut"; break;
+	case TypeTrajectoire::COURBE_BAS: std::cout << "Courbe_bas"; break;
+	case TypeTrajectoire::ZIGZAG: std::cout << "Zigzag"; break;
+	}
+	std::cout << std::endl << std::endl;
+
+	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), traj);
 
 	Target* cible = new Target(def.cheminSprite, def.colonnesSprite, def.lignesSprite, def.cycleAnimation, mouvement, def.type, def.taille);
 	cible->setPointsScore(def.pointsScore);

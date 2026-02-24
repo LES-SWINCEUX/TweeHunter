@@ -5,6 +5,7 @@
 #include <qlist.h>
 #include <QSizeF>
 #include <random>
+#include <iostream>
 
 struct DefinitionTarget
 {
