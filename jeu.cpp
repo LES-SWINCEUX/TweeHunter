@@ -6,11 +6,12 @@ static constexpr int LIGNES_DESTRUCTION = 3;
 static constexpr int CYCLE_DESTRUCTION = 500;
 
 Jeu::Jeu(const QSizeF& tailleEcran)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(10), enPause(false)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false)
 {
+	
 	randomiser = new Randomiser(tailleEcran);
 
-	randomiser->setFrequenceSpawn(500);
+	randomiser->setFrequenceSpawn(1000);
 	randomiser->setVariationFrequence(500);
 	randomiser->setMarge(20.0);
 
