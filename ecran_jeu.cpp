@@ -75,12 +75,18 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     
     connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
         if (reticule->tirer()) {
-            tire();
-            
+			
+            if (!gachettePrecedente) {
+                gachettePrecedente = true;
+                tire();
+                cout << "Tire sur la mannette" << endl;
+                
+			}
+        }
+        else{
+			gachettePrecedente = false;
         }
         });
-
-
 }
 
 EcranJeu::~EcranJeu()
