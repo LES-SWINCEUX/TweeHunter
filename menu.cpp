@@ -213,6 +213,7 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 }
 
 void MenuPrincipal::afficherOptions() {
+    std::cout << "Affichages des options" << std::endl;
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauOptions(this->gestionnaireAudio, this);
@@ -230,6 +231,7 @@ void MenuPrincipal::afficherOptions() {
 }
 
 void MenuPrincipal::afficherPanneauPrincipal() {
+    std::cout << "Affichages du menu principal" << std::endl;
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauPrincipal(this);
@@ -257,6 +259,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
 
     connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
+        std::cout << "Demande de sortie de l'application" << std::endl;
         qApp->quit();
     });
 
@@ -264,6 +267,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         if (fadeEnCours) {
             return;
         }
+        std::cout << "Demande de landement de la partie" << std::endl;
         fadeEnCours = true;
 
         setEnabled(false);
