@@ -58,6 +58,8 @@ private:
     SDL_Gamepad* gamepad = nullptr;
 
     Jeu* jeu = nullptr;
+
+	bool gachettePrecedente = false;
 };
 
 #endif
