@@ -23,8 +23,8 @@ public:
     void setAnimation(bool on);
     void setVitesseAnimation(int pointsPerTick, int tickMs = 16);
 
-    void setEchelle(qreal s);
-    qreal getEchelle() const { return echelle; }
+    void setEchelle(float s);
+    float getEchelle() const { return echelle; }
 
     QSize basePanelSize() const { return tailleSprite; }
 
