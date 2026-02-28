@@ -102,6 +102,6 @@ void DecorationMenu::paintEvent(QPaintEvent*)
         int bonds = int(6.0f * qSin((temps * 2.0f) + float(i) * 1.3f));
         target.translate(0, bonds);
 
-        sprites[i].dessiner(p, target, ms, true);
+        sprites[i].dessiner(p, target, ms, true, (i < count / 2 ? false : true));
     }
 }

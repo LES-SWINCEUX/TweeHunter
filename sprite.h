@@ -24,7 +24,7 @@ public:
 
     QRect getRectangle() const;
 
-    void dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth);
+    void dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth, bool flip = false);
 
 private:
     QRect getRectangle(qint64 tempsMs) const;

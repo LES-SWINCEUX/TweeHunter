@@ -30,6 +30,8 @@ SOURCES += \
     gestionnaire_audio.cpp \
     Reticule.cpp \
     Variete.cpp \
+    compteur_balles.cpp \
+    compteur_points.cpp \
     Touches.cpp
 
 HEADERS += \
@@ -54,6 +56,8 @@ HEADERS += \
     fade_overlay.h \
     Reticule.h \
     Variete.h \
+    compteur_balles.h \
+    compteur_points.h \
     Touches.h
 
 # Default rules for deployment.
