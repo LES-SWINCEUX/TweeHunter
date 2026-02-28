@@ -20,11 +20,9 @@ public:
     void setPoints(int value);
     int getPoints() const { return points; }
 
-    // Optionnel: animation (compte vers la cible)
     void setAnimation(bool on);
     void setVitesseAnimation(int pointsPerTick, int tickMs = 16);
 
-    // Scaling
     void setEchelle(qreal s);
     qreal getEchelle() const { return echelle; }
 
@@ -48,7 +46,7 @@ private:
     int points = 0;
     int pointsCible = 0;
 
-    qreal echelle = 1.0;
+    float echelle = 1.0;
 
     bool estAnime = false;
     int tempsParPoint = 50;

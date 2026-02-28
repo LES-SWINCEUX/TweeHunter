@@ -60,7 +60,7 @@ void CompteurPoints::setPoints(int value)
     if (!timerAnimation.isActive()) timerAnimation.start();
 }
 
-void CompteurPoints::setEchelle(qreal s)
+void CompteurPoints::setEchelle(float s)
 {
     if (s < 0.1) {
         s = 0.1;

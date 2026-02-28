@@ -13,14 +13,13 @@ class CompteurBalles : public QWidget
     Q_OBJECT
 public:
     CompteurBalles(QWidget* parent = nullptr);
-    void setBalles(int value);                          // clamp 0..9
+    void setBalles(int value);
     int getBalles() const { return balles; }
 
-    // NEW: scaling
-    void setEchelle(float s);                           // ex 1.0, 1.5, 2.0...
+    void setEchelle(float s);
     float getEchelle() const { return echelle; }
 
-    QSize frameSize() const { return tailleFrame; }   // taille d’une frame (non-scalée)
+    QSize frameSize() const { return tailleFrame; }
 
 protected:
     void paintEvent(QPaintEvent* e) override;
@@ -33,9 +32,9 @@ private:
     QSharedPointer<QPixmap> spriteSheet;
     int balles = 9;
 
-    QSize tailleFrame;    // frame size (non-scalée)
-    QRect rectangleFrame;    // frame courante dans la sheet
-    float echelle = 1.0;  // facteur d’échelle
+    QSize tailleFrame;    
+    QRect rectangleFrame;
+    float echelle = 1.0;  
 };
 
 #endif
