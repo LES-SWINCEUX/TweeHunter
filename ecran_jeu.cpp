@@ -200,7 +200,7 @@ void EcranJeu::placerElementsGUI()
     float ratioMarges = 0.01f;
 
     if (compteurBalles) {
-        float ratioLargeur = 0.18f;
+        float ratioLargeur = 0.12f;
 
         int largeurCible = int(largeurEcran * ratioLargeur);
 
