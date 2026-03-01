@@ -115,12 +115,11 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 
         QVector<QRectF> zones = {
             {0.116f, 0.067f, 0.131f, 0.161f}, // haut-gauche
-            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
-
             {0.075f, 0.336f, 0.165f, 0.209f}, // milieu-gauche
-            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
-
             {0.120f, 0.702f, 0.169f, 0.212f}, // bas-gauche
+
+            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
+            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
             {0.742f, 0.718f, 0.162f, 0.217f}, // bas-droite
         };
 

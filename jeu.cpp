@@ -5,7 +5,7 @@ static constexpr int COLONNES_DESTRUCTION = 4;
 static constexpr int LIGNES_DESTRUCTION = 3;
 static constexpr int CYCLE_DESTRUCTION = 500;
 
-Jeu::Jeu(const QSizeF& tailleEcran)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false)
 {
 	
@@ -14,6 +14,10 @@ Jeu::Jeu(const QSizeF& tailleEcran)
 	randomiser->setFrequenceSpawn(1000);
 	randomiser->setVariationFrequence(500);
 	randomiser->setMarge(20.0);
+
+	this->compteurPoints = compteurPoints;
+	this->compteurBalles = compteurBalles;
+	this->vies = vies;
 
 	initialiserCiblesParDefaut();
 	qDebug() << QDir::currentPath();
@@ -72,7 +76,19 @@ void Jeu::verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs)
 		if (cible && cible->estActif() && cible->intersecte(rectangleReticule)) {
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
-			score += cible->getPointsScore();
+
+			int incrementScores = cible->getPointsScore();
+			score += incrementScores;
+
+			if (score <= 0) {
+				score = 0;
+			}
+
+			if (incrementScores < 0) {
+				vies->setDemiVies(vies->getDemiVies() - 1);
+			}
+
+			compteurPoints->setPoints(score);
 			ciblesTouchees++;
 		}
 	}
@@ -90,6 +106,12 @@ void Jeu::reinitialiser()
 }
 
 void Jeu::Tirer(const int x, const int y) {
+	if (compteurBalles && compteurBalles->getBalles() <= 0) {
+		return;
+	}
+	if (compteurBalles) {
+		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
+	}
 	cout << "Création de la hitbox du tir avec un carré centré sur le réticule avec des cotés = 14" << endl;
 	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), 0);
 }
