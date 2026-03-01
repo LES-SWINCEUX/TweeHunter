@@ -11,8 +11,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     compteurBalles->setBalles(9);
     compteurBalles->show();
 
-    vies->setVies(5);
-    vies->setDemiVies(10);
+    vies->setVies(3);
     vies->move(20, 20);
     vies->show();
 
@@ -269,7 +268,7 @@ void EcranJeu::placerElementsGUI()
 
         int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
 
-        int x = borneGauche + (largeurDisponible - vies->width()) / 2;
+        int x = (largeurEcran - vies->width()) / 2;
 
         int minX = borneGauche;
         int maxX = borneDroite - vies->width();
@@ -281,7 +280,6 @@ void EcranJeu::placerElementsGUI()
         }
 
         vies->move(x, y);
-        vies->raise();
     }
 }
 
