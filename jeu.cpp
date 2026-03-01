@@ -76,6 +76,9 @@ void Jeu::verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs)
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 			score += cible->getPointsScore();
+			if (score <= 0) {
+				score = 0;
+			}
 			compteurPoints->setPoints(score);
 			ciblesTouchees++;
 		}
