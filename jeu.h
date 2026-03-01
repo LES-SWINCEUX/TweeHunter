@@ -5,6 +5,7 @@
 #include "randomiser.h"
 #include "compteur_points.h"
 #include "compteur_balles.h"
+#include "vie.h"
 #include <QList>
 #include <QSizeF>
 #include <QPainter>
@@ -15,7 +16,7 @@ using namespace std;
 class Jeu
 {
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies);
 
 	~Jeu();
 
@@ -69,6 +70,7 @@ private:
 	Randomiser* randomiser;
 	CompteurPoints* compteurPoints = nullptr;
 	CompteurBalles* compteurBalles = nullptr;
+	Vies* vies = nullptr;
 
 	int score;
 	int ciblesTouchees;

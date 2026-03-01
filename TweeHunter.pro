@@ -32,6 +32,7 @@ SOURCES += \
     Variete.cpp \
     compteur_balles.cpp \
     compteur_points.cpp \
+    vie.cpp \
     Touches.cpp
 
 HEADERS += \
@@ -58,6 +59,7 @@ HEADERS += \
     Variete.h \
     compteur_balles.h \
     compteur_points.h \
+    vie.h \
     Touches.h
 
 # Default rules for deployment.

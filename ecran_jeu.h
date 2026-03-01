@@ -21,6 +21,7 @@
 #include "gestionnaire_audio.h"
 #include "jeu.h"
 #include "Reticule.h"
+#include "vie.h"
 
 class EcranJeu : public QWidget
 {
@@ -60,6 +61,7 @@ private:
     Reticule* reticule;
 
     CompteurBalles* compteurBalles = nullptr;
+    Vies* vies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
 
     SDL_Gamepad* gamepad = nullptr;

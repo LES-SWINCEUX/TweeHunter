@@ -1,22 +1,22 @@
 ﻿#include "ecran_jeu.h"
 
-#include <QPainter>
-#include <algorithm>
-
-#include "Reticule.h"
-
-
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     : QWidget(parent)
 {
     compteurBalles = new CompteurBalles(this);
+    vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
 
     compteurBalles->move(20, height() - compteurBalles->height() + 120);
     compteurBalles->setBalles(9);
     compteurBalles->show();
 
-    compteurPoints->setNombresNumeros(5);
+    vies->setVies(5);
+    vies->setDemiVies(10);
+    vies->move(20, 20);
+    vies->show();
+
+    compteurPoints->setNombresNumeros(6);
     compteurPoints->setPoints(0);
     compteurPoints->setAnimation(true);
     compteurPoints->setVitesseAnimation(1, 30);
@@ -123,7 +123,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies);
     }
 }
 
@@ -199,6 +199,8 @@ void EcranJeu::placerElementsGUI()
 
     float ratioMarges = 0.01f;
 
+    int marge = int(largeurEcran * ratioMarges);
+
     if (compteurBalles) {
         float ratioLargeur = 0.12f;
 
@@ -215,16 +217,13 @@ void EcranJeu::placerElementsGUI()
         float echelle = float(largeurCible) / float(largeurOriginale);
         compteurBalles->setEchelle(echelle);
 
-        int marge = int(largeurEcran * ratioMarges);
-
         int x = marge;
         int y = hauteurEcran - compteurBalles->height() - marge;
 
         compteurBalles->move(x, y);
     }
 
-    if (compteurPoints && compteurBalles)
-    {
+    if (compteurPoints && compteurBalles) {
         int hauteurBalles = compteurBalles->height();
         int hauteurPoints = compteurPoints->basePanelSize().height();
 
@@ -234,13 +233,55 @@ void EcranJeu::placerElementsGUI()
             compteurPoints->setEchelle(echellePoints);
         }
 
-        int marge = int(largeurEcran * ratioMarges);
-
         int x = largeurEcran - compteurPoints->width() - marge;
         int y = hauteurEcran - compteurPoints->height() - marge;
 
         compteurPoints->move(x, y);
-        compteurPoints->raise();
+    }
+    if (vies && compteurBalles && compteurPoints)
+    {
+        int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
+        int borneDroite = compteurPoints->x() - marge;
+
+        int largeurDisponible = borneDroite - borneGauche;
+
+        if (largeurDisponible <= 0)
+        {
+            int y = hauteurEcran - vies->height() - marge;
+            vies->move(marge, y);
+            vies->raise();
+            return;
+        }
+
+        int hauteurCible = int(compteurBalles->height() * 0.80f);
+        int hauteurCoeurs = vies->getTailleFrame().height();
+        if (hauteurCoeurs > 0)
+        {
+            float s = float(hauteurCible) / float(hauteurCoeurs);
+            vies->setEchelle(s);
+        }
+
+        if (vies->width() > largeurDisponible)
+        {
+            float fit = float(largeurDisponible) / float(vies->width());
+            vies->setEchelle(vies->getEchelle() * fit);
+        }
+
+        int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
+
+        int x = borneGauche + (largeurDisponible - vies->width()) / 2;
+
+        int minX = borneGauche;
+        int maxX = borneDroite - vies->width();
+        if (maxX < minX) {
+            x = minX;
+        }
+        else {
+            x = std::clamp(x, minX, maxX);
+        }
+
+        vies->move(x, y);
+        vies->raise();
     }
 }
 
