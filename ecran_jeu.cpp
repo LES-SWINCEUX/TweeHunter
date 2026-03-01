@@ -1,14 +1,26 @@
-#include "ecran_jeu.h"
-
-#include <QPainter>
-#include <algorithm>
-
-#include "Reticule.h"
-
+ï»¿#include "ecran_jeu.h"
 
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     : QWidget(parent)
 {
+    compteurBalles = new CompteurBalles(this);
+    vies = new Vies(this);
+    compteurPoints = new CompteurPoints(this);
+
+    compteurBalles->move(20, height() - compteurBalles->height() + 120);
+    compteurBalles->setBalles(9);
+    compteurBalles->show();
+
+    vies->setVies(3);
+    vies->move(20, 20);
+    vies->show();
+
+    compteurPoints->setNombresNumeros(6);
+    compteurPoints->setPoints(0);
+    compteurPoints->setAnimation(true);
+    compteurPoints->setVitesseAnimation(1, 30);
+    compteurPoints->show();
+
     this->gestionnaireAudio = gestionnaireAudio;
     if (gestionnaireAudio != nullptr) {
         gestionnaireAudio->stopAndClearMusic();
@@ -23,7 +35,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
     }
 
-    background = QPixmap(QDir::currentPath() + "/images/jeu/background.png");
+    arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
     setAttribute(Qt::WA_OpaquePaintEvent);
     elapsed.start();
 
@@ -46,16 +58,14 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     fadeInAnim->setDuration(1000);
     fadeInAnim->setStartValue(255);
     fadeInAnim->setEndValue(0);
-
-
     
-	//ajout à enlever apres test
+	//ajout Ã  enlever apres test
     QPoint pos = QCursor::pos();
 	pos = mapFromGlobal(pos);
 
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-	reticule = new Reticule(this,pos,2); // création du réticule sur la sourie + choix du réticule
+	reticule = new Reticule(this,pos,2); // crÃ©ation du rÃ©ticule sur la sourie + choix du rÃ©ticule
     reticule->show();
 
 	//activation de sdl pour les manettes
@@ -73,7 +83,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     QTimer* timer = new QTimer(this);
     timer->start(16); // ~60 Hz
     
-    connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
+    connect(timer, &QTimer::timeout, this, [=]() {// prise des donnÃ©es du joystick
         if (reticule->tirer()) {
 			
             if (!gachettePrecedente) {
@@ -86,7 +96,10 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         else{
 			gachettePrecedente = false;
         }
-        });
+    });
+
+    setFocusPolicy(Qt::StrongFocus);
+    setFocus();
 }
 
 EcranJeu::~EcranJeu()
@@ -109,8 +122,26 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size());
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies);
     }
+}
+
+void EcranJeu::keyPressEvent(QKeyEvent* e)
+{
+    if (e->isAutoRepeat()) { 
+        e->ignore();
+        return;
+    }
+
+    if (e->key() == Qt::Key_R)
+    {
+        rechargerArme();
+
+        e->accept();
+        return;
+    }
+
+    QWidget::keyPressEvent(e);
 }
 
 void EcranJeu::mousePressEvent(QMouseEvent* event) {
@@ -122,6 +153,24 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
 {
     QWidget::resizeEvent(e);
 
+    arrierePlanCache = QPixmap();
+    if (arrierePlan && !arrierePlan->isNull() && width() > 0 && height() > 0) {
+        QPixmap scaled = arrierePlan->scaled(
+            size(),
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation
+        );
+
+        int x = (scaled.width() - width()) / 2;
+        int y = (scaled.height() - height());
+
+        x = std::max(0, x);
+        y = std::max(0, y);
+
+        QRect crop(x, y, width(), height());
+        arrierePlanCache = scaled.copy(crop);
+    }
+
     if (overlay)
     {
         overlay->setGeometry(rect());
@@ -130,6 +179,8 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
     if(jeu) {
         jeu->setTailleEcran(size());
 	}
+
+    placerElementsGUI();
 }
 
 void EcranJeu::tick()
@@ -140,12 +191,107 @@ void EcranJeu::tick()
     update();
 }
 
+void EcranJeu::placerElementsGUI()
+{
+    int largeurEcran = width();
+    int hauteurEcran = height();
+
+    float ratioMarges = 0.01f;
+
+    int marge = int(largeurEcran * ratioMarges);
+
+    if (compteurBalles) {
+        float ratioLargeur = 0.12f;
+
+        int largeurCible = int(largeurEcran * ratioLargeur);
+
+        largeurCible = std::clamp(largeurCible, largeurMinBalles, largeurMaxBalles);
+
+        int largeurOriginale = compteurBalles->frameSize().width();
+
+        if (largeurOriginale == 0) {
+            return;
+        }
+
+        float echelle = float(largeurCible) / float(largeurOriginale);
+        compteurBalles->setEchelle(echelle);
+
+        int x = marge;
+        int y = hauteurEcran - compteurBalles->height() - marge;
+
+        compteurBalles->move(x, y);
+    }
+
+    if (compteurPoints && compteurBalles) {
+        int hauteurBalles = compteurBalles->height();
+        int hauteurPoints = compteurPoints->basePanelSize().height();
+
+        if (hauteurPoints > 0)
+        {
+            float echellePoints = float(hauteurBalles) / float(hauteurPoints);
+            compteurPoints->setEchelle(echellePoints);
+        }
+
+        int x = largeurEcran - compteurPoints->width() - marge;
+        int y = hauteurEcran - compteurPoints->height() - marge;
+
+        compteurPoints->move(x, y);
+    }
+    if (vies && compteurBalles && compteurPoints)
+    {
+        int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
+        int borneDroite = compteurPoints->x() - marge;
+
+        int largeurDisponible = borneDroite - borneGauche;
+
+        if (largeurDisponible <= 0)
+        {
+            int y = hauteurEcran - vies->height() - marge;
+            vies->move(marge, y);
+            vies->raise();
+            return;
+        }
+
+        int hauteurCible = int(compteurBalles->height() * 0.80f);
+        int hauteurCoeurs = vies->getTailleFrame().height();
+        if (hauteurCoeurs > 0)
+        {
+            float s = float(hauteurCible) / float(hauteurCoeurs);
+            vies->setEchelle(s);
+        }
+
+        if (vies->width() > largeurDisponible)
+        {
+            float fit = float(largeurDisponible) / float(vies->width());
+            vies->setEchelle(vies->getEchelle() * fit);
+        }
+
+        int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
+
+        int x = (largeurEcran - vies->width()) / 2;
+
+        int minX = borneGauche;
+        int maxX = borneDroite - vies->width();
+        if (maxX < minX) {
+            x = minX;
+        }
+        else {
+            x = std::clamp(x, minX, maxX);
+        }
+
+        vies->move(x, y);
+    }
+}
+
 void EcranJeu::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
 
-    if (!background.isNull()) {
-        painter.drawPixmap(rect(), background);
+    if (!arrierePlanCache.isNull()) {
+        painter.drawPixmap(0, 0, arrierePlanCache);
+    }
+    else if (!arrierePlan.isNull()) {
+        painter.drawPixmap(rect(), *arrierePlan);
     }
     else {
         painter.fillRect(rect(), Qt::black);
@@ -161,6 +307,14 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
-	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+	cout << "Tire dÃ©tecter Ã  la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     jeu->Tirer(reticule->getX(), reticule->getY());
+}
+
+void EcranJeu::rechargerArme() {
+    if (!compteurBalles) {
+        return;
+    }
+
+    compteurBalles->setBalles(this->maxBalles);
 }

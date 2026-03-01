@@ -90,7 +90,7 @@ QRect Sprite::obtenirRectangleEchelle(const QRect& rectangle, const QSize& taill
     return QRect(x, y, w, h);
 }
 
-void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth)
+void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, bool smooth, bool flip)
 {
     if (!estValide()) {
         return;
@@ -101,6 +101,15 @@ void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, boo
 
     dernierRectangle = dest;
 
+    painter.save();
+
+    if (flip) {
+        painter.translate(dest.center().x(), dest.center().y());
+        painter.rotate(180);
+        painter.scale(1.0, -1.0);
+        painter.translate(-dest.center().x(), -dest.center().y());
+    }
+
     if (smooth) {
         painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
     }
@@ -109,4 +118,5 @@ void Sprite::dessiner(QPainter& painter, const QRect& encadre, qint64 temps, boo
     }
 
     painter.drawPixmap(dest, spriteSheet.pixmap(), src);
+    painter.restore();
 }
