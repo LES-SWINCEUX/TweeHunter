@@ -139,9 +139,7 @@ void CompteurPoints::paintEvent(QPaintEvent*)
     p.setFont(f);
 
     QRect textRect = rect();
-
-    int leftPadding = int(rect().width() * 0.2);
-
+    int leftPadding = int(rect().width() * 0.20);
     int rightPadding = int(rect().width() * 0.08);
     textRect.adjust(leftPadding, 0, -rightPadding, 0);
 
