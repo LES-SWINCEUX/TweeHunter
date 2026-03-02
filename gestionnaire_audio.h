@@ -27,6 +27,7 @@ public:
     void stopMusic();
     void clearPlaylist();
     void stopAndClearMusic();
+    void setMusicVolumeAnimation(float v);
 
     // SFX
     void addSfx(QString name, QString path);
@@ -53,8 +54,6 @@ private:
     int index = 0;
 
     QMap<QString, QSoundEffect*> sfx;
-
-    void setMusicVolumeAnimation(float v);
 };
 
 #endif

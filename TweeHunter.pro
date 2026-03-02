@@ -20,6 +20,7 @@ SOURCES += \
     spritesheet.cpp \
     sprite_manager.cpp \
     ecran_jeu.cpp \
+    ecran_fin_partie.cpp \
     panneau_options.cpp \
     volume_bouton.cpp \
     fade_overlay.cpp \
@@ -30,6 +31,9 @@ SOURCES += \
     gestionnaire_audio.cpp \
     Reticule.cpp \
     Variete.cpp \
+    compteur_balles.cpp \
+    compteur_points.cpp \
+    vie.cpp \
     Touches.cpp
 
 HEADERS += \
@@ -43,6 +47,7 @@ HEADERS += \
     spritesheet.h \
     sprite_manager.h \
     ecran_jeu.h \
+    ecran_fin_partie.h \
     fade_overlay.h \
     panneau_options.h \
     volume_bouton.h \
@@ -54,6 +59,9 @@ HEADERS += \
     fade_overlay.h \
     Reticule.h \
     Variete.h \
+    compteur_balles.h \
+    compteur_points.h \
+    vie.h \
     Touches.h
 
 # Default rules for deployment.

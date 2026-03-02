@@ -1,4 +1,4 @@
-﻿#include "menu.h"
+#include "menu.h"
 
 MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *parent) :
     QWidget(parent),
@@ -41,6 +41,8 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
             QDir::currentPath() + "/sounds/menu/track_3.mp3"
         });
 
+        // Démarrer à volume 0 — le fade in sera lancé dans showEvent
+        this->gestionnaireAudio->setMusicVolumeAnimation(0.0f);
         this->gestionnaireAudio->playMusic();
     }
 
@@ -58,6 +60,51 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
 }
 
 MenuPrincipal::~MenuPrincipal() {
+}
+
+void MenuPrincipal::showEvent(QShowEvent* e)
+{
+    QWidget::showEvent(e);
+    fadeEnCours = false;
+    setEnabled(true);
+    lancerFadeIn();
+}
+
+void MenuPrincipal::lancerFadeIn()
+{
+    // Fade in visuel (noir -> transparent)
+    if (overlay) {
+        overlay->setAlpha(255);
+        overlay->show();
+        overlay->raise();
+
+        if (!fadeInAnimation) {
+            fadeInAnimation = new QPropertyAnimation(overlay, "alpha", this);
+            fadeInAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+        }
+        fadeInAnimation->stop();
+        fadeInAnimation->setDuration(800);
+        fadeInAnimation->setStartValue(255);
+        fadeInAnimation->setEndValue(0);
+        connect(fadeInAnimation, &QPropertyAnimation::finished, this, [this]() {
+            overlay->hide();
+        });
+        fadeInAnimation->start();
+    }
+
+    // Fade in musique (0 -> volume nominal)
+    GestionnaireAudio* audio = this->gestionnaireAudio;
+    if (audio != nullptr) {
+        if (!fadeInMusique) {
+            fadeInMusique = new QPropertyAnimation(audio, "musicVolume", this);
+            fadeInMusique->setEasingCurve(QEasingCurve::InOutQuad);
+        }
+        fadeInMusique->stop();
+        fadeInMusique->setDuration(800);
+        fadeInMusique->setStartValue(0.0f);
+        fadeInMusique->setEndValue(audio->getMusicVolumeSetting());
+        fadeInMusique->start();
+    }
 }
 
 void MenuPrincipal::paintEvent(QPaintEvent *event)
@@ -115,12 +162,11 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 
         QVector<QRectF> zones = {
             {0.116f, 0.067f, 0.131f, 0.161f}, // haut-gauche
-            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
-
             {0.075f, 0.336f, 0.165f, 0.209f}, // milieu-gauche
-            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
-
             {0.120f, 0.702f, 0.169f, 0.212f}, // bas-gauche
+
+            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
+            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
             {0.742f, 0.718f, 0.162f, 0.217f}, // bas-droite
         };
 
@@ -213,6 +259,7 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 }
 
 void MenuPrincipal::afficherOptions() {
+    std::cout << "Affichages des options" << std::endl;
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauOptions(this->gestionnaireAudio, this);
@@ -230,6 +277,7 @@ void MenuPrincipal::afficherOptions() {
 }
 
 void MenuPrincipal::afficherPanneauPrincipal() {
+    std::cout << "Affichages du menu principal" << std::endl;
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauPrincipal(this);
@@ -257,6 +305,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
 
     connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
+        std::cout << "Demande de sortie de l'application" << std::endl;
         qApp->quit();
     });
 
@@ -264,6 +313,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         if (fadeEnCours) {
             return;
         }
+        std::cout << "Demande de landement de la partie" << std::endl;
         fadeEnCours = true;
 
         setEnabled(false);

@@ -73,20 +73,11 @@ void Target::dessiner(QPainter& painter, qint64 tempsMs)
 
 	Sprite& spriteActuel = (etat == EtatTarget::EN_DESTRUCTION) ? spriteDestruction : sprite;
 
-	if (spriteActuel.estValide()) {
-		painter.save();
-
-		if(estMiroir) 
-			{
-			painter.translate(dest.center().x(), dest.center().y());
-			painter.rotate(180);
-			painter.scale(1.0, -1.0);
-			painter.translate(-dest.center().x(), -dest.center().y());
-			spriteActuel.dessiner(painter, dest, tempsMs, true);
-		}
-			spriteActuel.dessiner(painter, dest, tempsMs, true);
-			painter.restore();
+	if (!spriteActuel.estValide()) {
+		return;
 	}
+
+	spriteActuel.dessiner(painter, dest, tempsMs, true, estMiroir);
 }
 
 void Target::detruire(qint64 tempsMs)

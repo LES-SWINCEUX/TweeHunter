@@ -96,7 +96,7 @@ void GestionnaireAudio::addSfx(QString name, QString path)
 {
     QSoundEffect* s = new QSoundEffect(this);
     s->setSource(QUrl(path));
-    s->setVolume(sfxVolume);
+    s->setVolume(sfxVolume * this->maxSfxVolume);
     sfx[name] = s;
 }
 

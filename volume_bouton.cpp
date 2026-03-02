@@ -13,6 +13,7 @@ VolumeBouton::VolumeBouton(const QString& cheminBouton, GestionnaireAudio* gesti
 
 void VolumeBouton::setVolume(float v)
 {
+    std::cout << "Volume " << (mode == MUSIQUE ? "musique" : "effets spéciaux") << " mis à " << v * 100 << "%" << std::endl;
     if (this->mode == MUSIQUE) {
         this->gestionnaireAudio->setMusicVolume(v);
         return;

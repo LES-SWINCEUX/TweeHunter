@@ -5,6 +5,7 @@
 
 #include "menu.h"
 #include "ecran_jeu.h"
+#include "ecran_fin_partie.h"
 #include "gestionnaire_audio.h"
 
 class MainWindow : public QMainWindow
@@ -16,12 +17,13 @@ public:
     ~MainWindow();
 
     void afficherMenuPrincipal();
-
     void afficherEcranJeu();
+    void afficherEcranFinPartie(int score);
 
 private:
-    MenuPrincipal* menuPrincipal = nullptr;
-    EcranJeu* ecranJeu = nullptr;
+    MenuPrincipal*   menuPrincipal   = nullptr;
+    EcranJeu*        ecranJeu        = nullptr;
+    EcranFinPartie*  ecranFinPartie  = nullptr;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 };
