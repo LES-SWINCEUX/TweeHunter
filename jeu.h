@@ -52,7 +52,7 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	void Tirer(const int x, const int y);
+	void Tirer(const int x, const int y, qint64 tempsMs);
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
@@ -69,6 +69,7 @@ public:
 
 private:
 	
+	static QSharedPointer<QPixmap> spriteDestruction;
 	void nettoyerCiblesInactives();
 
 	void initialiserCiblesParDefaut();

@@ -307,7 +307,7 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 
 void EcranJeu::tire() {
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    jeu->Tirer(reticule->getX(), reticule->getY());
+    jeu->Tirer(reticule->getX(), reticule->getY(), elapsed.elapsed());
 
     if (vies->getDemiVies() > 0) {
         return;

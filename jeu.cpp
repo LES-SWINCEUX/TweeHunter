@@ -5,10 +5,15 @@ static constexpr int COLONNES_DESTRUCTION = 4;
 static constexpr int LIGNES_DESTRUCTION = 3;
 static constexpr int CYCLE_DESTRUCTION = 1000;
 
+QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
+
 Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
 {
-	
+	if (!spriteDestruction) {
+		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
+		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
+	}
 	randomiser = new Randomiser(tailleEcran);
 
 	randomiser->setFrequenceSpawn(1000);
@@ -105,7 +110,7 @@ void Jeu::reinitialiser()
 	enPause = false;
 }
 
-void Jeu::Tirer(const int x, const int y) {
+void Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles && compteurBalles->getBalles() <= 0) {
 		return;
 	}
@@ -113,7 +118,7 @@ void Jeu::Tirer(const int x, const int y) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
 	cout << "Création de la hitbox du tir avec un carré centré sur le réticule avec des cotés = 14" << endl;
-	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), 0);
+	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), tempsMs);
 }
 
 

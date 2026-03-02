@@ -99,7 +99,7 @@ protected:
 	bool estMiroir = false;
 	qint64 tempsDebutDestruction;
 
-	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 1500;
+	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;
 };
 
 #endif
