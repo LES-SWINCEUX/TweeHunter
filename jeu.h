@@ -10,13 +10,14 @@
 #include <QSizeF>
 #include <QPainter>
 #include <iostream>
+#include "modejeu.h"
 
 using namespace std;
 
 class Jeu
 {
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18);
 
 	~Jeu();
 
@@ -53,12 +54,18 @@ public:
 
 	void Tirer(const int x, const int y);
 
+	void setModeJeu(ModeJeu mode);
+	ModeJeu getModeJeu() const {
+		return modeActuel;
+	}
+
 	void setPause(bool pause) {
 				enPause = pause;
 	}
 	bool estEnPause() const {
 						return enPause;
 	}
+
 
 private:
 	
@@ -76,6 +83,8 @@ private:
 	int ciblesTouchees;
 	int ciblesManquees;
 	int maxCiblesSimultanees;
+
+	ModeJeu modeActuel;
 
 	bool enPause;
 };

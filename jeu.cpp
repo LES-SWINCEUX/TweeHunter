@@ -1,12 +1,12 @@
 #include "jeu.h"
 
-static const QString CHEMIN_DESTRUCTION = "faut je trouve une image.png";
+static const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
 static constexpr int COLONNES_DESTRUCTION = 4;
 static constexpr int LIGNES_DESTRUCTION = 3;
-static constexpr int CYCLE_DESTRUCTION = 500;
+static constexpr int CYCLE_DESTRUCTION = 100;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
 {
 	
 	randomiser = new Randomiser(tailleEcran);
@@ -37,7 +37,7 @@ void Jeu::update(qint64 tempsMs)
 	}
 	if (randomiser && randomiser->doitGenererTarget(tempsMs)) {
 		if (ciblesActives.size() < maxCiblesSimultanees) {
-			Target* nouvelleCible = randomiser->genererTarget();
+			Target* nouvelleCible = randomiser->genererTarget(modeActuel);
 			if (nouvelleCible) {
 				ciblesActives.append(nouvelleCible);
 			}
@@ -167,62 +167,47 @@ void Jeu::ajouterTypeCible(const DefinitionTarget& definition)
 void Jeu::initialiserCiblesParDefaut()
 {
 	DefinitionTarget buff;
-	buff.cheminSprite = "/images/sprites/busch_ices.png";
-	buff.colonnesSprite = 4;
-	buff.lignesSprite = 3;
-	buff.cycleAnimation = 800;
 	buff.type = TypeTarget::BUFF;
 	buff.taille = QSizeF(200, 200);
 	buff.pointsScore = 10;
 	buff.vitesseMin = 500.0;
 	buff.vitesseMax = 1000.0;
+	buff.frequenceSpawn = 1.0;
 	ajouterTypeCible(buff);
 
 	DefinitionTarget debuff;
-	debuff.cheminSprite = "/images/sprites/guiness.png";
-	debuff.colonnesSprite = 4;
-	debuff.lignesSprite = 3;
-	debuff.cycleAnimation = 800;
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.taille = QSizeF(250, 250);
 	debuff.pointsScore = -15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
+	debuff.frequenceSpawn = 1.0;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
-	mixte.cheminSprite = "/images/sprites/redbull.png";
-	mixte.colonnesSprite = 4;
-	mixte.lignesSprite = 3;
-	mixte.cycleAnimation = 800;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.taille = QSizeF(200, 200);
 	mixte.pointsScore = 20;
 	mixte.vitesseMin = 500.0;
 	mixte.vitesseMax = 1250.0;
+	mixte.frequenceSpawn = 5.0;
 	ajouterTypeCible(mixte);
 
 	DefinitionTarget legendaire;
-	legendaire.cheminSprite = "/images/sprites/golden_twisted_tea.png";
-	legendaire.colonnesSprite = 4;
-	legendaire.lignesSprite = 3;
-	legendaire.cycleAnimation = 800;
 	legendaire.type = TypeTarget::LEGENDAIRE;
 	legendaire.taille = QSizeF(200, 200);
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
-	legendaire.vitesseMax = 20050.0;
+	legendaire.vitesseMax = 2050.0;
+	legendaire.frequenceSpawn = 10.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
-	bonus.cheminSprite = "/images/sprites/pabst_blue_ribbon.png";
-	bonus.colonnesSprite = 4;
-	bonus.lignesSprite = 3;
-	bonus.cycleAnimation = 800;
 	bonus.type = TypeTarget::BONUS;
 	bonus.taille = QSizeF(200, 200);
 	bonus.pointsScore = 30;
 	bonus.vitesseMin = 500.0;
 	bonus.vitesseMax = 1250.0;
+	bonus.frequenceSpawn = 10.0;
 	ajouterTypeCible(bonus);
 }

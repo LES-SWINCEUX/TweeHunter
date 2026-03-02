@@ -24,12 +24,16 @@ bool Randomiser::doitGenererTarget(qint64 tempsMs)
 	return false;
 }
 
-Target* Randomiser::genererTarget()
+Target* Randomiser::genererTarget(ModeJeu mode)
 {
 	if (typesDisponibles.isEmpty()) {
 		return nullptr;
 	}
-	std::uniform_int_distribution<int> distType(0, typesDisponibles.size() - 1);
+	std::vector<double> poids;
+	for (const auto& def : typesDisponibles) {
+		poids.push_back(1.0 / def.frequenceSpawn);
+	}
+	std::discrete_distribution<int> distType(poids.begin(), poids.end());
 	const DefinitionTarget& def = typesDisponibles[distType(generateur)];
 
 	Bord bordDepart = choisirBordAleatoire();
@@ -55,8 +59,15 @@ Target* Randomiser::genererTarget()
 
 	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), traj);
 
-	Target* cible = new Target(def.cheminSprite, def.colonnesSprite, def.lignesSprite, def.cycleAnimation, mouvement, def.type, def.taille);
-	cible->setPointsScore(def.pointsScore);
+	Target* cible = nullptr;
+	switch (def.type) {
+		case TypeTarget::BUFF:
+			cible = new TargetBuff(mouvement, def.taille, mode);
+			break;
+		default:
+			delete mouvement;
+			return nullptr;
+	}
 	if (bordDepart == Bord::DROITE) {
 		cible->setMiroir(true);
 	}

@@ -6,19 +6,17 @@
 #include <QSizeF>
 #include <random>
 #include <iostream>
+#include "modejeu.h"
+#include "targetbuff.h"
 
 struct DefinitionTarget
 {
-	QString cheminSprite;
-	int colonnesSprite = 4;
-	int lignesSprite = 1;
-	int cycleAnimation = 800;
-
 	TypeTarget type = TypeTarget::BUFF;
 	QSizeF taille = QSizeF(50, 50);
 	int pointsScore = 10;
 	double vitesseMin = 80.0;
 	double vitesseMax = 150.0;
+	double frequenceSpawn = 1.0;
 };
 
 class Randomiser
@@ -29,7 +27,7 @@ public:
 	void ajouterTypeTarget(const DefinitionTarget& definition);
 
 	bool doitGenererTarget(qint64 tempsMs);
-	Target* genererTarget();
+	Target* genererTarget(ModeJeu mode);
 
 	void setFrequenceSpawn(qint64 intervalMs) {
 		intervalSpawn = intervalMs;

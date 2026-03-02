@@ -34,7 +34,7 @@ class Target
 public:
 	Target(const QString& cheminSprite, int colonnes, int lignes, int cycle, Mouvement* mouvement, TypeTarget type = TypeTarget::BUFF, const QSizeF& taille = QSizeF(50, 50));
 
-	~Target();
+	virtual ~Target();
 
 	void update(qint64 tempsMs);
 	void dessiner(QPainter& painter, qint64 tempsMs);
@@ -81,7 +81,7 @@ public:
 				estMiroir = miroir;
 	}
 
-private:
+protected:
 	void chargerSprite(Sprite& sprite, const QString& cheminSprite, int colonnes, int lignes, int cycle);
 
 	Sprite sprite;
@@ -98,7 +98,7 @@ private:
 	bool estMiroir = false;
 	qint64 tempsDebutDestruction;
 
-	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;
+	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 1500;
 };
 
 #endif

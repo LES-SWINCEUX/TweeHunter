@@ -122,7 +122,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18);
     }
 }
 
