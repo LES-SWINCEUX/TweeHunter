@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "panneau_scores.h"
 
 MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *parent) :
     QWidget(parent),
@@ -41,7 +42,6 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
             QDir::currentPath() + "/sounds/menu/track_3.mp3"
         });
 
-        // Démarrer à volume 0 — le fade in sera lancé dans showEvent
         this->gestionnaireAudio->setMusicVolumeAnimation(0.0f);
         this->gestionnaireAudio->playMusic();
     }
@@ -72,7 +72,6 @@ void MenuPrincipal::showEvent(QShowEvent* e)
 
 void MenuPrincipal::lancerFadeIn()
 {
-    // Fade in visuel (noir -> transparent)
     if (overlay) {
         overlay->setAlpha(255);
         overlay->show();
@@ -298,9 +297,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         ancienPanneau->deleteLater();
     }
 
-    connect(panneau, &PanneauMenu::demanderScores, this, []() {
-        std::cout << "Demande de scores!" << std::endl;
-        });
+    connect(panneau, &PanneauMenu::demanderScores, this, &MenuPrincipal::afficherPanneauScores);
 
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
 
@@ -337,4 +334,20 @@ void MenuPrincipal::afficherPanneauPrincipal() {
 
         estompeAnimation->start();
     });
+}
+void MenuPrincipal::afficherPanneauScores() {
+    PanneauMenu* ancienPanneau = panneau;
+
+    panneau = new PanneauScores(this);
+
+    panneau->setGeometry(ancienPanneau->geometry());
+
+    ancienPanneau->hide();
+
+    panneau->show();
+    panneau->raise();
+
+    ancienPanneau->deleteLater();
+
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
 }

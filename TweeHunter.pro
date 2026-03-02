@@ -34,7 +34,10 @@ SOURCES += \
     compteur_balles.cpp \
     compteur_points.cpp \
     vie.cpp \
-    Touches.cpp
+    Touches.cpp \
+    panneau_scores.cpp \
+    gestionnaire_scores.cpp \
+    texte_menu.cpp
 
 HEADERS += \
     main_window.h \
@@ -62,7 +65,10 @@ HEADERS += \
     compteur_balles.h \
     compteur_points.h \
     vie.h \
-    Touches.h
+    Touches.h \
+    panneau_scores.h \
+    gestionnaire_scores.h \
+    texte_menu.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include "gestionnaire_scores.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -27,7 +28,6 @@ void MainWindow::afficherEcranJeu() {
     if (!this->ecranJeu) {
         this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this);
 
-        // Quand la partie se termine, on affiche l'écran de fin avec le score
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);
         });
@@ -45,9 +45,9 @@ void MainWindow::afficherEcranFinPartie(int score) {
 
         connect(this->ecranFinPartie, &EcranFinPartie::retourMenuDemande,
                 this, [this](const QString& nomJoueur, int scoreJoueur) {
-            // Ici tu pourras sauvegarder nomJoueur + scoreJoueur dans un leaderboard
-            Q_UNUSED(nomJoueur);
-            Q_UNUSED(scoreJoueur);
+            if (!nomJoueur.trimmed().isEmpty()) {
+                GestionnaireScores::instance().ajouterScore(nomJoueur, scoreJoueur);
+            }
             afficherMenuPrincipal();
         });
     }

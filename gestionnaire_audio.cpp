@@ -12,9 +12,10 @@ GestionnaireAudio::GestionnaireAudio(QObject* parent) : QObject(parent)
 
     connect(musicPlayer, &QMediaPlayer::mediaStatusChanged,
         this, &GestionnaireAudio::onMediaFinished);
+
+    chargerParametres();
 }
 
-// -------- MUSIQUE --------
 void GestionnaireAudio::setPlaylist(const QStringList& musics)
 {
     playlist = musics;
@@ -52,6 +53,7 @@ void GestionnaireAudio::setMusicVolume(float v)
     }
     this->musicVolume = v;
     musicOutput->setVolume(v * this->maxMusicVolume);
+    sauvegarderParametres();
 }
 
 float GestionnaireAudio::getMusicVolume() const {
@@ -91,7 +93,6 @@ void GestionnaireAudio::onMediaFinished(QMediaPlayer::MediaStatus status)
         nextMusic();
 }
 
-// -------- SFX --------
 void GestionnaireAudio::addSfx(QString name, QString path)
 {
     QSoundEffect* s = new QSoundEffect(this);
@@ -120,6 +121,7 @@ void GestionnaireAudio::setSfxVolume(float v)
     for (QSoundEffect* sound : sfx) {
         sound->setVolume(parsedVolume * this->maxSfxVolume);
     }
+    sauvegarderParametres();
 }
 
 float GestionnaireAudio::getSfxVolume() const {
@@ -143,4 +145,20 @@ void GestionnaireAudio::setMusicVolumeAnimation(float v) {
         parsedVolume = 0.0f;
     }
     musicOutput->setVolume(v * this->maxMusicVolume);
+}
+
+void GestionnaireAudio::sauvegarderParametres() const
+{
+    QSettings settings("MonJeu", "TweeHunter");
+    settings.setValue("audio/musicVolume", this->musicVolume);
+    settings.setValue("audio/sfxVolume",   this->sfxVolume);
+}
+
+void GestionnaireAudio::chargerParametres()
+{
+    QSettings settings("MonJeu", "TweeHunter");
+    float music = settings.value("audio/musicVolume", 1.0f).toFloat();
+    float sfx   = settings.value("audio/sfxVolume",   1.0f).toFloat();
+    setMusicVolume(music);
+    setSfxVolume(sfx);
 }
