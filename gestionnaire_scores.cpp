@@ -17,6 +17,13 @@ void GestionnaireScores::ajouterScore(const QString& nom, int score) {
     sauvegarder();
 }
 
+void GestionnaireScores::resetScores() {
+    QSettings s("TweeHunter", "Scores");
+    s.beginGroup("scores");
+    s.remove("");
+    s.endGroup();
+}
+
 void GestionnaireScores::charger() {
     QSettings s("TweeHunter", "Scores");
     int n = s.beginReadArray("scores");

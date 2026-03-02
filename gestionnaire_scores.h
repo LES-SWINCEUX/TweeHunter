@@ -25,6 +25,8 @@ public:
 
     void ajouterScore(const QString& nom, int score);
 
+    void resetScores();
+
     const QList<EntreeScore>& scores() const { return listeScores; }
 
     static constexpr int MAX_SCORES = 10;
