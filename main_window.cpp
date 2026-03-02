@@ -17,7 +17,8 @@ void MainWindow::afficherMenuPrincipal() {
         connect(this->menuPrincipal, &MenuPrincipal::jouerDemande, this, &MainWindow::afficherEcranJeu);
     }
 
-    this->ecranJeu = nullptr;
+    this->ecranJeu       = nullptr;
+    this->ecranFinPartie = nullptr;
 
     this->setCentralWidget(this->menuPrincipal);
 }
@@ -25,9 +26,36 @@ void MainWindow::afficherMenuPrincipal() {
 void MainWindow::afficherEcranJeu() {
     if (!this->ecranJeu) {
         this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this);
+
+        // Quand la partie se termine, on affiche l'écran de fin avec le score
+        connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
+            afficherEcranFinPartie(score);
+        });
     }
 
-    this->menuPrincipal = nullptr;
+    this->menuPrincipal  = nullptr;
+    this->ecranFinPartie = nullptr;
 
     this->setCentralWidget(this->ecranJeu);
 }
+
+void MainWindow::afficherEcranFinPartie(int score) {
+    if (!this->ecranFinPartie) {
+        this->ecranFinPartie = new EcranFinPartie(this->gestionnaireAudio, this);
+
+        connect(this->ecranFinPartie, &EcranFinPartie::retourMenuDemande,
+                this, [this](const QString& nomJoueur, int scoreJoueur) {
+            // Ici tu pourras sauvegarder nomJoueur + scoreJoueur dans un leaderboard
+            Q_UNUSED(nomJoueur);
+            Q_UNUSED(scoreJoueur);
+            afficherMenuPrincipal();
+        });
+    }
+
+    this->ecranFinPartie->setScore(score);
+    this->ecranJeu       = nullptr;
+    this->menuPrincipal  = nullptr;
+
+    this->setCentralWidget(this->ecranFinPartie);
+}
+

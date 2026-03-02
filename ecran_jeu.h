@@ -32,6 +32,9 @@ public:
     ~EcranJeu();
     void tire();
 
+signals:
+    void finPartie(int score);
+
 protected:
     void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent* e) override;

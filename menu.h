@@ -16,6 +16,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QResizeEvent>
+#include <QShowEvent>
 #include <QPropertyAnimation>
 #include <iostream>
 #include <algorithm>
@@ -34,6 +35,7 @@ signals:
 protected:
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* e) override;
+    void showEvent(QShowEvent* e) override;
 
 private:
     QSharedPointer<QPixmap> arrierePlan;
@@ -47,9 +49,10 @@ private:
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
-    QPropertyAnimation* estompeMusique = nullptr;
-
-    QPropertyAnimation* estompeAnimation = nullptr;
+    QPropertyAnimation* estompeMusique   = nullptr;
+    QPropertyAnimation* estompeAnimation  = nullptr;
+    QPropertyAnimation* fadeInMusique     = nullptr;
+    QPropertyAnimation* fadeInAnimation   = nullptr;
 
     PanneauMenu* panneau = nullptr;
 
@@ -70,6 +73,7 @@ private:
     QElapsedTimer timerPauseAnimation;
 
     void configuerAnimationTitre();
+    void lancerFadeIn();
     void afficherArrierePlan(QPainter &painter);
     void afficherTitre(QPainter &painter);
     void afficherOptions();
