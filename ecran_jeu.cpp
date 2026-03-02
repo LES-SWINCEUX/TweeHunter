@@ -11,7 +11,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     compteurBalles->setBalles(9);
     compteurBalles->show();
 
-    vies->setVies(1);
+    vies->setVies(3);
     vies->move(20, 20);
     vies->show();
 
