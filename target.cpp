@@ -97,13 +97,17 @@ void Target::detruire(qint64 tempsMs)
 	}
 }
 
-bool Target::intersecte(const QRectF& rectangleReticule) const
+bool Target::intersecte(const QPainterPath& cercleReticule) const
 {
 	if (etat != EtatTarget::ACTIVE)
 	{
 		return false;
 	}
-	return getBounds().intersects(rectangleReticule);
+
+	QPainterPath conversionQPainterPath;
+	conversionQPainterPath.addRect(getBounds());
+
+	return conversionQPainterPath.intersects(cercleReticule);
 }
 
 QRectF Target::getBounds() const

@@ -7,11 +7,14 @@
 #include <QSizeF>
 #include <QPainter>
 #include <iostream>
+#include <QPainterPath>
+
 
 using namespace std;
 
-class Jeu
+class Jeu 
 {
+
 public:
 	explicit Jeu(const QSizeF& tailleEcran);
 
@@ -21,7 +24,7 @@ public:
 
 	void dessiner(QPainter& painter, qint64 tempsMs);
 
-	void verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs);
+	void verifierCollisions(const QPainterPath& rectangleReticule, qint64 tempsMs);
 
 	void reinitialiser();
 

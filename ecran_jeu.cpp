@@ -153,6 +153,15 @@ void EcranJeu::paintEvent(QPaintEvent*)
     if (jeu) {
 		jeu->dessiner(painter, elapsed.elapsed()); 
     }
+
+
+	//Test de dessin du cercle de collision du tir
+    /*
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(Qt::blue, 2));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(QPointF(832, 341), 30, 30);
+    */
 }
 
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)

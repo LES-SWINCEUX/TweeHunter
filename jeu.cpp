@@ -62,14 +62,14 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 	}
 }
 
-void Jeu::verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs)
+void Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
 	if (enPause) {
 		return;
 	}
 
 	for (Target* cible : ciblesActives) {
-		if (cible && cible->estActif() && cible->intersecte(rectangleReticule)) {
+		if (cible && cible->estActif() && cible->intersecte(cercleReticule)) {
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 			score += cible->getPointsScore();
@@ -90,10 +90,16 @@ void Jeu::reinitialiser()
 }
 
 void Jeu::Tirer(const int x, const int y) {
-	cout << "Création de la hitbox du tir avec un carré centré sur le réticule avec des cotés = 14" << endl;
-	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), 0);
-}
+	QPainterPath Cercle;
 
+
+	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule avec un rayon de 7" << endl;
+
+	Cercle.addEllipse(QPointF(x, y), 7, 7);
+
+	verifierCollisions(Cercle, 0);
+
+}
 
 void Jeu::nettoyerCiblesInactives()
 {
@@ -152,8 +158,8 @@ void Jeu::initialiserCiblesParDefaut()
 	buff.type = TypeTarget::BUFF;
 	buff.taille = QSizeF(200, 200);
 	buff.pointsScore = 10;
-	buff.vitesseMin = 500.0;
-	buff.vitesseMax = 1000.0;
+	buff.vitesseMin = 100.0;
+	buff.vitesseMax = 250.0;
 	ajouterTypeCible(buff);
 
 	DefinitionTarget debuff;
@@ -164,8 +170,8 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.taille = QSizeF(250, 250);
 	debuff.pointsScore = -15;
-	debuff.vitesseMin = 500.0;
-	debuff.vitesseMax = 1250.0;
+	debuff.vitesseMin = 100.0;
+	debuff.vitesseMax = 125.0;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
@@ -176,8 +182,8 @@ void Jeu::initialiserCiblesParDefaut()
 	mixte.type = TypeTarget::MIXTE;
 	mixte.taille = QSizeF(200, 200);
 	mixte.pointsScore = 20;
-	mixte.vitesseMin = 500.0;
-	mixte.vitesseMax = 1250.0;
+	mixte.vitesseMin = 100.0;
+	mixte.vitesseMax = 125.0;
 	ajouterTypeCible(mixte);
 
 	DefinitionTarget legendaire;
@@ -188,8 +194,8 @@ void Jeu::initialiserCiblesParDefaut()
 	legendaire.type = TypeTarget::LEGENDAIRE;
 	legendaire.taille = QSizeF(200, 200);
 	legendaire.pointsScore = 50;
-	legendaire.vitesseMin = 420.0;
-	legendaire.vitesseMax = 20050.0;
+	legendaire.vitesseMin = 120.0;
+	legendaire.vitesseMax = 200.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
@@ -200,7 +206,7 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.type = TypeTarget::BONUS;
 	bonus.taille = QSizeF(200, 200);
 	bonus.pointsScore = 30;
-	bonus.vitesseMin = 500.0;
-	bonus.vitesseMax = 1250.0;
+	bonus.vitesseMin = 100.0;
+	bonus.vitesseMax = 125.0;
 	ajouterTypeCible(bonus);
 }

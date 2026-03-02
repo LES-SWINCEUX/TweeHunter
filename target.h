@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QSharedPointer>
 #include <iostream>
+#include <QPainterPath>
 
 
 enum class TypeTarget
@@ -41,7 +42,7 @@ public:
 	void detruire(qint64 tempsMs);
 	void jouerAnimationDestruction(const QString& cheminSprite, int colonnes, int lignes, int cycle);
 
-	bool intersecte(const QRectF& rectangleReticule) const;
+	bool intersecte(const QPainterPath& rectangleReticule) const;
 	
 	bool estActif() const {
 		return etat == EtatTarget::ACTIVE;
