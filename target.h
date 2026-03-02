@@ -62,6 +62,7 @@ public:
 				return position;
 	}
 	QRectF getBounds() const;
+
 	int getPointsScore() const {
 				return pointsScore;
 	}

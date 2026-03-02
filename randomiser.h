@@ -16,7 +16,7 @@
 struct DefinitionTarget
 {
 	TypeTarget type = TypeTarget::BUFF;
-	QSizeF taille = QSizeF(50, 50);
+	double tailleRelative = 0.1;
 	int pointsScore = 10;
 	double vitesseMin = 80.0;
 	double vitesseMax = 150.0;

@@ -85,7 +85,6 @@ private:
 	int maxCiblesSimultanees;
 
 	ModeJeu modeActuel;
-
 	bool enPause;
 };
 

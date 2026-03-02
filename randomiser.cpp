@@ -59,22 +59,24 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 
 	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), traj);
 
+	QSizeF taillePixels(tailleEcran.width() * def.tailleRelative, tailleEcran.height() * def.tailleRelative);
+
 	Target* cible = nullptr;
 	switch (def.type) {
 		case TypeTarget::BUFF:
-			cible = new TargetBuff(mouvement, def.taille, mode);
+			cible = new TargetBuff(mouvement, taillePixels, mode);
 			break;
 		case TypeTarget::DEBUFF:
-			cible = new TargetDebuff(mouvement, def.taille, mode);
+			cible = new TargetDebuff(mouvement, taillePixels, mode);
 			break;
 		case TypeTarget::MIXTE:
-			cible = new TargetMixte(mouvement, def.taille, mode);
+			cible = new TargetMixte(mouvement, taillePixels, mode);
 			break;
 		case TypeTarget::LEGENDAIRE:
-			cible = new TargetLegendaire(mouvement, def.taille, mode);
+			cible = new TargetLegendaire(mouvement, taillePixels, mode);
 			break;
 		case TypeTarget::BONUS:
-			cible = new TargetBonus(mouvement, def.taille, mode);
+			cible = new TargetBonus(mouvement, taillePixels, mode);
 			break;
 		default:
 			delete mouvement;

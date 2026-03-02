@@ -71,13 +71,19 @@ void Target::dessiner(QPainter& painter, qint64 tempsMs)
 
 	QRect dest(static_cast<int>(position.x() - taille.width() / 2.0), static_cast<int>(position.y() - taille.height() / 2.0), static_cast<int>(taille.width()), static_cast<int>(taille.height()));
 
-	Sprite& spriteActuel = (etat == EtatTarget::EN_DESTRUCTION) ? spriteDestruction : sprite;
-
-	if (!spriteActuel.estValide()) {
-		return;
+	if (etat == EtatTarget::EN_DESTRUCTION) {
+		if (!spriteDestruction.estValide()) {
+			return;
+		}
+		qint64 tempsLocal = tempsMs - tempsDebutDestruction;
+		spriteDestruction.dessiner(painter, dest, tempsLocal, true, estMiroir);
 	}
-
-	spriteActuel.dessiner(painter, dest, tempsMs, true, estMiroir);
+	else {
+		if (!sprite.estValide()) {
+			return;
+		}
+		sprite.dessiner(painter, dest, tempsMs, true, estMiroir);
+	}
 }
 
 void Target::detruire(qint64 tempsMs)

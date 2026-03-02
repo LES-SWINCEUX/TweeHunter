@@ -77,7 +77,6 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
-        delete overlay;
     });
 
     QTimer* timer = new QTimer(this);

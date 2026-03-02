@@ -152,6 +152,7 @@ void Jeu::setMaxCiblesSimultanees(int max)
 
 void Jeu::setTailleEcran(const QSizeF& taille)
 {
+
 	if (randomiser) {
 		randomiser->setTailleEcran(taille);
 	}
@@ -173,7 +174,7 @@ void Jeu::initialiserCiblesParDefaut()
 {
 	DefinitionTarget buff;
 	buff.type = TypeTarget::BUFF;
-	buff.taille = QSizeF(200, 200);
+	buff.tailleRelative = 0.15;
 	buff.pointsScore = 10;
 	buff.vitesseMin = 500.0;
 	buff.vitesseMax = 1000.0;
@@ -182,7 +183,7 @@ void Jeu::initialiserCiblesParDefaut()
 
 	DefinitionTarget debuff;
 	debuff.type = TypeTarget::DEBUFF;
-	debuff.taille = QSizeF(250, 250);
+	debuff.tailleRelative = 0.20;
 	debuff.pointsScore = -15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
@@ -191,7 +192,7 @@ void Jeu::initialiserCiblesParDefaut()
 
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
-	mixte.taille = QSizeF(200, 200);
+	mixte.tailleRelative = 0.15;
 	mixte.pointsScore = 20;
 	mixte.vitesseMin = 500.0;
 	mixte.vitesseMax = 1250.0;
@@ -200,7 +201,7 @@ void Jeu::initialiserCiblesParDefaut()
 
 	DefinitionTarget legendaire;
 	legendaire.type = TypeTarget::LEGENDAIRE;
-	legendaire.taille = QSizeF(200, 200);
+	legendaire.tailleRelative = 0.15;
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
@@ -209,7 +210,7 @@ void Jeu::initialiserCiblesParDefaut()
 
 	DefinitionTarget bonus;
 	bonus.type = TypeTarget::BONUS;
-	bonus.taille = QSizeF(200, 200);
+	bonus.tailleRelative = 0.15;
 	bonus.pointsScore = 30;
 	bonus.vitesseMin = 500.0;
 	bonus.vitesseMax = 1250.0;
