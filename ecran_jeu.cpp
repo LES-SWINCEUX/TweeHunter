@@ -79,6 +79,10 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         overlay->hide();
     });
 
+
+	gamepad = reticule->getGamepad(); //r�cup�ration du controle de lamanette pour le tir
+
+
     QTimer* timer = new QTimer(this);
     timer->start(16); // ~60 Hz
     
@@ -99,6 +103,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
+
 }
 
 EcranJeu::~EcranJeu()
@@ -187,6 +192,25 @@ void EcranJeu::tick()
     if (jeu) {
 		jeu->update(elapsed.elapsed());
     }
+
+    SDL_Event event;
+	if (SDL_PollEvent(&event)) // s'active si il y � un changement sur les imputs de la manette
+    {   
+        SDL_PumpEvents();
+        if (reticule->tirer()) {
+
+            if (!gachettePrecedente) {
+                gachettePrecedente = true;
+                tire();
+                cout << "Tire sur la mannette" << endl;
+
+            }
+        }
+        else {
+            gachettePrecedente = false;
+        }
+    }
+
     update();
 }
 
@@ -298,6 +322,15 @@ void EcranJeu::paintEvent(QPaintEvent*)
     if (jeu) {
 		jeu->dessiner(painter, elapsed.elapsed()); 
     }
+
+
+	//Test de dessin du cercle de collision du tir
+    /*
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(Qt::blue, 2));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(QPointF(832, 341), 30, 30);
+    */
 }
 
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)

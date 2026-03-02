@@ -71,14 +71,14 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 	}
 }
 
-void Jeu::verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs)
+void Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
 	if (enPause) {
 		return;
 	}
 
 	for (Target* cible : ciblesActives) {
-		if (cible && cible->estActif() && cible->intersecte(rectangleReticule)) {
+		if (cible && cible->estActif() && cible->intersecte(cercleReticule)) {
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 
@@ -117,10 +117,12 @@ void Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	cout << "Création de la hitbox du tir avec un carré centré sur le réticule avec des cotés = 14" << endl;
-	verifierCollisions(QRectF(x - 7, y - 7, 14, 14), tempsMs);
-}
+	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule avec un rayon de 7" << endl;
+	QPainterPath Cercle;
+	Cercle.addEllipse(QPointF(x, y), 7, 7);
 
+	verifierCollisions(Cercle, tempsMs);
+}
 
 void Jeu::nettoyerCiblesInactives()
 {
@@ -193,8 +195,8 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
 	debuff.frequenceSpawn = 2.0;
-	ajouterTypeCible(debuff);
 
+	ajouterTypeCible(debuff);
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.tailleRelative = 0.15;
