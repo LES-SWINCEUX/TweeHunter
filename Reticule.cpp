@@ -37,7 +37,7 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 		QTimer* timer = new QTimer(this);
 		timer->start(16); // ~60 Hz
 
-		SDL_Gamepad* gamepad = touches.getGamepad();
+		gamepad = touches.getGamepad();
 
 		xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX) ; //initialisation du point central du joystick
 		yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);

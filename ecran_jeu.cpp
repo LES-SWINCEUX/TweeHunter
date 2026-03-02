@@ -70,23 +70,8 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         overlay->hide();
         });
 
-    QTimer* timer = new QTimer(this);
-    timer->start(16); // ~60 Hz
-    
-    connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
-        if (reticule->tirer()) {
-			
-            if (!gachettePrecedente) {
-                gachettePrecedente = true;
-                tire();
-                cout << "Tire sur la mannette" << endl;
-                
-			}
-        }
-        else{
-			gachettePrecedente = false;
-        }
-        });
+	gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
+
 }
 
 EcranJeu::~EcranJeu()
@@ -137,6 +122,25 @@ void EcranJeu::tick()
     if (jeu) {
 		jeu->update(elapsed.elapsed());
     }
+
+    SDL_Event event;
+	if (SDL_PollEvent(&event)) // s'active si il y à un changement sur les imputs de la manette
+    {   
+        SDL_PumpEvents();
+        if (reticule->tirer()) {
+
+            if (!gachettePrecedente) {
+                gachettePrecedente = true;
+                tire();
+                cout << "Tire sur la mannette" << endl;
+
+            }
+        }
+        else {
+            gachettePrecedente = false;
+        }
+    }
+
     update();
 }
 
