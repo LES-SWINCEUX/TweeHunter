@@ -20,6 +20,8 @@
 #include "Variete.h"
 #include "Touches.h"
 
+#include <SDL3/SDL.h>
+
 using namespace std;
 
 class Reticule : public QWidget
@@ -35,6 +37,7 @@ public:
 	int getX() const;
 	int getY() const;
 	bool tirer() const { return touches.RTpressed(); }
+	SDL_Gamepad* getGamepad()const { return gamepad; }
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -54,6 +57,9 @@ private:
 
 	int hauteurEcran;
 	int largeurEcran;
+
+	SDL_Gamepad* gamepad = nullptr;
+
 
 
 };

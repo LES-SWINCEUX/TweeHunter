@@ -10,11 +10,14 @@
 #include <QSizeF>
 #include <QPainter>
 #include <iostream>
+#include <QPainterPath>
+
 
 using namespace std;
 
-class Jeu
+class Jeu 
 {
+
 public:
 	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies);
 
@@ -24,7 +27,7 @@ public:
 
 	void dessiner(QPainter& painter, qint64 tempsMs);
 
-	void verifierCollisions(const QRectF& rectangleReticule, qint64 tempsMs);
+	void verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs);
 
 	void reinitialiser();
 
