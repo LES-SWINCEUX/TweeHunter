@@ -11,7 +11,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     compteurBalles->setBalles(9);
     compteurBalles->show();
 
-    vies->setVies(3);
+    vies->setVies(1);
     vies->move(20, 20);
     vies->show();
 
@@ -71,14 +71,14 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 	//activation de sdl pour les manettes
     cout << "Initialisation de SDL3" << endl;
     
-    if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
-{
-    qDebug() << "Erreur SDL:" << SDL_GetError();
-}
+    if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
+        qDebug() << "Erreur SDL:" << SDL_GetError();
+    }
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
-        });
+        delete overlay;
+    });
 
     QTimer* timer = new QTimer(this);
     timer->start(16); // ~60 Hz
@@ -309,6 +309,31 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 void EcranJeu::tire() {
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     jeu->Tirer(reticule->getX(), reticule->getY());
+
+    if (vies->getDemiVies() > 0) {
+        return;
+    }
+
+    timer.stop();
+
+    overlay = new FadeOverlay(this);
+    overlay->setGeometry(rect());
+    overlay->setAlpha(0);
+    overlay->show();
+    overlay->raise();
+
+    fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
+    fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeInAnim->setDuration(1000);
+    fadeInAnim->setStartValue(0);
+    fadeInAnim->setEndValue(255);
+
+    connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
+        int scoreFinal = compteurPoints ? compteurPoints->getPoints() : 0;
+        emit finPartie(scoreFinal);
+    });
+
+    fadeInAnim->start();
 }
 
 void EcranJeu::rechargerArme() {
