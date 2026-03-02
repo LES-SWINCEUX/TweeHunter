@@ -58,7 +58,7 @@ QPointF Mouvement::calculerPositionLineaire(double progression)
 QPointF Mouvement::calculerPositionCourbe(double progression, double direction)
 {
 	QPointF posBase = calculerPositionLineaire(progression);
-	double offset = qSin(progression * M_PI) * (distanceTotale * 0.1) * direction;
+	double offset = qSin(progression * FREQUENCE_COURBE * 2.0 * M_PI) * (distanceTotale * AMPLITUDE_COURBE) * direction;
 
 	QPointF delta = positionFin - positionDepart;
 	QPointF perpendiculaire(-delta.y(), delta.x());

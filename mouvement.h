@@ -71,6 +71,8 @@ private:
 
 	static constexpr double AMPLITUDE_ZIGZAG = 50.0;
 	static constexpr double FREQUENCE_ZIGZAG = 5.0;
+	static constexpr double AMPLITUDE_COURBE = 0.1;
+	static constexpr double FREQUENCE_COURBE = 0.5;
 
 };
 

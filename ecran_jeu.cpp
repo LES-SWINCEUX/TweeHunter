@@ -77,7 +77,6 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
-        delete overlay;
     });
 
 
@@ -127,7 +126,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18);
     }
 }
 
@@ -341,7 +340,7 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 
 void EcranJeu::tire() {
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    jeu->Tirer(reticule->getX(), reticule->getY());
+    jeu->Tirer(reticule->getX(), reticule->getY(), elapsed.elapsed());
 
     if (vies->getDemiVies() > 0) {
         return;
