@@ -3,7 +3,7 @@
 static const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
 static constexpr int COLONNES_DESTRUCTION = 4;
 static constexpr int LIGNES_DESTRUCTION = 3;
-static constexpr int CYCLE_DESTRUCTION = 100;
+static constexpr int CYCLE_DESTRUCTION = 1000;
 
 Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
