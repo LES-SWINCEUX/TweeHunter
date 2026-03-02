@@ -8,6 +8,10 @@
 #include <iostream>
 #include "modejeu.h"
 #include "targetbuff.h"
+#include "targetdebuff.h"
+#include "targetmixte.h"
+#include "targetlegendaire.h"
+#include "targetbonus.h"
 
 struct DefinitionTarget
 {

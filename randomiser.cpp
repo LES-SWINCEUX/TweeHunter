@@ -64,6 +64,18 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 		case TypeTarget::BUFF:
 			cible = new TargetBuff(mouvement, def.taille, mode);
 			break;
+		case TypeTarget::DEBUFF:
+			cible = new TargetDebuff(mouvement, def.taille, mode);
+			break;
+		case TypeTarget::MIXTE:
+			cible = new TargetMixte(mouvement, def.taille, mode);
+			break;
+		case TypeTarget::LEGENDAIRE:
+			cible = new TargetLegendaire(mouvement, def.taille, mode);
+			break;
+		case TypeTarget::BONUS:
+			cible = new TargetBonus(mouvement, def.taille, mode);
+			break;
 		default:
 			delete mouvement;
 			return nullptr;

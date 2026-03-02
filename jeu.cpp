@@ -164,6 +164,11 @@ void Jeu::ajouterTypeCible(const DefinitionTarget& definition)
 	}
 }
 
+void Jeu::setModeJeu(ModeJeu mode)
+{
+	modeActuel = mode;
+}
+
 void Jeu::initialiserCiblesParDefaut()
 {
 	DefinitionTarget buff;
@@ -181,7 +186,7 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.pointsScore = -15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 1.0;
+	debuff.frequenceSpawn = 2.0;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
@@ -190,7 +195,7 @@ void Jeu::initialiserCiblesParDefaut()
 	mixte.pointsScore = 20;
 	mixte.vitesseMin = 500.0;
 	mixte.vitesseMax = 1250.0;
-	mixte.frequenceSpawn = 5.0;
+	mixte.frequenceSpawn = 2.5;
 	ajouterTypeCible(mixte);
 
 	DefinitionTarget legendaire;
@@ -199,7 +204,7 @@ void Jeu::initialiserCiblesParDefaut()
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
-	legendaire.frequenceSpawn = 10.0;
+	legendaire.frequenceSpawn = 4.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
@@ -208,6 +213,6 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.pointsScore = 30;
 	bonus.vitesseMin = 500.0;
 	bonus.vitesseMax = 1250.0;
-	bonus.frequenceSpawn = 10.0;
+	bonus.frequenceSpawn = 5.0;
 	ajouterTypeCible(bonus);
 }

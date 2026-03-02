@@ -1,15 +1,15 @@
-#ifndef TARGETBUFF_H
-#define TARGETBUFF_H
+#ifndef TARGETBONUS_H
+#define TARGETBONUS_H
 
 #include "target.h"
 #include <QVector>
 #include <random>
 #include "modejeu.h"
 
-class TargetBuff : public Target
+class TargetBonus : public Target
 {
 public:
-	TargetBuff(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode);
+	TargetBonus(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode);
 
 private:
 	static QString choisirSpriteAleatoire(ModeJeu mode);
@@ -19,3 +19,5 @@ private:
 };
 
 #endif
+#pragma once
+
