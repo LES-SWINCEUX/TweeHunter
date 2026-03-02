@@ -11,9 +11,10 @@ CompteurBalles::CompteurBalles(QWidget* parent)
 void CompteurBalles::setSpriteSheet()
 {
     spriteSheet = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/balles.png");
-    if (spriteSheet.isNull()) return;
+    if (spriteSheet.isNull()) {
+        return;
+    }
 
-    // Layout attendu: 2 rangées x 5 colonnes (0..4 / 5..9)
     tailleFrame = QSize(spriteSheet->width() / 5, spriteSheet->height() / 2);
 
     recalcFrameRect();
@@ -24,7 +25,9 @@ void CompteurBalles::setSpriteSheet()
 void CompteurBalles::setBalles(int value)
 {
     int clamped = std::clamp(value, 0, 9);
-    if (clamped == balles) return;
+    if (clamped == balles) {
+        return;
+    }
     balles = clamped;
     recalcFrameRect();
     update();
@@ -32,8 +35,12 @@ void CompteurBalles::setBalles(int value)
 
 void CompteurBalles::setEchelle(float s)
 {
-    if (s < 0.1) s = 0.1;
-    if (qFuzzyCompare(s, echelle)) return;
+    if (s < 0.1) {
+        s = 0.1;
+    }
+    if (qFuzzyCompare(s, echelle)) {
+        return;
+    }
     echelle = s;
     recalcWidgetSize();
     update();
@@ -41,7 +48,9 @@ void CompteurBalles::setEchelle(float s)
 
 void CompteurBalles::recalcFrameRect()
 {
-    if (spriteSheet.isNull() || tailleFrame.isEmpty()) return;
+    if (spriteSheet.isNull() || tailleFrame.isEmpty()) {
+        return;
+    }
 
     int cols = 5;
     int col = balles % cols;
@@ -53,22 +62,23 @@ void CompteurBalles::recalcFrameRect()
 
 void CompteurBalles::recalcWidgetSize()
 {
-    if (tailleFrame.isEmpty()) return;
+    if (tailleFrame.isEmpty()) {
+        return;
+    }
 
-    // Taille du widget = taille frame * scale
-    QSize scaled(int(tailleFrame.width() * echelle),
-        int(tailleFrame .height() * echelle));
+    QSize scaled(int(tailleFrame.width() * echelle), int(tailleFrame .height() * echelle));
     setFixedSize(scaled);
 }
 
 void CompteurBalles::paintEvent(QPaintEvent*)
 {
-    if (spriteSheet.isNull()) return;
+    if (spriteSheet.isNull()) {
+        return;
+    }
 
     QPainter p(this);
     p.setRenderHint(QPainter::SmoothPixmapTransform, false); // pixel perfect
     p.setRenderHint(QPainter::Antialiasing, false);
 
-    // Dessine la frame courante scalée
     p.drawPixmap(rect(), *spriteSheet, rectangleFrame);
 }

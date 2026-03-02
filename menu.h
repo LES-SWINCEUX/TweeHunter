@@ -77,6 +77,7 @@ private:
     void afficherArrierePlan(QPainter &painter);
     void afficherTitre(QPainter &painter);
     void afficherOptions();
+    void afficherPanneauScores();
     void afficherPanneauPrincipal();
 };
 

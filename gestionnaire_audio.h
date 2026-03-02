@@ -6,6 +6,7 @@
 #include <QAudioOutput>
 #include <QSoundEffect>
 #include <QMap>
+#include <QSettings>
 
 enum AudioMode { MUSIQUE, SFX };
 
@@ -16,7 +17,6 @@ class GestionnaireAudio : public QObject
 public:
     GestionnaireAudio(QObject* parent = nullptr);
 
-    // MUSIQUE
     void setPlaylist(const QStringList& musics);
     void playMusic();
     void nextMusic();
@@ -29,13 +29,15 @@ public:
     void stopAndClearMusic();
     void setMusicVolumeAnimation(float v);
 
-    // SFX
     void addSfx(QString name, QString path);
     void playSfx(QString name);
     void setSfxVolume(float v);
     float getSfxVolume() const;
     float getSfxVolumeSetting() const;
     float getMaxSfxVolume() const;
+
+    void sauvegarderParametres() const;
+    void chargerParametres();
 
 private slots:
     void onMediaFinished(QMediaPlayer::MediaStatus status);

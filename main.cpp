@@ -2,6 +2,7 @@
 
 #include <QFontDatabase>
 #include <QApplication>
+#include <QCoreApplication>
 
 int main(int argc, char *argv[])
 {
@@ -18,6 +19,9 @@ int main(int argc, char *argv[])
     if (id == -1) {
         std::cout << "Impossible de charger le style d'écriture:" << QDir::currentPath().toStdString() << "/fonts/LuckiestGuy-Regular.ttf" << std::endl;
     }
+
+    QCoreApplication::setOrganizationName("TweeHunter");
+    QCoreApplication::setApplicationName("TweeHunter");
 
     w.setWindowTitle("TweeHunter");
     w.showMaximized();

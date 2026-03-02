@@ -63,7 +63,6 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
 
     connect(boutonValider, &Bouton::clicked, this, [this]() {
         QString nom = champNom->text().trimmed();
-        if (nom.isEmpty()) nom = "Anonyme";
 
         overlay->setAlpha(0);
         overlay->show();
