@@ -27,7 +27,7 @@ public:
 
 	void dessiner(QPainter& painter, qint64 tempsMs);
 
-	void verifierCollisions(const QPainterPath& rectangleReticule, qint64 tempsMs);
+	void verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs);
 
 	void reinitialiser();
 

@@ -116,7 +116,7 @@ void Jeu::Tirer(const int x, const int y) {
 
 
 	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule avec un rayon de 7" << endl;
-
+	QPainterPath Cercle;
 	Cercle.addEllipse(QPointF(x, y), 7, 7);
 
 	verifierCollisions(Cercle, 0);
