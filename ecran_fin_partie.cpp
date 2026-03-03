@@ -233,7 +233,7 @@ void EcranFinPartie::paintEvent(QPaintEvent*)
     }
 
     if (!panneauCache.isNull()) {
-        painter.drawPixmap(0, 0, panneauCache);
+        painter.drawPixmap(0, 40, panneauCache);
     }
 
     if (titreImg && !titreImg->isNull()) {
