@@ -158,3 +158,35 @@ TypeTrajectoire Randomiser::choisirTrajectoire() const
 		return TypeTrajectoire::COURBE_BAS;
 	return TypeTrajectoire::ZIGZAG;
 }
+
+bool Randomiser::genererBushLouche(qint64 tempsMs)
+{
+	if (prochainBushLouche == 0) {
+		std::uniform_int_distribution<qint64> dist(-VARIATION_SPAWN_BUSH_LOUCHE, VARIATION_SPAWN_BUSH_LOUCHE);
+		prochainBushLouche = tempsMs + INTERVALLE_SPAWN_BUSH_LOUCHE + dist(generateur);
+		return false;
+	}
+
+	if (tempsMs >= prochainBushLouche) {
+		std::uniform_int_distribution<qint64> dist(-VARIATION_SPAWN_BUSH_LOUCHE, VARIATION_SPAWN_BUSH_LOUCHE);
+		prochainBushLouche = tempsMs + INTERVALLE_SPAWN_BUSH_LOUCHE + dist(generateur);
+		return true;
+	}
+
+	return false;
+}
+
+TypeLouche Randomiser::choisirTypeBushLouche() const
+{
+	std::uniform_int_distribution<int> dist(0, 2);
+	return static_cast<TypeLouche>(dist(generateur));
+}
+
+int Randomiser::choisirIndexBush(int nombreBush) const
+{
+	if (nombreBush <= 0) {
+		return 0;
+	}
+	std::uniform_int_distribution<int> dist(0, nombreBush - 1);
+	return dist(generateur);
+}

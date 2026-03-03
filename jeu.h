@@ -12,6 +12,10 @@
 #include <iostream>
 #include "modejeu.h"
 #include <QPainterPath>
+#include "bush.h"
+#include "bush_louche.h"
+#include "gestionnaire_audio.h"
+
 
 using namespace std;
 
@@ -67,7 +71,8 @@ public:
 	bool estEnPause() const {
 		return enPause;
 	}
-
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles,
+		Vies* vies, GestionnaireAudio* gestionnaireAudio = nullptr, ModeJeu mode = ModeJeu::PLUS_18);
 
 private:
 	
@@ -89,6 +94,10 @@ private:
 
 	ModeJeu modeActuel;
 	bool enPause;
+
+	QList<Bush*> bushes;
+	BushLouche* bushLoucheActif = nullptr;
+	GestionnaireAudio* gestionnaireAudio = nullptr;
 };
 
 #endif

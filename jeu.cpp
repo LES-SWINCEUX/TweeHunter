@@ -7,14 +7,39 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies,GestionnaireAudio* gestionnaireAudio, ModeJeu mode)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), gestionnaireAudio(gestionnaireAudio), modeActuel(mode)
 {
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
 		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
 	}
 	randomiser = new Randomiser(tailleEcran);
+
+	double tailleBush = tailleEcran.width() * 0.15;
+	bushes.append(new Bush(
+		QPointF(tailleEcran.width() * 0.25, tailleEcran.height() * 0.67),
+		QSizeF(tailleBush, tailleBush),
+		"/images/Bush/Domingoat.png"
+	));
+	bushes.append(new Bush(
+		QPointF(tailleEcran.width() * 0.5, tailleEcran.height() * 0.67),
+		QSizeF(tailleBush, tailleBush),
+		"/images/Bush/JP.png"
+	));
+	bushes.append(new Bush(
+		QPointF(tailleEcran.width() * 0.75, tailleEcran.height() * 0.67),
+		QSizeF(tailleBush, tailleBush),
+		"/images/Bush/busch.png"
+	));
+
+	if (gestionnaireAudio) {
+		gestionnaireAudio->addSfx("louche_1", QDir::currentPath() + "/sounds/louche1.wav", 2);
+		gestionnaireAudio->addSfx("louche_2", QDir::currentPath() + "/sounds/louche2.wav", 2);
+		gestionnaireAudio->addSfx("bonus_3", QDir::currentPath() + "/sounds/bonus3.wav", 2);
+		gestionnaireAudio->addSfx("disparait", QDir::currentPath() + "/sounds/destruction.wav", 4);
+	}
+
 
 	randomiser->setFrequenceSpawn(1000);
 	randomiser->setVariationFrequence(500);
@@ -33,6 +58,12 @@ Jeu::~Jeu()
 	qDeleteAll(ciblesActives);
 	ciblesActives.clear();
 	delete randomiser;
+
+	qDeleteAll(bushes);
+	bushes.clear();
+	if (bushLoucheActif) {
+		delete bushLoucheActif;
+	}
 }
 
 void Jeu::update(qint64 tempsMs)
@@ -61,11 +92,66 @@ void Jeu::update(qint64 tempsMs)
 		}
 
 	}
+
+	if (!bushLoucheActif && randomiser->genererBushLouche(tempsMs)) {
+		int indexBush = randomiser->choisirIndexBush(bushes.size());
+		TypeLouche typeLouche = randomiser->choisirTypeBushLouche();
+
+		QString cheminSprite;
+		int colonnes = 4, lignes = 1, cycle = 1000;
+
+		switch (typeLouche) {
+		case TypeLouche::LOUCHE_1:
+			cheminSprite = "/images/Bush/Domingoat.png";
+			break;
+		case TypeLouche::LOUCHE_2:
+			cheminSprite = "/images/Bush/JP.png";
+			break;
+		case TypeLouche::BONUS_3:
+			cheminSprite = "/images/Bush/busch.png";
+			break;
+		}
+
+		bushLoucheActif = new BushLouche(
+			bushes[indexBush]->getPosition(),
+			typeLouche,
+			bushes[indexBush]->getTaille(),
+			cheminSprite, colonnes, lignes, cycle,
+			"/images/sprites/Avertissement.png", 4, 1, 1000
+		);
+	}
+
+	if (bushLoucheActif) {
+		bushLoucheActif->update(tempsMs);
+
+		if (bushLoucheActif->disparait()) {
+			if (gestionnaireAudio) {
+				gestionnaireAudio->playSfx("disparait");
+			}
+			bushLoucheActif->marquerSonJoue();
+		}
+		if (bushLoucheActif->estInnactif()) {
+			delete bushLoucheActif;
+			bushLoucheActif = nullptr;
+		}
+	}
+
+
 	nettoyerCiblesInactives();
 }
 
 void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 {
+	for (Bush* bush : bushes) {
+		if (bush) {
+			bush->dessiner(painter);
+		}
+	}
+
+	if (bushLoucheActif) {
+		bushLoucheActif->dessiner(painter, tempsMs);
+	}
+
 	for (Target* cible : ciblesActives) {
 		if (cible) {
 			cible->dessiner(painter, tempsMs);
@@ -102,6 +188,33 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			ciblesTouchees++;
 		}
 	}
+
+	if (bushLoucheActif && bushLoucheActif->estActif() && bushLoucheActif->intersecte(cercleReticule)) {
+		bushLoucheActif->detruire();
+
+		int pointsLouche = bushLoucheActif->getPointsScore();
+		score += pointsLouche;
+
+		if (score <= 0) {
+			score = 0;
+		}
+
+		compteurPoints->setPoints(score);
+
+		//if (gestionnaireAudio) {
+		//	switch (bushLoucheActif->getType()) {
+		//	case TypeLouche::LOUCHE_1:
+		//		gestionnaireAudio->playSfx("louche_1");
+		//		break;
+		//	case TypeLouche::LOUCHE_2:
+		//		gestionnaireAudio->playSfx("louche_2");
+		//		break;
+		//	case TypeLouche::BONUS_3:
+		//		gestionnaireAudio->playSfx("bonus_3");
+		//		break;
+		//	}
+		//}
+	}
 	return aTouche;
 }
 
@@ -115,6 +228,12 @@ void Jeu::reinitialiser()
 	ciblesTouchees = 0;
 	ciblesManquees = 0;
 	enPause = false;
+
+	if (bushLoucheActif) {
+		delete bushLoucheActif;
+		bushLoucheActif = nullptr;
+
+	}
 }
 
 bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {

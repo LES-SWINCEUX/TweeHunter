@@ -135,7 +135,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, gestionnaireAudio, ModeJeu::PLUS_18);
     }
     // Réinitialise le temps de jeu (utile si on revient sur l'écran)
     tempsJeuMs = 0;
