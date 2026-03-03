@@ -100,20 +100,16 @@ void GestionnaireAudio::addSfx(const QString& name, const QString& path, int voi
 
     SfxPool pool;
     pool.players.reserve(voices);
-    pool.outputs.reserve(voices);
 
-    const QUrl url = QUrl::fromLocalFile(path);
+    QUrl url = QUrl::fromLocalFile(path);
 
     for (int i = 0; i < voices; ++i) {
-        auto* out = new QAudioOutput(this);
-        out->setVolume(this->sfxVolume * this->maxSfxVolume);
+        auto* effect = new QSoundEffect(this);
 
-        auto* p = new QMediaPlayer(this);
-        p->setAudioOutput(out);
-        p->setSource(url);
+        effect->setSource(url);
+        effect->setVolume(this->sfxVolume * this->maxSfxVolume);
 
-        pool.outputs.push_back(out);
-        pool.players.push_back(p);
+        pool.players.push_back(effect);
     }
 
     sfx.insert(name, pool);
@@ -126,11 +122,9 @@ void GestionnaireAudio::playSfx(const QString& name)
 
     SfxPool& pool = sfx[name];
 
-    QMediaPlayer* p = pool.players[pool.nextIndex];
+    QSoundEffect* p = pool.players[pool.nextIndex];
     pool.nextIndex = (pool.nextIndex + 1) % pool.players.size();
 
-    // Important: remettre au début sans couper les autres instances
-    p->setPosition(0);
     p->play();
 }
 
@@ -149,8 +143,8 @@ void GestionnaireAudio::setSfxVolume(float v)
 
     for (auto it = sfx.begin(); it != sfx.end(); ++it) {
         SfxPool& pool = it.value();
-        for (auto* out : pool.outputs) {
-            out->setVolume(parsedVolume * this->maxSfxVolume);
+        for (QSoundEffect* effect : pool.players) {
+            effect->setVolume(parsedVolume * this->maxSfxVolume);
         }
     }
 
