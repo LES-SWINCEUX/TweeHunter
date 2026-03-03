@@ -3,13 +3,7 @@
 PanneauScores::PanneauScores(QWidget* parent)
     : PanneauMenu(parent)
 {
-    int id = QFontDatabase::addApplicationFont(QDir::currentPath() + "/fonts/pixel.ttf");
-
-    QString famille = (id >= 0)
-        ? QFontDatabase::applicationFontFamilies(id).at(0)
-        : "Courier New";
-
-    fontPixel.setFamily(famille);
+    fontPixel.setFamily("Luckiest Guy");
     fontPixel.setBold(true);
     fontPixel.setLetterSpacing(QFont::AbsoluteSpacing, 1);
 

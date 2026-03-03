@@ -6,6 +6,7 @@
 #include <QPair>
 #include <QString>
 #include <QSettings>
+#include <QDebug>
 #include <algorithm>
 
 struct EntreeScore {
