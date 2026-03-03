@@ -18,7 +18,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     compteurPoints->setNombresNumeros(6);
     compteurPoints->setPoints(0);
     compteurPoints->setAnimation(true);
-    compteurPoints->setVitesseAnimation(1, 30);
+    compteurPoints->setVitesseAnimation(2, 1);
     compteurPoints->show();
 
     this->gestionnaireAudio = gestionnaireAudio;
@@ -361,7 +361,7 @@ void EcranJeu::tire() {
     fadeInAnim->setEndValue(255);
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
-        int scoreFinal = compteurPoints ? compteurPoints->getPoints() : 0;
+        int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
         emit finPartie(scoreFinal);
     });
 

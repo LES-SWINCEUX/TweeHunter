@@ -46,7 +46,7 @@ void MainWindow::afficherEcranFinPartie(int score) {
         connect(this->ecranFinPartie, &EcranFinPartie::retourMenuDemande,
                 this, [this](const QString& nomJoueur, int scoreJoueur) {
             if (!nomJoueur.trimmed().isEmpty()) {
-                GestionnaireScores::instance().ajouterScore(nomJoueur.toUpper(), 999999);
+                GestionnaireScores::instance().ajouterScore(nomJoueur.toUpper(), scoreJoueur);
             }
             afficherMenuPrincipal();
         });
