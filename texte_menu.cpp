@@ -1,9 +1,14 @@
 #include "texte_menu.h"
 
+void TexteMenu::setAlignment(Qt::Alignment align)
+{
+    m_alignment = align;
+    update();
+}
+
 void TexteMenu::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
-
     p.setRenderHint(QPainter::Antialiasing, true);
 
     QFont f = styleEcriture.family().isEmpty() ? font() : styleEcriture;
@@ -11,11 +16,37 @@ void TexteMenu::paintEvent(QPaintEvent*)
 
     const QRect r = rect();
 
-    QFontMetrics fm(f);
-    QRect br = fm.boundingRect(texte);
+    const int c = int(std::ceil(largeurContour));
+    const int ox = int(std::ceil(std::abs(ombrageOffset.x())));
+    const int oy = int(std::ceil(std::abs(ombrageOffset.y())));
 
-    const int x = r.center().x() - br.width() / 2;
-    const int y = r.center().y() + (fm.ascent() - fm.descent()) / 2;
+    const int padL = c + (ombrageOffset.x() < 0 ? ox : 0);
+    const int padR = c + (ombrageOffset.x() > 0 ? ox : 0);
+    const int padT = c + (ombrageOffset.y() < 0 ? oy : 0);
+    const int padB = c + (ombrageOffset.y() > 0 ? oy : 0);
+
+    QRect rr = r.adjusted(padL, padT, -padR, -padB);
+    if (rr.width() <= 0 || rr.height() <= 0) rr = r;
+
+    QFontMetrics fm(f);
+
+    const int textW = fm.horizontalAdvance(texte);
+
+    int x = rr.left();
+    if (m_alignment & Qt::AlignHCenter) {
+        x = rr.center().x() - textW / 2;
+    }
+    else if (m_alignment & Qt::AlignRight) {
+        x = rr.left() + rr.width() - textW;
+    }
+
+    int y = rr.top() + fm.ascent();
+    if (m_alignment & Qt::AlignVCenter) {
+        y = rr.center().y() + (fm.ascent() - fm.descent()) / 2;
+    }
+    else if (m_alignment & Qt::AlignBottom) {
+        y = rr.bottom() - fm.descent();
+    }
 
     QPainterPath path;
     path.addText(QPointF(x, y), f, texte);

@@ -18,7 +18,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     compteurPoints->setNombresNumeros(6);
     compteurPoints->setPoints(0);
     compteurPoints->setAnimation(true);
-    compteurPoints->setVitesseAnimation(1, 30);
+    compteurPoints->setVitesseAnimation(2, 1);
     compteurPoints->show();
 
     this->gestionnaireAudio = gestionnaireAudio;
@@ -33,11 +33,16 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         estompeMusique->setEndValue(this->gestionnaireAudio->getMusicVolumeSetting());
 
         estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+
+        gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.mp3", this->maxBalles);
+        gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.mp3", this->maxBalles);
     }
 
     arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
     setAttribute(Qt::WA_OpaquePaintEvent);
     elapsed.start();
+    frameTimer.start();
+    tempsJeuMs = 0;
 
     timer.setInterval(1000 / 60);
 
@@ -80,13 +85,17 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     });
 
 
-	gamepad = reticule->getGamepad(); //r�cup�ration du controle de lamanette pour le tir
+	gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
 
 
     QTimer* timer = new QTimer(this);
+    this->timerManette = timer;
     timer->start(16); // ~60 Hz
     
     connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
+        if (enPause || transitionVersMenu) {
+            return;
+        }
         if (reticule->tirer()) {
 			
             if (!gachettePrecedente) {
@@ -128,12 +137,32 @@ void EcranJeu::showEvent(QShowEvent* e)
     if (!jeu) {
         jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18);
     }
+    // Réinitialise le temps de jeu (utile si on revient sur l'écran)
+    tempsJeuMs = 0;
+    frameTimer.restart();
 }
 
 void EcranJeu::keyPressEvent(QKeyEvent* e)
 {
     if (e->isAutoRepeat()) { 
         e->ignore();
+        return;
+    }
+
+    if (transitionVersMenu) {
+        e->ignore();
+        return;
+    }
+
+    if (e->key() == Qt::Key_Escape)
+    {
+        if (enPause) {
+            reprendreJeu();
+        }
+        else {
+            mettreEnPause();
+        }
+        e->accept();
         return;
     }
 
@@ -149,6 +178,10 @@ void EcranJeu::keyPressEvent(QKeyEvent* e)
 }
 
 void EcranJeu::mousePressEvent(QMouseEvent* event) {
+    if (enPause || transitionVersMenu) {
+        event->ignore();
+        return;
+    }
     cout << "Tire avec la souris" << endl;
     tire();
 }
@@ -180,6 +213,16 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         overlay->setGeometry(rect());
         overlay->raise();
     }
+    if (overlayFadeOut)
+    {
+        overlayFadeOut->setGeometry(rect());
+        overlayFadeOut->raise();
+    }
+    if (menuPause)
+    {
+        menuPause->setGeometry(rect());
+        menuPause->raise();
+    }
     if(jeu) {
         jeu->setTailleEcran(size());
 	}
@@ -189,12 +232,17 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
 
 void EcranJeu::tick()
 {
+    if (enPause || transitionVersMenu) {
+        frameTimer.restart();
+        return;
+    }
     if (jeu) {
-		jeu->update(elapsed.elapsed());
+		tempsJeuMs += frameTimer.restart();
+		jeu->update(tempsJeuMs);
     }
 
     SDL_Event event;
-	if (SDL_PollEvent(&event)) // s'active si il y � un changement sur les imputs de la manette
+	if (SDL_PollEvent(&event)) // s'active s'il y a un changement sur les imputs de la manette
     {   
         SDL_PumpEvents();
         if (reticule->tirer()) {
@@ -212,6 +260,108 @@ void EcranJeu::tick()
     }
 
     update();
+}
+
+void EcranJeu::mettreEnPause()
+{
+    if (enPause) return;
+    enPause = true;
+
+    // Stop la logique de jeu (sans arrêter la boucle de tick).
+    if (jeu) {
+        jeu->setPause(true);
+    }
+
+    // Cache le réticule et remet un curseur normal pour cliquer sur les boutons.
+    if (reticule) {
+        reticule->hide();
+    }
+
+    unsetCursor();
+
+    menuPause = new MenuPauseOverlay(this->gestionnaireAudio, this);
+    menuPause->setGeometry(rect());
+    menuPause->show();
+    menuPause->raise();
+
+    connect(menuPause, &MenuPauseOverlay::reprendreDemande, this, &EcranJeu::reprendreJeu);
+    connect(menuPause, &MenuPauseOverlay::retourMenuDemande, this, [this]() {
+        demarrerFadeOutVersMenu();
+    });
+}
+
+void EcranJeu::reprendreJeu()
+{
+    if (!enPause) return;
+    enPause = false;
+    if (jeu) jeu->setPause(false);
+
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
+    frameTimer.restart();
+
+    setCursor(Qt::BlankCursor);
+    if (reticule) reticule->show();
+    setFocus();
+}
+
+void EcranJeu::demarrerFadeOutVersMenu()
+{
+    if (transitionVersMenu) {
+        return;
+    }
+    transitionVersMenu = true;
+
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
+    enPause = true;
+    if (jeu) {
+        jeu->setPause(true);
+    }
+
+    if (!overlayFadeOut) {
+        overlayFadeOut = new FadeOverlay(this);
+    }
+    overlayFadeOut->setGeometry(rect());
+    overlayFadeOut->setAlpha(0);
+    overlayFadeOut->show();
+    overlayFadeOut->raise();
+
+    if (!fadeOutAnim) {
+        fadeOutAnim = new QPropertyAnimation(overlayFadeOut, "alpha", this);
+        fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    }
+    fadeOutAnim->stop();
+    fadeOutAnim->setDuration(800);
+    fadeOutAnim->setStartValue(0);
+    fadeOutAnim->setEndValue(255);
+
+    if (gestionnaireAudio != nullptr) {
+        if (!fadeOutMusique) {
+            fadeOutMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
+            fadeOutMusique->setEasingCurve(QEasingCurve::InOutQuad);
+        }
+        fadeOutMusique->stop();
+        fadeOutMusique->setDuration(800);
+        fadeOutMusique->setStartValue(gestionnaireAudio->getMusicVolume());
+        fadeOutMusique->setEndValue(0.0f);
+        fadeOutMusique->start();
+    }
+
+    QObject::disconnect(fadeOutAnim, nullptr, this, nullptr);
+    connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() {
+        emit retourMenuDemande();
+    });
+
+    fadeOutAnim->start();
 }
 
 void EcranJeu::placerElementsGUI()
@@ -320,7 +470,7 @@ void EcranJeu::paintEvent(QPaintEvent*)
         painter.fillRect(rect(), Qt::black);
     }
     if (jeu) {
-		jeu->dessiner(painter, elapsed.elapsed()); 
+		jeu->dessiner(painter, tempsJeuMs); 
     }
 
 
@@ -340,7 +490,17 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 
 void EcranJeu::tire() {
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    jeu->Tirer(reticule->getX(), reticule->getY(), elapsed.elapsed());
+    int nombreBalles = 0;
+
+    if (compteurBalles != nullptr) {
+        nombreBalles = compteurBalles->getBalles();
+    }
+
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+
+    if (gestionnaireAudio != nullptr && nombreBalles > 0) {
+        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
 
     if (vies->getDemiVies() > 0) {
         return;
@@ -361,7 +521,7 @@ void EcranJeu::tire() {
     fadeInAnim->setEndValue(255);
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
-        int scoreFinal = compteurPoints ? compteurPoints->getPoints() : 0;
+        int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
         emit finPartie(scoreFinal);
     });
 

@@ -29,6 +29,8 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
+    TexteMenu* setupTexteMenu(const QString& txt);
+
     Bouton*  boutonRetour = nullptr;
     QFont fontPixel;
     QSharedPointer<QPixmap> imgPanneau;

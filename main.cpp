@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("TweeHunter");
     QCoreApplication::setApplicationName("TweeHunter");
 
+
     w.setWindowTitle("TweeHunter");
     w.showMaximized();
     //w.showFullScreen();
