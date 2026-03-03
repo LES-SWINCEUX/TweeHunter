@@ -33,6 +33,9 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         estompeMusique->setEndValue(this->gestionnaireAudio->getMusicVolumeSetting());
 
         estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+
+        gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.mp3", this->maxBalles);
+        gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.mp3", this->maxBalles);
     }
 
     arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
@@ -487,7 +490,17 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 
 void EcranJeu::tire() {
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+    int nombreBalles = 0;
+
+    if (compteurBalles != nullptr) {
+        nombreBalles = compteurBalles->getBalles();
+    }
+
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+
+    if (gestionnaireAudio != nullptr && nombreBalles > 0) {
+        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
 
     if (vies->getDemiVies() > 0) {
         return;

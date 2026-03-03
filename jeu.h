@@ -27,21 +27,21 @@ public:
 
 	void dessiner(QPainter& painter, qint64 tempsMs);
 
-	void verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs);
+	bool verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs);
 
 	void reinitialiser();
 
 	int getScore() const {
-				return score;
+		return score;
 	}
 	int getNombreCiblesTouchees() const {
-				return ciblesTouchees;
+		return ciblesTouchees;
 	}
 	int getNombreCiblesManquees() const {
-				return ciblesManquees;
+		return ciblesManquees;
 	}
 	int getNombreCiblesActives() const {
-				return ciblesActives.size();
+		return ciblesActives.size();
 	}
 
 	void setFrequenceSpawn(qint64 intervalMs);
@@ -50,11 +50,11 @@ public:
 	void setTailleEcran(const QSizeF& taille);
 
 	int getMaxCiblesSimultanees() const {
-				return maxCiblesSimultanees;
+		return maxCiblesSimultanees;
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	void Tirer(const int x, const int y, qint64 tempsMs);
+	bool Tirer(const int x, const int y, qint64 tempsMs);
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
@@ -62,10 +62,10 @@ public:
 	}
 
 	void setPause(bool pause) {
-				enPause = pause;
+		enPause = pause;
 	}
 	bool estEnPause() const {
-						return enPause;
+		return enPause;
 	}
 
 
