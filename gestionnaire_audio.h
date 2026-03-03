@@ -6,6 +6,7 @@
 #include <QAudioOutput>
 #include <QMap>
 #include <QSettings>
+#include <QSoundEffect>
 
 enum AudioMode { MUSIQUE, SFX };
 
@@ -55,8 +56,7 @@ private:
     int index = 0;
 
     struct SfxPool {
-        QVector<QMediaPlayer*> players;
-        QVector<QAudioOutput*> outputs;
+        QVector<QSoundEffect*> players;
         int nextIndex = 0;
     };
 
