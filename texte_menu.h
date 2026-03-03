@@ -1,6 +1,7 @@
 #ifndef TEXTE_MENU_H
 #define TEXTE_MENU_H
 
+#include <Qt>
 #include <QWidget>
 #include <QColor>
 #include <QPainter>
@@ -16,6 +17,9 @@ public:
         setAttribute(Qt::WA_TranslucentBackground);
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     }
+
+    void setAlignment(Qt::Alignment align);
+    Qt::Alignment alignment() const { return m_alignment; }
 
     void setTexte(const QString& t) { texte = t; update(); }
     QString getTexte() const { return texte; }
@@ -42,6 +46,7 @@ private:
     QColor  ombrage = QColor(0, 0, 0, 200);
     float   largeurContour = 4.0f;
     QPointF ombrageOffset = QPointF(3.0, 3.0);
+    Qt::Alignment m_alignment = Qt::AlignCenter | Qt::AlignVCenter;
 };
 
 #endif

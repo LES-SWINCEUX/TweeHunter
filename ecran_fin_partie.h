@@ -46,6 +46,10 @@ private:
     void lancerFadeIn();
     QRect srcRectToScreen(int screenW, int screenH, int srcX, int srcY, int srcW, int srcH);
 
+    QPixmap buildCache(const QSharedPointer<QPixmap>& src);
+    QLabel* makeLabel(const QString& txt, const QString& couleur);
+    QRect geometrieLabel(float ratioY, float ratioH, float ratioW, int zoneW, int panX, int panY, int panW, int panH);
+
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
     QSharedPointer<QPixmap> arrierePlan;

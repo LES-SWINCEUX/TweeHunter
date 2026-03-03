@@ -1,13 +1,14 @@
-#include "panneau_scores.h"
+﻿#include "panneau_scores.h"
 
 PanneauScores::PanneauScores(QWidget* parent)
     : PanneauMenu(parent)
 {
-    int id = QFontDatabase::addApplicationFont(
-        QDir::currentPath() + "/fonts/pixel.ttf");
+    int id = QFontDatabase::addApplicationFont(QDir::currentPath() + "/fonts/pixel.ttf");
+
     QString famille = (id >= 0)
         ? QFontDatabase::applicationFontFamilies(id).at(0)
         : "Courier New";
+
     fontPixel.setFamily(famille);
     fontPixel.setBold(true);
     fontPixel.setLetterSpacing(QFont::AbsoluteSpacing, 1);
@@ -24,28 +25,11 @@ void PanneauScores::creer()
 
     const int NB_LIGNES_AFF = std::min(5, GestionnaireScores::MAX_SCORES);
 
-    auto makeArcade = [this](const QString& txt) -> TexteMenu* {
-        TexteMenu* w = new TexteMenu(this);
-        w->setTexte(txt);
-
-        QFont f = fontPixel;
-        f.setBold(true);
-        w->setFont(f);
-
-        w->setRemplissage(QColor("#FFE066"));
-        w->setContour(QColor("#B11B1B"));
-        w->setOmbrage(QColor(0, 0, 0, 200));
-        w->setLargeurContour(4.0f);
-        w->setOmbrageOffset(QPointF(3.0, 3.0));
-
-        return w;
-    };
-
     for (int i = 0; i < NB_LIGNES_AFF; ++i) {
         Ligne l;
-        l.rang = makeArcade(QString::number(i + 1) + ".");
-        l.nom = makeArcade("-");
-        l.score = makeArcade("-");
+        l.rang = setupTexteMenu(QString::number(i + 1) + ".");
+        l.nom = setupTexteMenu("-");
+        l.score = setupTexteMenu("-");
         lignes.append(l);
     }
 
@@ -57,27 +41,28 @@ void PanneauScores::creer()
 
 void PanneauScores::rafraichirLignes()
 {
-    const auto& scores = GestionnaireScores::instance().scores();
+    const QList<EntreeScore> & scores = GestionnaireScores::instance().scores();
 
     for (int i = 0; i < lignes.size(); ++i) {
         if (i < scores.size()) {
             lignes[i].nom->setTexte(scores[i].nom);
             lignes[i].score->setTexte(QString::number(scores[i].score));
-        } else {
+        }
+        else {
             lignes[i].nom->setTexte("-");
             lignes[i].score->setTexte("-");
         }
     }
 }
 
-void PanneauScores::positionner()
-{
+void PanneauScores::positionner() {
     if (lignes.isEmpty()) {
         return;
     }
 
     const int W = width();
     const int H = height();
+
     if (W <= 0 || H <= 0) {
         return;
     }
@@ -86,14 +71,13 @@ void PanneauScores::positionner()
     const int panH = std::max(300, int(panW * 0.72f));
 
     const int panX = (W - panW) / 2;
-    const int panY = int(H * 0.1f);
+    const int panY = (H - panH) / 2;
 
     const int contentTop = panY + int(panH * 0.36f);
     const int contentBot = panY + int(panH * 0.80f);
     const int contentH = std::max(1, contentBot - contentTop);
     const int contentX = panX + int(panW * 0.10f);
     const int contentW = panW - int(panW * 0.17f);
-
 
     if (boutonRetour) {
         int btnH = std::max(18, int(panH * 0.10f));
@@ -114,22 +98,45 @@ void PanneauScores::positionner()
     }
 
     const int colRangW = int(contentW * 0.10f);
-    const int colScoreW = int(contentW * 0.20f);
-    const int colNomW = contentW - colRangW - colScoreW - int(contentW * 0.04f);
-
-    const int xRang = contentX;
-    const int xNom = xRang + colRangW + int(contentW * 0.02f);
-    const int xScore = contentX + contentW - colScoreW;
+    const int pad = int(contentW * 0.02f);
 
     const int n = lignes.size();
     const float bandH = float(contentH) / float(n);
-
     int ligneHReelle = std::max(22, int(bandH * 0.55f));
     int fontSize = std::max(14, int(ligneHReelle * 0.92f));
 
     QFont f = fontPixel;
     f.setPixelSize(fontSize);
     f.setBold(true);
+
+    QFontMetrics fm(f);
+
+    const QString worstCase = "999999";
+    const int contourMargin = 6;
+    int colScoreW = fm.horizontalAdvance(worstCase) + contourMargin * 2;
+
+    colScoreW = std::clamp(colScoreW, int(contentW * 0.14f), int(contentW * 0.28f));
+
+    const int scoreInset = int(panW * 0.03f);
+
+    const int xRang = contentX;
+    const int xScore = contentX + contentW - colScoreW - scoreInset;
+
+    int centreX = panX + panW / 2;
+    if (boutonRetour) {
+        centreX = boutonRetour->geometry().center().x();
+    }
+
+    const int nomMinX = xRang + colRangW + pad;
+    const int nomMaxX = xScore - pad;
+    const int nomMaxW = std::max(0, nomMaxX - nomMinX);
+
+    const int nomW = std::min(nomMaxW,
+        2 * std::min(centreX - nomMinX,
+            nomMaxX - centreX));
+
+    const int colNomW = std::max(0, nomW);
+    const int xNom = centreX - colNomW / 2;
 
     const float gapOffsetInBand = 0.14f;
 
@@ -141,12 +148,18 @@ void PanneauScores::positionner()
         lignes[i].nom->setFont(f);
         lignes[i].score->setFont(f);
 
+        lignes[i].rang->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        lignes[i].nom->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        lignes[i].score->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
         if (i == 0) {
             lignes[i].score->setRemplissage(QColor("#FFD700"));
         }
+
         if (i == 1) {
             lignes[i].score->setRemplissage(QColor("#C0C0C0"));
         }
+
         if (i == 2) {
             lignes[i].score->setRemplissage(QColor("#CD7F32"));
         }
@@ -161,12 +174,12 @@ void PanneauScores::positionner()
     }
 }
 
-void PanneauScores::paintEvent(QPaintEvent* event)
-{
+void PanneauScores::paintEvent(QPaintEvent* event) {
     QWidget::paintEvent(event);
 
-    if (imgPanneau.isNull())
+    if (imgPanneau.isNull()) {
         return;
+    }
 
     QPainter p(this);
 
@@ -177,9 +190,26 @@ void PanneauScores::paintEvent(QPaintEvent* event)
     const int panH = std::max(300, int(panW * 0.72f));
 
     const int panX = (W - panW) / 2;
-    const int panY = int(H * 0.1f);
+    const int panY = (H - panH) / 2;
 
     if (imgPanneau && !imgPanneau->isNull()) {
         p.drawPixmap(panX, panY, panW, panH, *imgPanneau);
     }
+}
+
+TexteMenu* PanneauScores::setupTexteMenu(const QString& txt) {
+    TexteMenu* w = new TexteMenu(this);
+    w->setTexte(txt);
+
+    QFont f = fontPixel;
+    f.setBold(true);
+    w->setFont(f);
+
+    w->setRemplissage(QColor("#FFE066"));
+    w->setContour(QColor("#B11B1B"));
+    w->setOmbrage(QColor(0, 0, 0, 200));
+    w->setLargeurContour(4.0f);
+    w->setOmbrageOffset(QPointF(3.0, 3.0));
+
+    return w;
 }

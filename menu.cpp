@@ -1,7 +1,7 @@
 #include "menu.h"
 #include "panneau_scores.h"
 
-MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *parent) :
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
@@ -27,7 +27,6 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
     cannettes->setFPS(30);
 
     cannettes->show();
-
     cannettes->lower();
 
     overlay = new FadeOverlay(this);
@@ -40,7 +39,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
             QDir::currentPath() + "/sounds/menu/track_2.mp3",
             QDir::currentPath() + "/sounds/menu/track_1.mp3",
             QDir::currentPath() + "/sounds/menu/track_3.mp3"
-        });
+            });
 
         this->gestionnaireAudio->setMusicVolumeAnimation(0.0f);
         this->gestionnaireAudio->playMusic();
@@ -60,6 +59,23 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget *pare
 }
 
 MenuPrincipal::~MenuPrincipal() {
+}
+
+QRect MenuPrincipal::zonePanneauxBas() const
+{
+    const int decalageY = int(height() * ratioPanneaux);
+    return QRect(0, decalageY, width(), std::max(0, height() - decalageY));
+}
+
+QRect MenuPrincipal::zonePourPanneau(PanneauMenu* p) const
+{
+    // Scores doit être centré par rapport à TOUT l’écran
+    if (qobject_cast<PanneauScores*>(p) != nullptr) {
+        return rect();
+    }
+
+    // Tout le reste (Options + Menu principal) reste dans la zone du bas
+    return zonePanneauxBas();
 }
 
 void MenuPrincipal::showEvent(QShowEvent* e)
@@ -87,11 +103,10 @@ void MenuPrincipal::lancerFadeIn()
         fadeInAnimation->setEndValue(0);
         connect(fadeInAnimation, &QPropertyAnimation::finished, this, [this]() {
             overlay->hide();
-        });
+            });
         fadeInAnimation->start();
     }
 
-    // Fade in musique (0 -> volume nominal)
     GestionnaireAudio* audio = this->gestionnaireAudio;
     if (audio != nullptr) {
         if (!fadeInMusique) {
@@ -106,18 +121,18 @@ void MenuPrincipal::lancerFadeIn()
     }
 }
 
-void MenuPrincipal::paintEvent(QPaintEvent *event)
+void MenuPrincipal::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
-
+    
     QPainter painter(this);
-
     painter.fillRect(rect(), Qt::black);
 
     afficherArrierePlan(painter);
 
-    afficherTitre(painter);
-
+    if (!cacherTitre) {
+        afficherTitre(painter);
+    }
 }
 
 void MenuPrincipal::resizeEvent(QResizeEvent* e)
@@ -143,35 +158,24 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
     }
 
     if (panneau) {
-        int decalageY = int(height() * ratioPanneaux);
-
-        QRect zone(
-            0,
-            decalageY,
-            width(),
-            height() - decalageY
-        );
-
-        panneau->setGeometry(zone);
+        panneau->setGeometry(zonePourPanneau(panneau));
     }
 
     if (cannettes) {
-
         cannettes->setGeometry(rect());
 
         QVector<QRectF> zones = {
-            {0.116f, 0.067f, 0.131f, 0.161f}, // haut-gauche
-            {0.075f, 0.336f, 0.165f, 0.209f}, // milieu-gauche
-            {0.120f, 0.702f, 0.169f, 0.212f}, // bas-gauche
+            {0.116f, 0.067f, 0.131f, 0.161f},
+            {0.075f, 0.336f, 0.165f, 0.209f},
+            {0.120f, 0.702f, 0.169f, 0.212f},
 
-            {0.771f, 0.040f, 0.127f, 0.178f}, // haut-droite
-            {0.712f, 0.375f, 0.140f, 0.196f}, // milieu-droite
-            {0.742f, 0.718f, 0.162f, 0.217f}, // bas-droite
+            {0.771f, 0.040f, 0.127f, 0.178f},
+            {0.712f, 0.375f, 0.140f, 0.196f},
+            {0.742f, 0.718f, 0.162f, 0.217f},
         };
 
         cannettes->setZones(zones);
     }
-
 
     if (overlay) {
         overlay->setGeometry(rect());
@@ -208,11 +212,10 @@ void MenuPrincipal::configuerAnimationTitre() {
     timerAnimationTitre.start();
 }
 
-void MenuPrincipal::afficherArrierePlan(QPainter &painter) {
+void MenuPrincipal::afficherArrierePlan(QPainter& painter) {
     if (!arrierePlan || arrierePlan->isNull()) {
         return;
     }
-        
 
     if (!arrierePlanCache.isNull()) {
         painter.drawPixmap(0, 0, arrierePlanCache);
@@ -235,8 +238,8 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 
     QRect src(indexImageTitre * largeurImage, 0, largeurImage, hauteurImage);
 
-    const float largeurMax = width() * 0.7f;  
-    const float hauteurMax = height() * 0.4f; 
+    const float largeurMax = width() * 0.7f;
+    const float hauteurMax = height() * 0.4f;
 
     float largeur = largeurMax;
     float hauteur = largeur * float(hauteurImage) / float(largeurImage);
@@ -262,54 +265,47 @@ void MenuPrincipal::afficherOptions() {
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauOptions(this->gestionnaireAudio, this);
+    panneau->setGeometry(zonePourPanneau(panneau));
 
-    panneau->setGeometry(ancienPanneau->geometry());
+    if (ancienPanneau) {
+        ancienPanneau->hide();
+        ancienPanneau->deleteLater();
+    }
 
-    ancienPanneau->hide();
-    
     panneau->show();
     panneau->raise();
-
-    ancienPanneau->deleteLater();
 
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
 }
 
 void MenuPrincipal::afficherPanneauPrincipal() {
-    std::cout << "Affichages du menu principal" << std::endl;
+    cacherTitre = false;
+    update();
+
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauPrincipal(this);
+    panneau->setGeometry(zonePourPanneau(panneau));
 
-    int decalageY = int(height() * ratioPanneaux);
-
-    QRect zonePanneaux = rect();
-    zonePanneaux.setTop(zonePanneaux.top() + decalageY);
-
-    panneau->setGeometry(zonePanneaux);
-
-    if (ancienPanneau != nullptr) {
+    if (ancienPanneau) {
         ancienPanneau->hide();
-
-        panneau->show();
-        panneau->raise();
-
         ancienPanneau->deleteLater();
     }
 
-    connect(panneau, &PanneauMenu::demanderScores, this, &MenuPrincipal::afficherPanneauScores);
+    panneau->show();
+    panneau->raise();
 
+    connect(panneau, &PanneauMenu::demanderScores, this, &MenuPrincipal::afficherPanneauScores);
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
 
     connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
         std::cout << "Demande de sortie de l'application" << std::endl;
         qApp->quit();
-    });
+        });
 
     connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
-        if (fadeEnCours) {
-            return;
-        }
+        if (fadeEnCours) return;
+
         std::cout << "Demande de landement de la partie" << std::endl;
         fadeEnCours = true;
 
@@ -328,26 +324,29 @@ void MenuPrincipal::afficherPanneauPrincipal() {
             estompeMusique->setDuration(1000);
             estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
             estompeMusique->setEndValue(0.0);
-
             estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
         }
 
         estompeAnimation->start();
-    });
+        });
 }
+
 void MenuPrincipal::afficherPanneauScores() {
+    cacherTitre = true;
+    update();
+
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauScores(this);
+    panneau->setGeometry(zonePourPanneau(panneau));
 
-    panneau->setGeometry(ancienPanneau->geometry());
-
-    ancienPanneau->hide();
+    if (ancienPanneau) {
+        ancienPanneau->hide();
+        ancienPanneau->deleteLater();
+    }
 
     panneau->show();
     panneau->raise();
-
-    ancienPanneau->deleteLater();
 
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
 }

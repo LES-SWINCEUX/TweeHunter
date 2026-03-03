@@ -21,6 +21,8 @@
 #include <iostream>
 #include <algorithm>
 
+class PanneauMenu;
+
 class MenuPrincipal : public QWidget
 {
     Q_OBJECT
@@ -49,10 +51,10 @@ private:
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
-    QPropertyAnimation* estompeMusique   = nullptr;
-    QPropertyAnimation* estompeAnimation  = nullptr;
-    QPropertyAnimation* fadeInMusique     = nullptr;
-    QPropertyAnimation* fadeInAnimation   = nullptr;
+    QPropertyAnimation* estompeMusique = nullptr;
+    QPropertyAnimation* estompeAnimation = nullptr;
+    QPropertyAnimation* fadeInMusique = nullptr;
+    QPropertyAnimation* fadeInAnimation = nullptr;
 
     PanneauMenu* panneau = nullptr;
 
@@ -69,13 +71,20 @@ private:
 
     bool animationActive = true;
     bool fadeEnCours = false;
+    bool cacherTitre = false;
 
     QElapsedTimer timerPauseAnimation;
 
+    // zone du bas (menu principal)
+    QRect zonePanneauxBas() const;
+
+    // zone selon le panneau affiché (scores/options = plein écran)
+    QRect zonePourPanneau(PanneauMenu* p) const;
+
     void configuerAnimationTitre();
     void lancerFadeIn();
-    void afficherArrierePlan(QPainter &painter);
-    void afficherTitre(QPainter &painter);
+    void afficherArrierePlan(QPainter& painter);
+    void afficherTitre(QPainter& painter);
     void afficherOptions();
     void afficherPanneauScores();
     void afficherPanneauPrincipal();

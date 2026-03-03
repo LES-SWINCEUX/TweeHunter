@@ -33,21 +33,13 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
         overlay->hide();
     });
 
-    auto makeLabel = [this](const QString& txt, const QString& couleur) -> QLabel* {
-        QLabel* l = new QLabel(txt, this);
-        l->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-        l->setStyleSheet(
-            QString("QLabel { color: %1; background: transparent; }").arg(couleur));
-        return l;
-    };
-
     labelVotreScore = makeLabel("VOTRE SCORE :", "#FFE066");
-    labelScore = makeLabel("0",             "#FFE066");
+    labelScore = makeLabel("0", "#FFE066");
     labelNom = makeLabel("ENTREZ VOTRE NOM :", "#FFFFFF");
 
     champNom = new QLineEdit(this);
     champNom->setPlaceholderText("...");
-    champNom->setMaxLength(14);
+    champNom->setMaxLength(10);
     champNom->setAlignment(Qt::AlignHCenter);
     champNom->setStyleSheet(
         "QLineEdit {"
@@ -110,16 +102,6 @@ void EcranFinPartie::resizeEvent(QResizeEvent* e)
 {
     QWidget::resizeEvent(e);
 
-    auto buildCache = [&](const QSharedPointer<QPixmap>& src) -> QPixmap {
-        if (!src || src->isNull() || width() == 0 || height() == 0)
-            return QPixmap();
-        QPixmap scaled = src->scaled(
-            size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-        int ox = std::max(0, (scaled.width()  - width())  / 2);
-        int oy = std::max(0, (scaled.height() - height()) / 2);
-        return scaled.copy(QRect(ox, oy, width(), height()));
-    };
-
     arrierePlanCache = buildCache(arrierePlan);
     panneauCache = buildCache(panneauImg);
 
@@ -148,28 +130,20 @@ void EcranFinPartie::placerElements()
     const int padX = int(panW * CHAMP_PAD_X);
     const int zoneW = panW - 2 * padX;
 
-    auto geometrieLabel = [&](float ratioY, float ratioH, float ratioW) -> QRect {
-        int lw = int(zoneW * ratioW);
-        int lx = panX + (panW - lw) / 2;
-        int ly = panY + int(panH * ratioY);
-        int lh = int(panH * ratioH);
-        return QRect(lx, ly, lw, lh);
-    };
-
     if (labelVotreScore) {
         QFont f = fontPixel; f.setPixelSize(std::max(8, int(panH * 0.090f)));
         labelVotreScore->setFont(f);
-        labelVotreScore->setGeometry(geometrieLabel(LABEL_SCORE_Y, LABEL_SCORE_H, 1.0f));
+        labelVotreScore->setGeometry(geometrieLabel(LABEL_SCORE_Y, LABEL_SCORE_H, 1.0f, zoneW, panX, panY, panW, panH));
     }
     if (labelScore) {
         QFont f = fontPixel; f.setPixelSize(std::max(8, int(panH * 0.160f)));
         labelScore->setFont(f);
-        labelScore->setGeometry(geometrieLabel(SCORE_VAL_Y, SCORE_VAL_H, 1.0f));
+        labelScore->setGeometry(geometrieLabel(SCORE_VAL_Y, SCORE_VAL_H, 1.0f, zoneW, panX, panY, panW, panH));
     }
     if (labelNom) {
         QFont f = fontPixel; f.setPixelSize(std::max(8, int(panH * 0.085f)));
         labelNom->setFont(f);
-        labelNom->setGeometry(geometrieLabel(LABEL_NOM_Y, LABEL_NOM_H, 1.0f));
+        labelNom->setGeometry(geometrieLabel(LABEL_NOM_Y, LABEL_NOM_H, 1.0f, zoneW, panX, panY, panW, panH));
     }
 
     if (champNom) {
@@ -224,6 +198,32 @@ QRect EcranFinPartie::srcRectToScreen(int screenW, int screenH, int srcX, int sr
     int h = int(srcH * scale);
 
     return QRect(x, y, w, h);
+}
+
+QPixmap EcranFinPartie::buildCache(const QSharedPointer<QPixmap>& src) {
+    if (!src || src->isNull() || width() == 0 || height() == 0)
+        return QPixmap();
+    QPixmap scaled = src->scaled(
+        size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    int ox = std::max(0, (scaled.width() - width()) / 2);
+    int oy = std::max(0, (scaled.height() - height()) / 2);
+    return scaled.copy(QRect(ox, oy, width(), height()));
+}
+
+QLabel* EcranFinPartie::makeLabel(const QString& txt, const QString& couleur) {
+    QLabel* l = new QLabel(txt, this);
+    l->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    l->setStyleSheet(
+        QString("QLabel { color: %1; background: transparent; }").arg(couleur));
+    return l;
+}
+
+QRect EcranFinPartie::geometrieLabel(float ratioY, float ratioH, float ratioW, int zoneW, int panX, int panY, int panW, int panH) {
+    int lw = int(zoneW * ratioW);
+    int lx = panX + (panW - lw) / 2;
+    int ly = panY + int(panH * ratioY);
+    int lh = int(panH * ratioH);
+    return QRect(lx, ly, lw, lh);
 }
 
 void EcranFinPartie::paintEvent(QPaintEvent*)
