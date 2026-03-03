@@ -40,6 +40,8 @@ void Jeu::update(qint64 tempsMs)
 	if (enPause) {
 		return;
 	}
+
+	bool aTouche = false;
 	if (randomiser && randomiser->doitGenererTarget(tempsMs)) {
 		if (ciblesActives.size() < maxCiblesSimultanees) {
 			Target* nouvelleCible = randomiser->genererTarget(modeActuel);
@@ -71,14 +73,17 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 	}
 }
 
-void Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
+bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
 	if (enPause) {
-		return;
+		return false;
 	}
+
+	bool aTouche = false;
 
 	for (Target* cible : ciblesActives) {
 		if (cible && cible->estActif() && cible->intersecte(cercleReticule)) {
+			aTouche = true;
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 
@@ -97,7 +102,9 @@ void Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			ciblesTouchees++;
 		}
 	}
+	return aTouche;
 }
+
 
 void Jeu::reinitialiser()
 {
@@ -110,9 +117,9 @@ void Jeu::reinitialiser()
 	enPause = false;
 }
 
-void Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
+bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles && compteurBalles->getBalles() <= 0) {
-		return;
+		return false;
 	}
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
@@ -121,7 +128,7 @@ void Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	QPainterPath Cercle;
 	Cercle.addEllipse(QPointF(x, y), 7, 7);
 
-	verifierCollisions(Cercle, tempsMs);
+	return verifierCollisions(Cercle, tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()

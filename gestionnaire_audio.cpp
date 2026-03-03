@@ -1,4 +1,5 @@
 #include "gestionnaire_audio.h"
+#include <QFileInfo>
 
 GestionnaireAudio::GestionnaireAudio(QObject* parent) : QObject(parent)
 {
@@ -93,34 +94,66 @@ void GestionnaireAudio::onMediaFinished(QMediaPlayer::MediaStatus status)
         nextMusic();
 }
 
-void GestionnaireAudio::addSfx(QString name, QString path)
+void GestionnaireAudio::addSfx(const QString& name, const QString& path, int voices)
 {
-    QSoundEffect* s = new QSoundEffect(this);
-    s->setSource(QUrl(path));
-    s->setVolume(sfxVolume * this->maxSfxVolume);
-    sfx[name] = s;
+    voices = std::max(1, voices);
+
+    SfxPool pool;
+    pool.players.reserve(voices);
+    pool.outputs.reserve(voices);
+
+    const QUrl url = QUrl::fromLocalFile(path);
+
+    for (int i = 0; i < voices; ++i) {
+        auto* out = new QAudioOutput(this);
+        out->setVolume(this->sfxVolume * this->maxSfxVolume);
+
+        auto* p = new QMediaPlayer(this);
+        p->setAudioOutput(out);
+        p->setSource(url);
+
+        pool.outputs.push_back(out);
+        pool.players.push_back(p);
+    }
+
+    sfx.insert(name, pool);
 }
 
-void GestionnaireAudio::playSfx(QString name)
+void GestionnaireAudio::playSfx(const QString& name)
 {
-    if (sfx.contains(name)) {
-        sfx[name]->play();
-    }
+    if (!sfx.contains(name))
+        return;
+
+    SfxPool& pool = sfx[name];
+
+    QMediaPlayer* p = pool.players[pool.nextIndex];
+    pool.nextIndex = (pool.nextIndex + 1) % pool.players.size();
+
+    // Important: remettre au début sans couper les autres instances
+    p->setPosition(0);
+    p->play();
 }
 
 void GestionnaireAudio::setSfxVolume(float v)
 {
     float parsedVolume = v;
+
     if (v >= 1.0f) {
         parsedVolume = 1.0f;
     }
     else if (v <= 0.0f) {
         parsedVolume = 0.0f;
     }
+
     sfxVolume = parsedVolume;
-    for (QSoundEffect* sound : sfx) {
-        sound->setVolume(parsedVolume * this->maxSfxVolume);
+
+    for (auto it = sfx.begin(); it != sfx.end(); ++it) {
+        SfxPool& pool = it.value();
+        for (auto* out : pool.outputs) {
+            out->setVolume(parsedVolume * this->maxSfxVolume);
+        }
     }
+
     sauvegarderParametres();
 }
 

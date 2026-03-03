@@ -23,6 +23,8 @@
 #include "Reticule.h"
 #include "vie.h"
 
+#include "menu_pause_overlay.h"
+
 class EcranJeu : public QWidget
 {
     Q_OBJECT
@@ -34,6 +36,7 @@ public:
 
 signals:
     void finPartie(int score);
+    void retourMenuDemande();
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -49,14 +52,23 @@ private:
     void placerElementsGUI();
     void rechargerArme();
 
+    void mettreEnPause();
+    void reprendreJeu();
+    void demarrerFadeOutVersMenu();
+
     QTimer timer;
     QElapsedTimer elapsed;
+    QElapsedTimer frameTimer;
+    qint64 tempsJeuMs = 0;
 
     FadeOverlay* overlay = nullptr;
+    FadeOverlay* overlayFadeOut = nullptr;
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
     QPropertyAnimation* estompeMusique = nullptr;
     QPropertyAnimation* fadeInAnim = nullptr;
+    QPropertyAnimation* fadeOutAnim = nullptr;
+    QPropertyAnimation* fadeOutMusique = nullptr;
 
     QSharedPointer<QPixmap> arrierePlan;
     QPixmap arrierePlanCache;
@@ -68,6 +80,11 @@ private:
     CompteurPoints* compteurPoints = nullptr;
 
     SDL_Gamepad* gamepad = nullptr;
+
+    bool enPause = false;
+    bool transitionVersMenu = false;
+    MenuPauseOverlay* menuPause = nullptr;
+    QTimer* timerManette = nullptr;
 
     Jeu* jeu = nullptr;
 

@@ -31,6 +31,10 @@ void MainWindow::afficherEcranJeu() {
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);
         });
+
+        connect(this->ecranJeu, &EcranJeu::retourMenuDemande, this, [this]() {
+            afficherMenuPrincipal();
+        });
     }
 
     this->menuPrincipal  = nullptr;
@@ -46,7 +50,7 @@ void MainWindow::afficherEcranFinPartie(int score) {
         connect(this->ecranFinPartie, &EcranFinPartie::retourMenuDemande,
                 this, [this](const QString& nomJoueur, int scoreJoueur) {
             if (!nomJoueur.trimmed().isEmpty()) {
-                GestionnaireScores::instance().ajouterScore(nomJoueur, scoreJoueur);
+                GestionnaireScores::instance().ajouterScore(nomJoueur.toUpper(), scoreJoueur);
             }
             afficherMenuPrincipal();
         });

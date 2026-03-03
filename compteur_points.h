@@ -19,6 +19,7 @@ public:
 
     void setPoints(int value);
     int getPoints() const { return points; }
+    int getPointsCible() const { return pointsCible; }
 
     void setAnimation(bool on);
     void setVitesseAnimation(int pointsPerTick, int tickMs = 16);

@@ -42,7 +42,9 @@ SOURCES += \
     targetdebuff.cpp \
     targetlegendaire.cpp \
     targetmixte.cpp \
-    targetbonus.cpp
+    targetbonus.cpp \
+    panneau_pause_principal.cpp \
+    menu_pause_overlay.cpp
 
 HEADERS += \
     main_window.h \
@@ -79,6 +81,8 @@ HEADERS += \
     targetlegendaire.h \
     targetmixte.h \
     targetbonus.h \
+    panneau_pause_principal.h \
+    menu_pause_overlay.h \
     modejeu.h
 
 # Default rules for deployment.

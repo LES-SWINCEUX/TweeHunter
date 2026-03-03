@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QMediaPlayer>
 #include <QAudioOutput>
-#include <QSoundEffect>
 #include <QMap>
 #include <QSettings>
 
@@ -29,8 +28,8 @@ public:
     void stopAndClearMusic();
     void setMusicVolumeAnimation(float v);
 
-    void addSfx(QString name, QString path);
-    void playSfx(QString name);
+    void addSfx(const QString& name, const QString& path, int voices);
+    void playSfx(const QString& name);
     void setSfxVolume(float v);
     float getSfxVolume() const;
     float getSfxVolumeSetting() const;
@@ -55,7 +54,13 @@ private:
     QStringList playlist;
     int index = 0;
 
-    QMap<QString, QSoundEffect*> sfx;
+    struct SfxPool {
+        QVector<QMediaPlayer*> players;
+        QVector<QAudioOutput*> outputs;
+        int nextIndex = 0;
+    };
+
+    QMap<QString, SfxPool> sfx;
 };
 
 #endif

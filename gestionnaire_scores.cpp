@@ -26,6 +26,7 @@ void GestionnaireScores::resetScores() {
 
 void GestionnaireScores::charger() {
     QSettings s("TweeHunter", "Scores");
+    qDebug() << "Fichier de scores: " << s.fileName();
     int n = s.beginReadArray("scores");
     for (int i = 0; i < n; ++i) {
         s.setArrayIndex(i);
