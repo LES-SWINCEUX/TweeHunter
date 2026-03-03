@@ -69,12 +69,10 @@ QRect MenuPrincipal::zonePanneauxBas() const
 
 QRect MenuPrincipal::zonePourPanneau(PanneauMenu* p) const
 {
-    // Scores doit être centré par rapport à TOUT l’écran
     if (qobject_cast<PanneauScores*>(p) != nullptr) {
         return rect();
     }
 
-    // Tout le reste (Options + Menu principal) reste dans la zone du bas
     return zonePanneauxBas();
 }
 

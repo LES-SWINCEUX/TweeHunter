@@ -31,6 +31,10 @@ void MainWindow::afficherEcranJeu() {
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);
         });
+
+        connect(this->ecranJeu, &EcranJeu::retourMenuDemande, this, [this]() {
+            afficherMenuPrincipal();
+        });
     }
 
     this->menuPrincipal  = nullptr;

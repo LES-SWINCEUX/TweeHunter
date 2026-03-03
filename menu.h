@@ -74,11 +74,7 @@ private:
     bool cacherTitre = false;
 
     QElapsedTimer timerPauseAnimation;
-
-    // zone du bas (menu principal)
     QRect zonePanneauxBas() const;
-
-    // zone selon le panneau affiché (scores/options = plein écran)
     QRect zonePourPanneau(PanneauMenu* p) const;
 
     void configuerAnimationTitre();
