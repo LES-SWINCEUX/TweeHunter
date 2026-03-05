@@ -4,7 +4,7 @@ Touches::Touches()
 {
     gamepad = nullptr;
 
-    joystick = false;
+    joystickOficiel = false;
     //Partie joystick de test
     //Initialisation du SDL ---
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
@@ -25,7 +25,7 @@ Touches::Touches()
         gamepad = SDL_OpenGamepad(ids[0]);
         if (gamepad) {
             cout << "Manette ouverte !" << endl;
-            joystick = true;
+            joystickOficiel = true;
         }else
             cout << "Erreur ouverture:" << SDL_GetError();
 
@@ -37,7 +37,21 @@ Touches::Touches()
 
     }
 
+    serial.setPortName("COM3");        // port Arduino
+    serial.setBaudRate(115200);
 
+    joystickPerso = false;
+
+    if (serial.open(QIODevice::ReadOnly)) {
+		cout << "Port série ouvert !" << endl;
+		joystickPerso = true;
+        /*connect(&serial, &QSerialPort::readyRead,
+            this);*/
+    }
+    else {
+
+		cout << "Aucun port série" << endl;
+    }
 
 
 
@@ -56,3 +70,37 @@ bool Touches::RTpressed() const {
 	return false;
 }
 
+void Touches::lirePerso() {
+    while (serial.canReadLine())
+    {
+        QJsonDocument doc = QJsonDocument::fromJson(serial.readLine());
+
+        if (!doc.isNull())
+        {
+            QJsonObject obj = doc.object();
+
+            if (obj["type"] == "joystick") {
+                x = obj["x"].toInt();
+                y = obj["y"].toInt();
+
+                qDebug() << "Joystick:" << x << y;
+
+            }
+        }
+    }
+
+}
+
+
+int Touches::getxPerso() {
+
+    return x;
+
+}
+
+
+int Touches::getyPerso() {
+    QJsonObject Obj = QJsonDocument::fromJson(serial.readLine()).object();
+
+    return y;
+}

@@ -41,6 +41,8 @@ public:
 	int getChoixTir() const;
 	int getArme() const { return choixTir; }
 
+	void moveJoystickPerso(int x, int y, QWidget* parent);
+
 protected:
 	void paintEvent(QPaintEvent* event) override;
 

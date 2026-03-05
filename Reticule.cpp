@@ -66,6 +66,22 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 			});
 
 	}
+	if(touches.isJoystickPersoConnected()) {
+		QTimer* timer = new QTimer(this);
+		timer->start(16); // ~60 Hz
+		connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
+			touches.lirePerso();	
+			int x = touches.getxPerso();
+			int y = touches.getyPerso();
+			// Deadzone
+
+			qDebug() << "Axe du joystick perso ---> X:" << x << "Y:" << y;
+
+			if (sqrt((x - 500) * (x - 500) + (y - 500) * (y - 500)) > 5) { //protection contre les joystick mal calibrés
+				moveJoystickPerso(x, y, parent);
+			}
+			});
+	}
 	
 }
 
@@ -112,11 +128,29 @@ void Reticule::moveJoystick(int x, int y, QWidget* parent)
 	update();
 }
 
+void Reticule::moveJoystickPerso(int x, int y, QWidget* parent) {
+	int facteurRedu = 20;
+
+	cout << "moveJoystickPerso: x=" << x << " y=" << y << endl;
+	posX += ((x-500) / facteurRedu);
+	posY += ((y-500) / facteurRedu);
+
+	if (posX > (parent->width() - image.width() / 2)) posX = parent->width() - image.width() / 2;
+	if (posX < -image.width() / 2) posX = -image.width() / 2;
+	if (posY > parent->height() - image.height() / 2) posY = parent->height() - image.height() / 2;
+	if (posY < -image.height() / 2) posY = -image.height() / 2;
+
+	move(posX, posY);
+	//cout << "Position du reticule: x=" << posX << " y=" << posY << endl;
+	update();
+}
+
 
 void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this); // redessinage du widget lorsqu'il est mise à jour
 	painter.drawPixmap(0, 0, image);
+	touches.lirePerso();
 }
 
 int Reticule::getX() const

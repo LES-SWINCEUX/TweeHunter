@@ -8,23 +8,42 @@
 #include <QDebug>
 #include <cmath>
 
+#include <QSerialPort>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 using namespace std;
 
-class Touches
+class Touches : public QObject
 {
+
+	Q_OBJECT
+
 public:
 	Touches();
 	~Touches();
 
-	bool isJoystickConnected() const { return joystick; }
+	bool isJoystickConnected() const { return joystickOficiel; }
+	bool isJoystickPersoConnected() const { return joystickPerso; }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
 	bool RTpressed() const;
 
+	void lirePerso();
+	int getxPerso();
+	int getyPerso();
+
 private:
-	bool joystick;
+	bool joystickOficiel;
+	bool joystickPerso;
+
 	SDL_Gamepad* gamepad=nullptr;
 	int middleX;
 	int middleY;
+
+	int x=500;
+	int y=500;
+
+	QSerialPort serial;
 
 };
 
