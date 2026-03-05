@@ -38,60 +38,6 @@ QPainterPath Armes::choixArme(int choix, int x, int y)
 	}
 }
 
-QPainterPath Armes::CreerContourTarte(int x,int y)
-{
-    QPainterPath path;
-
-    double largeur = 300;
-    double hauteur = 120;
-    double profondeur = 60;
-
-
-    QRectF dessus(x, y, largeur, hauteur);
-    path.addEllipse(dessus);
-
-
-    QPainterPath avant;
-    avant.moveTo(x, y + hauteur / 2);
-
-    avant.cubicTo(
-        x + largeur * 0.25, y + hauteur + profondeur,
-        x + largeur * 0.75, y + hauteur + profondeur,
-        x + largeur, y + hauteur / 2
-    );
-
-    path.addPath(avant);
-
-
-    path.moveTo(x, y + hauteur / 2);
-    path.lineTo(x, y + hauteur / 2 + profondeur);
-
-    path.moveTo(x + largeur, y + hauteur / 2);
-    path.lineTo(x + largeur, y + hauteur / 2 + profondeur);
-
-
-    QPainterPath croute;
-
-    int vagues = 20;
-    double step = largeur / vagues;
-
-    croute.moveTo(x, y + hauteur / 2);
-
-    for (int i = 0; i < vagues; i++)
-    {
-        double x1 = x + i * step;
-        double x2 = x + (i + 1) * step;
-        double ctrlX = (x1 + x2) / 2.0;
-        double ctrlY = y + hauteur / 2 + (i % 2 == 0 ? -12 : 12);
-
-        croute.quadTo(ctrlX, ctrlY, x2, y + hauteur / 2);
-    }
-
-    path.addPath(croute);
-
-    return path;
-}
-
 int Armes::nbMunitions() const
 {
 	switch (ArmeActuelle) {
@@ -108,4 +54,58 @@ int Armes::nbMunitions() const
 	default:
 		return 0;
 	}
+}
+
+QPainterPath Armes::CreerContourTarte(int x, int y)
+{
+	QPainterPath path;
+
+	double largeur = 300;
+	double hauteur = 120;
+	double profondeur = 60;
+
+
+	QRectF dessus(x, y, largeur, hauteur);
+	path.addEllipse(dessus);
+
+
+	QPainterPath avant;
+	avant.moveTo(x, y + hauteur / 2);
+
+	avant.cubicTo(
+		x + largeur * 0.25, y + hauteur + profondeur,
+		x + largeur * 0.75, y + hauteur + profondeur,
+		x + largeur, y + hauteur / 2
+	);
+
+	path.addPath(avant);
+
+
+	path.moveTo(x, y + hauteur / 2);
+	path.lineTo(x, y + hauteur / 2 + profondeur);
+
+	path.moveTo(x + largeur, y + hauteur / 2);
+	path.lineTo(x + largeur, y + hauteur / 2 + profondeur);
+
+
+	QPainterPath croute;
+
+	int vagues = 20;
+	double step = largeur / vagues;
+
+	croute.moveTo(x, y + hauteur / 2);
+
+	for (int i = 0; i < vagues; i++)
+	{
+		double x1 = x + i * step;
+		double x2 = x + (i + 1) * step;
+		double ctrlX = (x1 + x2) / 2.0;
+		double ctrlY = y + hauteur / 2 + (i % 2 == 0 ? -12 : 12);
+
+		croute.quadTo(ctrlX, ctrlY, x2, y + hauteur / 2);
+	}
+
+	path.addPath(croute);
+
+	return path;
 }
