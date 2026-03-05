@@ -38,6 +38,8 @@ public:
 	int getY() const;
 	bool tirer() const { return touches.RTpressed(); }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
+	int getChoixTir() const;
+	int getArme() const { return choixTir; }
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -60,7 +62,7 @@ private:
 
 	SDL_Gamepad* gamepad = nullptr;
 
-
+	int choixTir;
 
 };
 

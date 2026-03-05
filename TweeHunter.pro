@@ -44,7 +44,8 @@ SOURCES += \
     targetmixte.cpp \
     targetbonus.cpp \
     panneau_pause_principal.cpp \
-    menu_pause_overlay.cpp
+    menu_pause_overlay.cpp \
+    Armes.cpp
 
 HEADERS += \
     main_window.h \
@@ -83,7 +84,8 @@ HEADERS += \
     targetbonus.h \
     panneau_pause_principal.h \
     menu_pause_overlay.h \
-    modejeu.h
+    modejeu.h \
+    Armes.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

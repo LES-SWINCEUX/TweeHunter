@@ -12,6 +12,7 @@
 #include <iostream>
 #include "modejeu.h"
 #include <QPainterPath>
+#include "Armes.h"
 
 using namespace std;
 
@@ -19,7 +20,7 @@ class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1));
 
 	~Jeu();
 
@@ -54,7 +55,7 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool Tirer(const int x, const int y, qint64 tempsMs, int Tir);
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
@@ -67,7 +68,6 @@ public:
 	bool estEnPause() const {
 		return enPause;
 	}
-
 
 private:
 	
@@ -89,6 +89,8 @@ private:
 
 	ModeJeu modeActuel;
 	bool enPause;
+	Armes* armes;
+
 };
 
 #endif

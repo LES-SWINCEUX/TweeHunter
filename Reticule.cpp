@@ -6,6 +6,7 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 	posX = pos.x();
 	posY = pos.y();
 
+	choixTir = choix;
 
 	setAttribute(Qt::WA_TransparentForMouseEvents);
 	setAttribute(Qt::WA_NoSystemBackground);
@@ -78,6 +79,11 @@ string Reticule::getPath(int choix) const
 	return v.findpath(choix);
 }
 
+int Reticule::getChoixTir() const
+{
+	return choixTir;
+}
+
 void Reticule::setPosition(const QPoint& pos)
 {
 
@@ -96,10 +102,10 @@ void Reticule::moveJoystick(int x, int y, QWidget* parent)
 	posX += (x / facteurRedu);
 	posY += (y / facteurRedu);
 
-	if (posX > (parent->width()-image.width())) posX = parent->width()-image.width();
-	if (posX < 0) posX = 0;
-	if (posY > parent->height()-image.height()) posY = parent->height()-image.height();
-	if (posY < 0) posY = 0;
+	if (posX > (parent->width()-image.width()/2)) posX = parent->width()-image.width()/2;
+	if (posX < -image.width()/2) posX = -image.width()/2;
+	if (posY > parent->height()-image.height()/2) posY = parent->height()-image.height()/2;
+	if (posY < -image.height()/2) posY = -image.height()/2;
 
 	move(posX, posY);
 	cout << "Position du reticule: x=" << posX << " y=" << posY << endl;

@@ -100,7 +100,7 @@ bool Target::intersecte(const QPainterPath& cercleReticule) const
 		return false;
 	}
 
-	int reductionHitbox = 20; // Réduction de la hitbox pour une meilleure jouabilité
+	int reductionHitbox = 35; // Réduction de la hitbox pour une meilleure jouabilité
 
 	QPainterPath conversionQPainterPath;//Création d'un QPainterPath qui parmet de comparer le cercle du réticule avec le rectangle de la cible
 
