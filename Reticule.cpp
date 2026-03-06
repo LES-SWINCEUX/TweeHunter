@@ -2,6 +2,7 @@
 
 Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(parent)
 {
+	touches = new Touches();
 
 	posX = pos.x();
 	posY = pos.y();
@@ -33,12 +34,12 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 	resize(parent->size());
 	setPosition(pos);
 
-	cout << touches.isJoystickConnected() << ": Reticule" << endl;
-	if (touches.isJoystickConnected()) {
+	cout << touches->isJoystickConnected() << ": Reticule" << endl;
+	if (touches->isJoystickConnected()) {
 		QTimer* timer = new QTimer(this);
 		timer->start(16); // ~60 Hz
 
-		gamepad = touches.getGamepad();
+		gamepad = touches->getGamepad();
 
 		xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX) ; //initialisation du point central du joystick
 		yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
@@ -66,13 +67,13 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 			});
 
 	}
-	if(touches.isJoystickPersoConnected()) {
+	if(touches->isJoystickPersoConnected()) {
 		QTimer* timer = new QTimer(this);
 		timer->start(16); // ~60 Hz
 		connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
-			touches.lirePerso();	
-			int x = touches.getxPerso();
-			int y = touches.getyPerso();
+			touches->lirePerso();	
+			int x = touches->getxPerso();
+			int y = touches->getyPerso();
 			// Deadzone
 
 			qDebug() << "Axe du joystick perso ---> X:" << x << "Y:" << y;
@@ -150,7 +151,7 @@ void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this); // redessinage du widget lorsqu'il est mise à jour
 	painter.drawPixmap(0, 0, image);
-	touches.lirePerso();
+	touches->lirePerso();
 }
 
 int Reticule::getX() const

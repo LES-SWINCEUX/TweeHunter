@@ -2,6 +2,9 @@
 
 Touches::Touches()
 {
+
+	//Initialisation des différentes méthodes de contrôle
+
     gamepad = nullptr;
 
     joystickOficiel = false;
@@ -53,14 +56,12 @@ Touches::Touches()
 		cout << "Aucun port série" << endl;
     }
 
-
-
 }
 
 Touches::~Touches() {
 }
 
-bool Touches::RTpressed() const {
+bool Touches::RTpressed() const {//Retourne si le bouton RT est pressé ou non
     Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     if (value > 10000) {
@@ -70,16 +71,17 @@ bool Touches::RTpressed() const {
 	return false;
 }
 
-void Touches::lirePerso() {
-    while (serial.canReadLine())
+void Touches::lirePerso() {// fonction appelée pour lire les données de la manette personalisé ----> (À appeler avant chaque fois que l'on veux chercher une donnée de la manette perso) 
+
+	while (serial.canReadLine()) //lit chaque ligne disponible du port série tant qu'il y en a, et traite les données reçues (met à jour les données de la classe Touches)
     {
-        QJsonDocument doc = QJsonDocument::fromJson(serial.readLine());
+		QJsonDocument doc = QJsonDocument::fromJson(serial.readLine()); //récupère la prochaine ligne du port série et la convertit en document JSON
 
         if (!doc.isNull())
         {
             QJsonObject obj = doc.object();
 
-            if (obj["type"] == "joystick") {
+            if (obj["type"] == "joystick") {// Lit les données du joystick
                 x = obj["x"].toInt();
                 y = obj["y"].toInt();
 
@@ -92,14 +94,14 @@ void Touches::lirePerso() {
 }
 
 
-int Touches::getxPerso() {
+int Touches::getxPerso() { //récupére la valeur x la plus à jour du joystick personnalisé
 
     return x;
 
 }
 
 
-int Touches::getyPerso() {
+int Touches::getyPerso() { //récupére la valeur y la plus à jour du joystick personnalisé
     QJsonObject Obj = QJsonDocument::fromJson(serial.readLine()).object();
 
     return y;
