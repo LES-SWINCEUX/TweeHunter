@@ -87,12 +87,46 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
 
                 qDebug() << "Joystick:" << x << y;
 
-            }
+            }else if (obj["type"] == "gachette") {// Lit les données des gachette
+
+                if (obj["gachette"].toInt() == 1) {
+                    gachette = true;
+                }
+                else {
+                    gachette = false;
+				}
+
+                qDebug() << "gachette:" << gachette;
+			}else if (obj["type"] == "reload") {// Lit les données des reload
+
+                if (obj["reload"].toInt() == 1) {
+                    reload = true;
+                }
+                else {
+                    reload = false;
+                }
+                qDebug() << "reload:" << reload;
+
+            }else if (obj["type"] == "accelerometre") {// Lit les données de la accelerometre
+                if (obj["accelerometre"].toInt() == 1) {
+                    accelerometre = true;
+                }
+                else {
+                    accelerometre = false;
+                }
+                qDebug() << "accelerometre:" << accelerometre;
+			}
+
         }
     }
 
 }
 
+//Éléments encore à implémenter pour la manette personnalisée:
+
+//joystick, gachette (1,0), boutons_reload (1,0), accéléromêtre_shaké (1,0), possibilité de boutons supplémetaire
+
+//renvoie nb_balles
 
 int Touches::getxPerso() { //récupére la valeur x la plus à jour du joystick personnalisé
 

@@ -264,6 +264,32 @@ void EcranJeu::tick()
         }
     }
 
+    if (reticule->getTouches()->isJoystickPersoConnected()){
+
+		reticule->getTouches()->lirePerso(); //met à jour les données de la mannette personalisée
+
+        if (reticule->getTouches()->getGachette()) {
+
+            if (!gachettePrecedente) {
+                gachettePrecedente = true;
+                tire();
+                cout << "Tire sur la mannette" << endl;
+
+            }
+        }
+        else {
+            gachettePrecedente = false;
+        }
+
+        if (reticule->getTouches()->getReload() && reticule->getTouches()->getAccelerometre()) {
+            rechargerArme();
+			cout << "Rechargement de la mannette" << endl;
+        }
+
+	}
+    
+
+
     update();
 }
 

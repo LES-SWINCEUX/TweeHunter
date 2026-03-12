@@ -32,6 +32,10 @@ public:
 	int getxPerso();
 	int getyPerso();
 
+	bool getGachette() const { return gachette; }
+	bool getReload() const { return reload; }
+	bool getAccelerometre() const { return accelerometre; }
+
 private:
 	bool joystickOficiel;
 	bool joystickPerso;
@@ -42,6 +46,9 @@ private:
 
 	int x=500;
 	int y=500;
+	bool gachette = false;
+	bool reload = false;
+	bool accelerometre = false;
 
 	QSerialPort serial;
 
