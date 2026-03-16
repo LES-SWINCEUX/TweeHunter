@@ -49,6 +49,10 @@ void CompteurPoints::setPoints(int value)
 {
     value = std::max(0, value);
 
+    if (value >= this->nombrePointsMax) {
+        value = nombrePointsMax;
+    }
+
     if (!estAnime) {
         points = value;
         pointsCible = value;
@@ -57,7 +61,9 @@ void CompteurPoints::setPoints(int value)
     }
 
     pointsCible = value;
-    if (!timerAnimation.isActive()) timerAnimation.start();
+    if (!timerAnimation.isActive()) {
+        timerAnimation.start();
+    }
 }
 
 void CompteurPoints::setEchelle(float s)

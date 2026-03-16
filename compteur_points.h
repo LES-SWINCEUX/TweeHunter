@@ -42,6 +42,9 @@ private:
     QSize tailleSprite;
 
     QFont styleEcriture;
+
+    const int nombrePointsMax = 999999;
+
     int nombreNumero = 4;
 
     int points = 0;
