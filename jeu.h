@@ -15,6 +15,7 @@
 #include "bush.h"
 #include "bush_louche.h"
 #include "gestionnaire_audio.h"
+#include "Armes.h"
 
 
 using namespace std;
@@ -23,7 +24,7 @@ class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1));
 
 	~Jeu();
 
@@ -58,7 +59,9 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool Tirer(const int x, const int y, qint64 tempsMs, int Tir);
+	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
+
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
@@ -71,8 +74,7 @@ public:
 	bool estEnPause() const {
 		return enPause;
 	}
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles,
-		Vies* vies, GestionnaireAudio* gestionnaireAudio = nullptr, ModeJeu mode = ModeJeu::PLUS_18);
+
 
 private:
 	
@@ -94,10 +96,6 @@ private:
 
 	ModeJeu modeActuel;
 	bool enPause;
-
-	QList<Bush*> bushes;
-	BushLouche* bushLoucheActif = nullptr;
-	GestionnaireAudio* gestionnaireAudio = nullptr;
 };
 
 #endif

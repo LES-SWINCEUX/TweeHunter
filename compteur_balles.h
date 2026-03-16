@@ -12,7 +12,7 @@ class CompteurBalles : public QWidget
 {
     Q_OBJECT
 public:
-    CompteurBalles(QWidget* parent = nullptr);
+    CompteurBalles(QWidget* parent = nullptr, int balle=9);
     void setBalles(int value);
     int getBalles() const { return balles; }
 
@@ -20,6 +20,7 @@ public:
     float getEchelle() const { return echelle; }
 
     QSize frameSize() const { return tailleFrame; }
+    void setMaxBalles(int max) {maxBalles = max; balles = max;}// Ajuste le nombre de balles si nécessaire
 
 protected:
     void paintEvent(QPaintEvent* e) override;
@@ -31,6 +32,7 @@ private:
 
     QSharedPointer<QPixmap> spriteSheet;
     int balles = 9;
+	int maxBalles = 9;
 
     QSize tailleFrame;    
     QRect rectangleFrame;

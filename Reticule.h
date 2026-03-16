@@ -36,8 +36,14 @@ public:
 	void moveJoystick(int x, int y, QWidget* parent);
 	int getX() const;
 	int getY() const;
-	bool tirer() const { return touches.RTpressed(); }
+	bool tirer() const { return touches->RTpressed(); }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
+	int getChoixTir() const;
+	int getArme() const { return choixTir; }
+
+	void moveJoystickPerso(int x, int y, QWidget* parent);
+
+	Touches* getTouches() { return touches; }
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -45,7 +51,7 @@ protected:
 private:
 
 	QPixmap image;
-	Touches touches;
+	Touches* touches;
 
 	int xini;
 	int yini;
@@ -60,7 +66,7 @@ private:
 
 	SDL_Gamepad* gamepad = nullptr;
 
-
+	int choixTir;
 
 };
 

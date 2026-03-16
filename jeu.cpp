@@ -7,12 +7,15 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies,GestionnaireAudio* gestionnaireAudio, ModeJeu mode)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), gestionnaireAudio(gestionnaireAudio), modeActuel(mode)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
 {
+	armes = A;
+
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
 		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
+		//Explosion(Mouvement::LINEAIRE, tempsMs, 25);
 	}
 	randomiser = new Randomiser(tailleEcran);
 
@@ -240,18 +243,22 @@ void Jeu::reinitialiser()
 	}
 }
 
-bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
+bool Jeu::Tirer(const int x, const int y, qint64 tempsMs, int Tir) {
+
 	if (compteurBalles && compteurBalles->getBalles() <= 0) {
 		return false;
 	}
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule avec un rayon de 7" << endl;
-	QPainterPath Cercle;
-	Cercle.addEllipse(QPointF(x, y), 7, 7);
+	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
 
-	return verifierCollisions(Cercle, tempsMs);
+	return verifierCollisions(armes->choixArme(Tir,x,y), tempsMs);
+}
+
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
+	cout << "Création de la hitbox de l'explosion avec un cercle centré sur la cannette" << endl;
+	return verifierCollisions(armes->choixArme(explo,x,y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()

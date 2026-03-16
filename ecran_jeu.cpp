@@ -1,14 +1,28 @@
 ﻿#include "ecran_jeu.h"
 
-EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
+EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme)
     : QWidget(parent)
 {
-    compteurBalles = new CompteurBalles(this);
+    //ajout à enlever apres test
+    QPoint pos = QCursor::pos();
+    pos = mapFromGlobal(pos);
+
+    setCursor(Qt::BlankCursor);
+    setMouseTracking(true);
+    reticule = new Reticule(this, pos, arme); // création du réticule sur la sourie + choix du réticule
+    reticule->show();
+
+    armes = new Armes(arme);
+    maxBalles = armes->nbMunitions();
+
+    //compteur de balle, points et vies
+
+    compteurBalles = new CompteurBalles(this,armes->nbMunitions());
     vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
 
     compteurBalles->move(20, height() - compteurBalles->height() + 120);
-    compteurBalles->setBalles(9);
+    compteurBalles->setBalles(armes->nbMunitions());
     compteurBalles->show();
 
     vies->setVies(3);
@@ -34,8 +48,10 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 
         estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
 
-        gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.mp3", this->maxBalles);
-        gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.mp3", this->maxBalles);
+        gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.wav", this->maxBalles);
+        gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.wav", this->maxBalles);
+        gestionnaireAudio->addSfx("gun_empty", QDir::currentPath() + "/sounds/sfx/gun_empty.wav", this->maxBalles);
+        gestionnaireAudio->addSfx("reload", QDir::currentPath() + "/sounds/sfx/reload.wav", this->maxBalles);
     }
 
     arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
@@ -63,15 +79,6 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
     fadeInAnim->setDuration(1000);
     fadeInAnim->setStartValue(255);
     fadeInAnim->setEndValue(0);
-    
-	//ajout à enlever apres test
-    QPoint pos = QCursor::pos();
-	pos = mapFromGlobal(pos);
-
-    setCursor(Qt::BlankCursor);
-    setMouseTracking(true);
-	reticule = new Reticule(this,pos,2); // création du réticule sur la sourie + choix du réticule
-    reticule->show();
 
 	//activation de sdl pour les manettes
     cout << "Initialisation de SDL3" << endl;
@@ -87,7 +94,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
 
 	gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
 
-
+    /*
     QTimer* timer = new QTimer(this);
     this->timerManette = timer;
     timer->start(16); // ~60 Hz
@@ -108,7 +115,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
         else{
 			gachettePrecedente = false;
         }
-    });
+    });*/
 
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
@@ -135,7 +142,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, gestionnaireAudio, ModeJeu::PLUS_18);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18,armes);
     }
     // Réinitialise le temps de jeu (utile si on revient sur l'écran)
     tempsJeuMs = 0;
@@ -201,8 +208,8 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         int x = (scaled.width() - width()) / 2;
         int y = (scaled.height() - height());
 
-        x = std::max(0, x);
-        y = std::max(0, y);
+        x = max(0, x);
+        y = max(0, y);
 
         QRect crop(x, y, width(), height());
         arrierePlanCache = scaled.copy(crop);
@@ -258,6 +265,32 @@ void EcranJeu::tick()
             gachettePrecedente = false;
         }
     }
+
+    if (reticule->getTouches()->isJoystickPersoConnected()){
+
+		reticule->getTouches()->lirePerso(); //met à jour les données de la mannette personalisée
+        
+        if (reticule->getTouches()->getGachette()) {
+
+            if (!gachettePrecedente) {
+                gachettePrecedente = true;
+                tire();
+                cout << "Tire sur la mannette" << endl;
+
+            }
+        }
+        else {
+            gachettePrecedente = false;
+        }
+
+        if (reticule->getTouches()->getReload() && reticule->getTouches()->getAccelerometre()) {
+            rechargerArme();
+			cout << "Rechargement de la mannette" << endl;
+        }
+        
+	}
+    
+
 
     update();
 }
@@ -475,12 +508,15 @@ void EcranJeu::paintEvent(QPaintEvent*)
 
 
 	//Test de dessin du cercle de collision du tir
-    /*
+    
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QPen(Qt::blue, 2));
     painter.setBrush(Qt::NoBrush);
-    painter.drawEllipse(QPointF(832, 341), 30, 30);
-    */
+    painter.drawPath(armes->choixArme(reticule->getArme(), 622, 300));
+    //painter.drawPath(armes->choixArme(5, 622, 300));
+    //painter.drawPath(armes->choixArme(4, reticule->getX(), reticule->getY()));
+
+    
 }
 
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)
@@ -489,6 +525,8 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
+	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+    int nombreBalles = 0;
 
     if (!compteurBalles) return;
 
@@ -503,9 +541,14 @@ void EcranJeu::tire() {
 
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
 
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
 
     if (gestionnaireAudio != nullptr && nombreBalles > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
+    
+    if (gestionnaireAudio != nullptr && nombreBalles <= 0) {
+        gestionnaireAudio->playSfx("gun_empty");
     }
 
     if (vies->getDemiVies() > 0) {
@@ -537,6 +580,10 @@ void EcranJeu::tire() {
 void EcranJeu::rechargerArme() {
     if (!compteurBalles) {
         return;
+    }
+
+    if (gestionnaireAudio) {
+        gestionnaireAudio->playSfx("reload");
     }
 
     compteurBalles->setBalles(this->maxBalles);

@@ -9,6 +9,12 @@ INCLUDEPATH += $$PWD/SDL3/SDL3-3.4.0/include
 LIBS += -L$$PWD/SDL3/SDL3-3.4.0/lib/x64 \
         -lSDL3
 
+win32: LIBS += -lsetupapi
+
+# Reduit les headers Windows pour eviter le conflit avec std::byte
+win32: DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX
+
+
 SOURCES += \
     main.cpp \
     main_window.cpp \
@@ -45,6 +51,9 @@ SOURCES += \
     targetbonus.cpp \
     panneau_pause_principal.cpp \
     menu_pause_overlay.cpp \
+    Armes.cpp \
+    NativeSerialPort.cpp
+    menu_pause_overlay.cpp \
     bush_louche.cpp \
     bush.cpp
 
@@ -68,7 +77,6 @@ HEADERS += \
     randomiser.h \
     target.h \
     gestionnaire_audio.h \
-    fade_overlay.h \
     Reticule.h \
     Variete.h \
     compteur_balles.h \
@@ -88,6 +96,9 @@ HEADERS += \
     modejeu.h \
     bush_louche.h \
     bush.h
+    modejeu.h \
+    Armes.h \
+    NativeSerialPort.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -96,8 +107,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 !exists($$PWD/SDL3) {
     win32 {
-        system(powershell -Command "Invoke-WebRequest -Uri 'https://github.com/libsdl-org/SDL/releases/download/release-3.4.0/SDL3-devel-3.4.0-VC.zip' -OutFile '$$PWD/SDL3.zip'")
-        system(powershell -Command "Expand-Archive -Path '$$PWD/SDL3.zip' -DestinationPath '$$PWD/SDL3' -Force")
+        system(powershell -Command \"Invoke-WebRequest -Uri 'https://github.com/libsdl-org/SDL/releases/download/release-3.4.0/SDL3-devel-3.4.0-VC.zip' -OutFile '$$PWD/SDL3.zip'\")
+        system(powershell -Command \"Expand-Archive -Path '$$PWD/SDL3.zip' -DestinationPath '$$PWD/SDL3' -Force\")
         system(del $$shell_path($$PWD/SDL3.zip))
     }
     unix:!mac {
@@ -131,6 +142,5 @@ unix:!mac {
     QMAKE_EXTRA_TARGETS += copysdl3
     POST_TARGETDEPS += copysdl3
 
-    # Dire à l'exécutable de chercher les .so dans son propre dossier
-    QMAKE_LFLAGS += -Wl,-rpath,\'\$$ORIGIN\'
+    QMAKE_LFLAGS += -Wl,-rpath,\'$$ORIGIN\'
 }
