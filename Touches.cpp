@@ -41,8 +41,7 @@ Touches::Touches()
 
     }
 
-    //QString arduinoPort = NativeSerialPort::findArduinoPort();
-    QString arduinoPort = "COM3";
+    QString arduinoPort = NativeSerialPort::findArduinoPort();
 
     joystickPerso = false;
 
