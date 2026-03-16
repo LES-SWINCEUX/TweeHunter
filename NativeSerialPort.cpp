@@ -4,10 +4,6 @@
 #include <sys/select.h>
 #endif
 
-// ─────────────────────────────────────────────
-//  SerialReaderThread — lit le port en arriere-plan
-// ─────────────────────────────────────────────
-
 SerialReaderThread::SerialReaderThread(QObject* parent) : QThread(parent) {}
 
 void SerialReaderThread::stop()
@@ -19,7 +15,6 @@ void SerialReaderThread::stop()
 
 void SerialReaderThread::run()
 {
-    // Configure le port pour notifier a l'arrivee de donnees
     SetCommMask(handle, EV_RXCHAR);
 
     char tmp[256];
@@ -27,10 +22,8 @@ void SerialReaderThread::run()
     DWORD evtMask = 0;
 
     while (!m_stop.loadRelaxed()) {
-        // Bloque sans consommer de CPU jusqu'a ce qu'un octet arrive
         if (!WaitCommEvent(handle, &evtMask, nullptr)) break;
 
-        // Lit tout ce qui est disponible
         while (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
             QMutexLocker locker(&mutex);
             sharedBuffer.append(tmp, (int)bytesRead);
@@ -47,11 +40,10 @@ void SerialReaderThread::run()
     char tmp[256];
 
     while (!m_stop.loadRelaxed()) {
-        // Attend sans polling que des donnees arrivent sur le fd
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(fd, &rfds);
-        struct timeval tv = { 0, 50000 }; // timeout 50ms pour verifier m_stop
+        struct timeval tv = { 0, 50000 };
 
         int ret = select(fd + 1, &rfds, nullptr, nullptr, &tv);
         if (ret > 0) {
@@ -65,10 +57,6 @@ void SerialReaderThread::run()
 }
 
 #endif
-
-// ─────────────────────────────────────────────
-//  NativeSerialPort
-// ─────────────────────────────────────────────
 
 NativeSerialPort::NativeSerialPort() {}
 
@@ -104,7 +92,6 @@ bool NativeSerialPort::open(OpenMode mode)
     dcb.Parity = NOPARITY;
     if (!SetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
 
-    // Timeout non-bloquant — le thread gere lui-meme la pause via msleep
     COMMTIMEOUTS timeouts = {};
     timeouts.ReadIntervalTimeout = MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = 0;
@@ -123,7 +110,6 @@ void NativeSerialPort::close()
 {
     if (m_reader) {
         m_reader->stop();
-        // Ferme le handle pour debloquer WaitCommEvent dans le thread
         if (m_reader->handle != INVALID_HANDLE_VALUE) {
             CloseHandle(m_reader->handle);
             m_reader->handle = INVALID_HANDLE_VALUE;
@@ -176,9 +162,8 @@ bool NativeSerialPort::open(OpenMode mode)
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
-    // Bloquant avec timeout de 100ms — le thread de lecture attend proprement
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 1; // 100ms
+    tty.c_cc[VTIME] = 1;
 
     if (tcsetattr(fd, TCSANOW, &tty) != 0) { ::close(fd); return false; }
 
@@ -203,13 +188,8 @@ void NativeSerialPort::close()
     m_buffer.clear();
 }
 
-#endif // _WIN32
+#endif
 
-// ─────────────────────────────────────────────
-//  canReadLine / readLine — thread principal uniquement
-// ─────────────────────────────────────────────
-
-// Transfere le buffer du thread de lecture vers le buffer local
 void NativeSerialPort::pullFromReader()
 {
     if (!m_reader) return;
@@ -237,29 +217,24 @@ QByteArray NativeSerialPort::readLine()
     return line;
 }
 
-// ─────────────────────────────────────────────
-//  Detection automatique du port Arduino
-// ─────────────────────────────────────────────
-
 static const char* ARDUINO_KEYWORDS[] = {
     "Arduino", "CH340", "CH341", "CP210", "FTDI", "FT232", "USB Serial", "USB de S", nullptr
 };
 
 #ifdef _WIN32
 
-// VID/PID connus pour les cartes Arduino (indépendant de la langue Windows)
 static const struct { const char* vid; const char* pid; } ARDUINO_IDS[] = {
-    { "2341", "0042" }, // Mega 2560
-    { "2341", "0010" }, // Uno (révision ancienne)
-    { "2341", "0043" }, // Uno
-    { "2341", "0001" }, // Uno (bootloader)
-    { "2341", "0036" }, // Leonardo
-    { "2341", "003B" }, // Micro
-    { "2341", "0069" }, // Nano Every
-    { "1A86", "7523" }, // CH340 (clones Arduino)
-    { "1A86", "5523" }, // CH341
-    { "10C4", "EA60" }, // CP2102 (clones)
-    { "0403", "6001" }, // FTDI FT232
+    { "2341", "0042" }, 
+    { "2341", "0010" }, 
+    { "2341", "0043" }, 
+    { "2341", "0001" }, 
+    { "2341", "0036" }, 
+    { "2341", "003B" }, 
+    { "2341", "0069" }, 
+    { "1A86", "7523" }, 
+    { "1A86", "5523" }, 
+    { "10C4", "EA60" }, 
+    { "0403", "6001" }, 
     { nullptr, nullptr }
 };
 
@@ -275,17 +250,14 @@ QString NativeSerialPort::findArduinoPort()
 
     for (DWORD i = 0; SetupDiEnumDeviceInfo(devInfo, i, &devData); ++i) {
 
-        // Lit le Hardware ID (contient VID et PID)
         char hardwareId[512] = {};
         SetupDiGetDeviceRegistryPropertyA(
             devInfo, &devData, SPDRP_HARDWAREID,
             nullptr, (PBYTE)hardwareId, sizeof(hardwareId), nullptr
         );
 
-        // Convertit en majuscules pour comparaison insensible à la casse
         QString hwId = QString::fromLatin1(hardwareId).toUpper();
 
-        // Vérifie si le VID/PID correspond à un Arduino connu
         bool isArduino = false;
         for (int k = 0; ARDUINO_IDS[k].vid; ++k) {
             QString vidStr = QString("VID_%1").arg(ARDUINO_IDS[k].vid).toUpper();
@@ -297,7 +269,6 @@ QString NativeSerialPort::findArduinoPort()
         }
 
         if (isArduino) {
-            // Lit le nom convivial pour extraire le COM port
             char friendlyName[256] = {};
             SetupDiGetDeviceRegistryPropertyA(
                 devInfo, &devData, SPDRP_FRIENDLYNAME,
