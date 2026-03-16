@@ -26,7 +26,7 @@ void MainWindow::afficherMenuPrincipal() {
 
 void MainWindow::afficherEcranJeu() {
     if (!this->ecranJeu) {
-		this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this, 2);     //Le chiffre à la fin peut être changé pour passer d'un arme à l'autre
+		this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this, 5);     //Le chiffre à la fin peut être changé pour passer d'un arme à l'autre
 
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);

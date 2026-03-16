@@ -83,20 +83,21 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
 
             if (obj["type"] == "joystick") {// Lit les données du joystick
                 x = obj["x"].toInt();
-                y = obj["y"].toInt();
+                y = 1023 - obj["y"].toInt();
 
                 qDebug() << "Joystick:" << x << y;
 
-            }else if (obj["type"] == "gachette") {// Lit les données des gachette
-
-                if (obj["gachette"].toInt() == 1) {
+            }
+            else if (obj["type"] == "event") {// Lit les données des gachette
+                cout << obj["btn"].toInt() << endl;
+                if (obj["btn"].toInt() == 1) {
                     gachette = true;
                 }
                 else {
                     gachette = false;
 				}
 
-                qDebug() << "gachette:" << gachette;
+                //qDebug() << "gachette:" << gachette;
 			}else if (obj["type"] == "reload") {// Lit les données des reload
 
                 if (obj["reload"].toInt() == 1) {
@@ -116,6 +117,7 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
                 }
                 qDebug() << "accelerometre:" << accelerometre;
 			}
+            
 
         }
     }

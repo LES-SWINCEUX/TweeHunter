@@ -71,14 +71,14 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(pare
 		QTimer* timer = new QTimer(this);
 		timer->start(16); // ~60 Hz
 		connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
-			touches->lirePerso();	
+			//touches->lirePerso();	
 			int x = touches->getxPerso();
 			int y = touches->getyPerso();
 			// Deadzone
 
-			qDebug() << "Axe du joystick perso ---> X:" << x << "Y:" << y;
+			//qDebug() << "Axe du joystick perso ---> X:" << x << "Y:" << y;
 
-			if (sqrt((x - 500) * (x - 500) + (y - 500) * (y - 500)) > 5) { //protection contre les joystick mal calibrés
+			if (sqrt((x - 512) * (x - 512) + (y - 512) * (y - 512)) > 30) { //protection contre les joystick mal calibrés
 				moveJoystickPerso(x, y, parent);
 			}
 			});

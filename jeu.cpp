@@ -15,6 +15,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
 		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
+		//Explosion(Mouvement::LINEAIRE, tempsMs, 25);
 	}
 	randomiser = new Randomiser(tailleEcran);
 
@@ -130,6 +131,11 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs, int Tir) {
 	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
 
 	return verifierCollisions(armes->choixArme(Tir,x,y), tempsMs);
+}
+
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
+	cout << "Création de la hitbox de l'explosion avec un cercle centré sur la cannette" << endl;
+	return verifierCollisions(armes->choixArme(explo,x,y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()

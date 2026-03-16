@@ -92,7 +92,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
 
 	gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
 
-
+    /*
     QTimer* timer = new QTimer(this);
     this->timerManette = timer;
     timer->start(16); // ~60 Hz
@@ -113,7 +113,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
         else{
 			gachettePrecedente = false;
         }
-    });
+    });*/
 
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
@@ -267,7 +267,7 @@ void EcranJeu::tick()
     if (reticule->getTouches()->isJoystickPersoConnected()){
 
 		reticule->getTouches()->lirePerso(); //met à jour les données de la mannette personalisée
-
+        
         if (reticule->getTouches()->getGachette()) {
 
             if (!gachettePrecedente) {
@@ -285,7 +285,7 @@ void EcranJeu::tick()
             rechargerArme();
 			cout << "Rechargement de la mannette" << endl;
         }
-
+        
 	}
     
 
@@ -523,7 +523,7 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
-	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+	//cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     int nombreBalles = 0;
 
     if (compteurBalles != nullptr) {

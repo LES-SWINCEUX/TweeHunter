@@ -56,6 +56,8 @@ public:
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
 	bool Tirer(const int x, const int y, qint64 tempsMs, int Tir);
+	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
+
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
