@@ -489,14 +489,20 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
+
+    if (!compteurBalles) return;
+
+	int nombreBalles = compteurBalles->getBalles();
+    if (nombreBalles <= 0) {
+        return;
+	}
+	bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+
+	compteurBalles->setBalles(nombreBalles - 1);
+	emit ballesChanged(nombreBalles - 1);
+
 	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    int nombreBalles = 0;
 
-    if (compteurBalles != nullptr) {
-        nombreBalles = compteurBalles->getBalles();
-    }
-
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
 
     if (gestionnaireAudio != nullptr && nombreBalles > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
@@ -534,4 +540,5 @@ void EcranJeu::rechargerArme() {
     }
 
     compteurBalles->setBalles(this->maxBalles);
+    emit ballesChanged(maxBalles);
 }

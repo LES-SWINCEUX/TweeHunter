@@ -81,7 +81,8 @@ void BushLouche::dessiner(QPainter& painter, qint64 tempsMs)
 		double offsetY = tailleBase.height() * 0.2;
 
 		QRect dest(static_cast<int>(position.x() - tailleBase.width() / 2),
-			static_cast<int>(position.y() - tailleBase.height() / 2) + offsetY, static_cast<int>(tailleBase.width()), static_cast<int>(tailleBase.height()));
+			static_cast<int>(position.y() - tailleBase.height() / 2) + offsetY, 
+			static_cast<int>(tailleBase.width()), static_cast<int>(tailleBase.height()));
 
 		spriteAvertissement.dessiner(painter, dest, tempsLocal, true, false);
 		return;

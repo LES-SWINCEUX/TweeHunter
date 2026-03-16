@@ -34,9 +34,11 @@ public:
     ~EcranJeu();
     void tire();
 
+
 signals:
     void finPartie(int score);
     void retourMenuDemande();
+	void ballesChanged(int nbBalles);
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -93,6 +95,7 @@ private:
 	bool gachettePrecedente = false;
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
+
 };
 
 #endif

@@ -199,6 +199,10 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			score = 0;
 		}
 
+		if (pointsLouche < 0) {
+			vies->setDemiVies(vies->getDemiVies() - 2);
+		}
+
 		compteurPoints->setPoints(score);
 
 		//if (gestionnaireAudio) {
