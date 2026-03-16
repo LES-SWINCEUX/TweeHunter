@@ -1,8 +1,8 @@
 #include "Reticule.h"
 
-Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(parent)
+Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : QWidget(parent)
 {
-	touches = new Touches();
+	touches = t;
 
 	posX = pos.x();
 	posY = pos.y();
@@ -129,7 +129,6 @@ void Reticule::applyJoystickPerso(QWidget* parent, float deltaMs)
 	if (sqrt(dx * dx + dy * dy) < 0.06f) return;
 
 	float vitesse = 1.0f; // pixels par ms — ajuste selon ton gout
-
 	// Accumule les fractions de pixels pour eviter les skips
 	accumX += dx * vitesse * deltaMs;
 	accumY += dy * vitesse * deltaMs;

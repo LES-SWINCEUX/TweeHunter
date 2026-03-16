@@ -7,6 +7,7 @@
 #include "ecran_jeu.h"
 #include "ecran_fin_partie.h"
 #include "gestionnaire_audio.h"
+#include "Touches.h"
 
 class MainWindow : public QMainWindow
 {
@@ -26,5 +27,7 @@ private:
     EcranFinPartie*  ecranFinPartie  = nullptr;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
+
+    Touches* touches = nullptr;
 };
 #endif

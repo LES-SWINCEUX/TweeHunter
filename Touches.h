@@ -35,7 +35,11 @@ public:
 	bool getGachette() const { return gachette; }
 	bool getReload() const { return reload; }
 	bool getAccelerometre() const { return accelerometre; }
+	int getEncodeur() const { return encodeur; }
 
+
+	int UseLastEncodeur();
+	
 
 private:
 	bool joystickOficiel;
@@ -55,6 +59,8 @@ private:
 	int  pendingX = 512;
 	int  pendingY = 512;
 	bool hasNewJoystick = false;
+	int encodeur = 0;
+	int lastEncodeur = 0;
 
 	NativeSerialPort serial;   // remplace QSerialPort
 
