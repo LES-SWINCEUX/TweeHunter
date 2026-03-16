@@ -15,16 +15,18 @@ void SerialReaderThread::stop()
 
 void SerialReaderThread::run()
 {
-    SetCommMask(handle, EV_RXCHAR);
+    COMMTIMEOUTS timeouts = {};
+    timeouts.ReadIntervalTimeout        = MAXDWORD;
+    timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
+    timeouts.ReadTotalTimeoutConstant   = 50; // retour apres 50 ms max si rien a lire
+    SetCommTimeouts(handle, &timeouts);
 
     char tmp[256];
     DWORD bytesRead = 0;
-    DWORD evtMask = 0;
 
     while (!m_stop.loadRelaxed()) {
-        if (!WaitCommEvent(handle, &evtMask, nullptr)) break;
-
-        while (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
+        bytesRead = 0;
+        if (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
             QMutexLocker locker(&mutex);
             sharedBuffer.append(tmp, (int)bytesRead);
         }
@@ -92,16 +94,11 @@ bool NativeSerialPort::open(OpenMode mode)
     dcb.Parity = NOPARITY;
     if (!SetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
 
-    COMMTIMEOUTS timeouts = {};
-    timeouts.ReadIntervalTimeout = MAXDWORD;
-    timeouts.ReadTotalTimeoutMultiplier = 0;
-    timeouts.ReadTotalTimeoutConstant = 0;
-    SetCommTimeouts(handle, &timeouts);
-
     m_reader = new SerialReaderThread();
     m_reader->handle = handle;
     m_reader->start(QThread::LowestPriority);
 
+    m_handle = handle;
     m_isOpen = true;
     return true;
 }
@@ -118,6 +115,7 @@ void NativeSerialPort::close()
         delete m_reader;
         m_reader = nullptr;
     }
+    m_handle = INVALID_HANDLE_VALUE;
     m_isOpen = false;
     m_buffer.clear();
 }
@@ -126,6 +124,8 @@ void NativeSerialPort::close()
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <time.h>
 
 static speed_t toBaudConstant(int baud)
 {
@@ -171,6 +171,7 @@ bool NativeSerialPort::open(OpenMode mode)
     m_reader->fd = fd;
     m_reader->start(QThread::LowestPriority);
 
+    m_fd = fd;
     m_isOpen = true;
     return true;
 }
@@ -184,6 +185,7 @@ void NativeSerialPort::close()
         delete m_reader;
         m_reader = nullptr;
     }
+    m_fd = -1;
     m_isOpen = false;
     m_buffer.clear();
 }
@@ -215,6 +217,57 @@ QByteArray NativeSerialPort::readLine()
     QByteArray line = m_buffer.left(idx + 1);
     m_buffer.remove(0, idx + 1);
     return line;
+}
+
+bool NativeSerialPort::write(const QByteArray& data)
+{
+    if (!m_isOpen || data.isEmpty()) return false;
+
+#ifdef _WIN32
+    if (m_handle == INVALID_HANDLE_VALUE) return false;
+    {
+        const char* ptr = data.constData();
+        DWORD remaining = (DWORD)data.size();
+        while (remaining > 0) {
+            DWORD bytesWritten = 0;
+            if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr))
+                return false;
+            ptr       += bytesWritten;
+            remaining -= bytesWritten;
+        }
+        FlushFileBuffers(m_handle);
+    }
+    return true;
+#else
+    if (m_fd < 0) return false;
+
+    // Le port est ouvert en O_NONBLOCK : on boucle sur EAGAIN pour ne pas perdre de bytes
+    const char* ptr = data.constData();
+    int remaining   = data.size();
+    const int maxRetries = 20;
+
+    for (int retry = 0; remaining > 0 && retry < maxRetries; ++retry) {
+        ssize_t n = ::write(m_fd, ptr, remaining);
+        if (n > 0) {
+            ptr       += n;
+            remaining -= (int)n;
+            retry      = 0; // reinitialise le compteur apres chaque succes partiel
+        } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            // Buffer kernel plein - on attend un peu avant de reessayer
+            struct timespec ts = { 0, 2000000 }; // 2 ms
+            nanosleep(&ts, nullptr);
+        } else {
+            // Erreur fatale
+            return false;
+        }
+    }
+
+    if (remaining > 0) return false;
+
+    // Attendre que tous les octets soient physiquement transmis
+    tcdrain(m_fd);
+    return true;
+#endif
 }
 
 static const char* ARDUINO_KEYWORDS[] = {

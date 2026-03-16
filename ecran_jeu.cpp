@@ -12,6 +12,9 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     reticule = new Reticule(this, pos, arme,t); // création du réticule sur la sourie + choix du réticule
     reticule->show();
 
+    // Stocker la référence aux touches pour l'envoi série
+    touches = t;
+
     armes = new Armes(arme);
     maxBalles = armes->nbMunitions();
 
@@ -20,6 +23,12 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     compteurBalles = new CompteurBalles(this, armes->nbMunitions());
     vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
+
+    // Connecter le signal de changement de balles à l'envoi JSON série
+    if (touches) {
+        connect(compteurBalles, &CompteurBalles::ballesChanged,
+                touches, &Touches::envoyerNbBalles);
+    }
 
     compteurBalles->move(20, height() - compteurBalles->height() + 120);
     compteurBalles->setBalles(armes->nbMunitions());
@@ -142,6 +151,12 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
     if (!jeu) {
         jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18, armes);
+    }
+
+    // Envoyer le nombre de balles initial à l'Arduino au démarrage de la partie
+    if (touches) {
+        touches->envoyerRaw("\n");
+        touches->envoyerNbBalles(maxBalles);
     }
     // Réinitialise le temps de jeu (utile si on revient sur l'écran)
     tempsJeuMs = 0;
