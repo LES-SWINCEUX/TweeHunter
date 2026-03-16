@@ -3,7 +3,7 @@
 Touches::Touches()
 {
 
-	//Initialisation des diffÈrentes mÈthodes de contrÙle
+	//Initialisation des diff√©rentes m√©thodes de contr√¥le
 
     gamepad = nullptr;
 
@@ -16,7 +16,7 @@ Touches::Touches()
         return;
     }
 
-    //DÈtection de la manette ---
+    //D√©tection de la manette ---
     int count = 1;
     SDL_JoystickID* ids = SDL_GetGamepads(&count); // Liste des gamepads
     qDebug() << "Nombre de manettes detectees:" << count;
@@ -24,7 +24,7 @@ Touches::Touches()
 
     if (ids && count > 0)
     {
-        // Ouvrir la premiËre manette
+        // Ouvrir la premi√®re manette
         gamepad = SDL_OpenGamepad(ids[0]);
         if (gamepad) {
             cout << "Manette ouverte !" << endl;
@@ -32,7 +32,7 @@ Touches::Touches()
         }else
             cout << "Erreur ouverture:" << SDL_GetError();
 
-        SDL_free(ids); // libÈrer la mÈmoire retournÈe par SDL_GetGamepads
+        SDL_free(ids); // lib√©rer la m√©moire retourn√©e par SDL_GetGamepads
     
     }
     else {
@@ -40,20 +40,23 @@ Touches::Touches()
 
     }
 
-    serial.setPortName("COM3");        // port Arduino
-    serial.setBaudRate(115200);
+    QString arduinoPort = NativeSerialPort::findArduinoPort();
 
     joystickPerso = false;
 
-    if (serial.open(QIODevice::ReadOnly)) {
-		cout << "Port sÈrie ouvert !" << endl;
-		joystickPerso = true;
-        /*connect(&serial, &QSerialPort::readyRead,
-            this);*/
-    }
-    else {
+    if (arduinoPort.isEmpty()) {
+        cout << "Aucun Arduino detecte sur un port serie" << endl;
+    } else {
+        cout << "Arduino detecte sur : " << arduinoPort.toStdString() << endl;
+        serial.setPortName(arduinoPort);
+        serial.setBaudRate(115200);
 
-		cout << "Aucun port sÈrie" << endl;
+        if (serial.open(NativeSerialPort::ReadOnly)) {
+            cout << "Port serie ouvert !" << endl;
+            joystickPerso = true;
+        } else {
+            cout << "Impossible d'ouvrir le port serie" << endl;
+        }
     }
 
 }
@@ -61,7 +64,7 @@ Touches::Touches()
 Touches::~Touches() {
 }
 
-bool Touches::RTpressed() const {//Retourne si le bouton RT est pressÈ ou non
+bool Touches::RTpressed() const {//Retourne si le bouton RT est press√© ou non
     Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     if (value > 10000) {
@@ -71,24 +74,24 @@ bool Touches::RTpressed() const {//Retourne si le bouton RT est pressÈ ou non
 	return false;
 }
 
-void Touches::lirePerso() {// fonction appelÈe pour lire les donnÈes de la manette personalisÈ ----> (¿ appeler avant chaque fois que l'on veux chercher une donnÈe de la manette perso) 
+void Touches::lirePerso() {// fonction appel√©e pour lire les donn√©es de la manette personalis√© ----> (√Ä appeler avant chaque fois que l'on veux chercher une donn√©e de la manette perso) 
 
-	while (serial.canReadLine()) //lit chaque ligne disponible du port sÈrie tant qu'il y en a, et traite les donnÈes reÁues (met ‡ jour les donnÈes de la classe Touches)
+	while (serial.canReadLine()) //lit chaque ligne disponible du port s√©rie tant qu'il y en a, et traite les donn√©es re√ßues (met √† jour les donn√©es de la classe Touches)
     {
-		QJsonDocument doc = QJsonDocument::fromJson(serial.readLine()); //rÈcupËre la prochaine ligne du port sÈrie et la convertit en document JSON
+		QJsonDocument doc = QJsonDocument::fromJson(serial.readLine()); //r√©cup√®re la prochaine ligne du port s√©rie et la convertit en document JSON
 
         if (!doc.isNull())
         {
             QJsonObject obj = doc.object();
 
-            if (obj["type"] == "joystick") {// Lit les donnÈes du joystick
+            if (obj["type"] == "joystick") {// Lit les donn√©es du joystick
                 x = obj["x"].toInt();
                 y = 1023 - obj["y"].toInt();
 
                 qDebug() << "Joystick:" << x << y;
 
             }
-            else if (obj["type"] == "event") {// Lit les donnÈes des gachette
+            else if (obj["type"] == "event") {// Lit les donn√©es des gachette
                 cout << obj["btn"].toInt() << endl;
                 if (obj["btn"].toInt() == 1) {
                     gachette = true;
@@ -98,7 +101,7 @@ void Touches::lirePerso() {// fonction appelÈe pour lire les donnÈes de la manet
 				}
 
                 //qDebug() << "gachette:" << gachette;
-			}else if (obj["type"] == "reload") {// Lit les donnÈes des reload
+			}else if (obj["type"] == "reload") {// Lit les donn√©es des reload
 
                 if (obj["reload"].toInt() == 1) {
                     reload = true;
@@ -108,7 +111,7 @@ void Touches::lirePerso() {// fonction appelÈe pour lire les donnÈes de la manet
                 }
                 qDebug() << "reload:" << reload;
 
-            }else if (obj["type"] == "accelerometre") {// Lit les donnÈes de la accelerometre
+            }else if (obj["type"] == "accelerometre") {// Lit les donn√©es de la accelerometre
                 if (obj["accelerometre"].toInt() == 1) {
                     accelerometre = true;
                 }
@@ -124,21 +127,19 @@ void Touches::lirePerso() {// fonction appelÈe pour lire les donnÈes de la manet
 
 }
 
-//…lÈments encore ‡ implÈmenter pour la manette personnalisÈe:
+//√âl√©ments encore √† impl√©menter pour la manette personnalis√©e:
 
-//joystick, gachette (1,0), boutons_reload (1,0), accÈlÈromÍtre_shakÈ (1,0), possibilitÈ de boutons supplÈmetaire
+//joystick, gachette (1,0), boutons_reload (1,0), acc√©l√©rom√™tre_shak√© (1,0), possibilit√© de boutons suppl√©metaire
 
 //renvoie nb_balles
 
-int Touches::getxPerso() { //rÈcupÈre la valeur x la plus ‡ jour du joystick personnalisÈ
+int Touches::getxPerso() { //r√©cup√©re la valeur x la plus √† jour du joystick personnalis√©
 
     return x;
 
 }
 
 
-int Touches::getyPerso() { //rÈcupÈre la valeur y la plus ‡ jour du joystick personnalisÈ
-    QJsonObject Obj = QJsonDocument::fromJson(serial.readLine()).object();
-
+int Touches::getyPerso() { //r√©cup√©re la valeur y la plus √† jour du joystick personnalis√©
     return y;
 }

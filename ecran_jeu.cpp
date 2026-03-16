@@ -208,8 +208,8 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         int x = (scaled.width() - width()) / 2;
         int y = (scaled.height() - height());
 
-        x = std::max(0, x);
-        y = std::max(0, y);
+        x = max(0, x);
+        y = max(0, y);
 
         QRect crop(x, y, width(), height());
         arrierePlanCache = scaled.copy(crop);

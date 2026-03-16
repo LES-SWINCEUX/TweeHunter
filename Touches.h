@@ -8,7 +8,7 @@
 #include <QDebug>
 #include <cmath>
 
-#include <QSerialPort>
+#include "NativeSerialPort.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -51,8 +51,7 @@ private:
 	bool reload = false;
 	bool accelerometre = false;
 	
-
-	QSerialPort serial;
+	NativeSerialPort serial;
 
 };
 
