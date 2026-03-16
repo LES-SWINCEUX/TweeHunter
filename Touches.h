@@ -35,6 +35,10 @@ public:
 	bool getGachette() const { return gachette; }
 	bool getReload() const { return reload; }
 	bool getAccelerometre() const { return accelerometre; }
+	int getEncodeur() const { return encodeur; }
+
+
+	int UseLastEncodeur();
 	
 
 private:
@@ -50,7 +54,8 @@ private:
 	bool gachette = false;
 	bool reload = false;
 	bool accelerometre = false;
-	
+	int encodeur = 0;
+	int lastEncodeur = 0;
 
 	QSerialPort serial;
 

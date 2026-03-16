@@ -89,7 +89,6 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
 
             }
             else if (obj["type"] == "event") {// Lit les données des gachette
-                cout << obj["btn"].toInt() << endl;
                 if (obj["btn"].toInt() == 1) {
                     gachette = true;
                 }
@@ -97,25 +96,44 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
                     gachette = false;
 				}
 
-                //qDebug() << "gachette:" << gachette;
-			}else if (obj["type"] == "reload") {// Lit les données des reload
-
-                if (obj["reload"].toInt() == 1) {
+                if (obj["btn1"].toInt() == 1) {
                     reload = true;
                 }
                 else {
                     reload = false;
                 }
-                qDebug() << "reload:" << reload;
 
-            }else if (obj["type"] == "accelerometre") {// Lit les données de la accelerometre
-                if (obj["accelerometre"].toInt() == 1) {
+                if (obj["btn2"].toInt() == 1) {
                     accelerometre = true;
                 }
                 else {
                     accelerometre = false;
                 }
-                qDebug() << "accelerometre:" << accelerometre;
+                encodeur = obj["encodeur"].toInt();
+                if (encodeur != 0) {
+                    cout << encodeur << endl;
+                    lastEncodeur = encodeur;
+                }
+
+                //qDebug() << "gachette:" << gachette;
+			//}else if (obj["type"] == "event1") {// Lit les données des reload
+
+   //             if (obj["btn1"].toInt() == 1) {
+   //                 reload = true;
+   //             }
+   //             else {
+   //                 reload = false;
+   //             }
+   //             qDebug() << "reload:" << reload;
+
+   //         }else if (obj["type"] == "event2") {// Lit les données de la accelerometre
+   //             if (obj["btn2"].toInt() == 1) {
+   //                 accelerometre = true;
+   //             }
+   //             else {
+   //                 accelerometre = false;
+   //             }
+   //             qDebug() << "accelerometre:" << accelerometre;
 			}
             
 
@@ -129,6 +147,14 @@ void Touches::lirePerso() {// fonction appelée pour lire les données de la manet
 //joystick, gachette (1,0), boutons_reload (1,0), accéléromêtre_shaké (1,0), possibilité de boutons supplémetaire
 
 //renvoie nb_balles
+
+int Touches::UseLastEncodeur() {
+    int temp = lastEncodeur;
+    if (temp != 0) {
+        lastEncodeur = 0;
+    }
+    return temp;
+}
 
 int Touches::getxPerso() { //récupére la valeur x la plus à jour du joystick personnalisé
 

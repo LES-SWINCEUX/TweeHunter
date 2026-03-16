@@ -30,7 +30,7 @@ class EcranJeu : public QWidget
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1, Touches* t=nullptr);
     ~EcranJeu();
     void tire();
 

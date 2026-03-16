@@ -1,6 +1,6 @@
 ﻿#include "ecran_jeu.h"
 
-EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme)
+EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme, Touches* t)
     : QWidget(parent)
 {
     //ajout à enlever apres test
@@ -9,7 +9,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
 
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-    reticule = new Reticule(this, pos, arme); // création du réticule sur la sourie + choix du réticule
+    reticule = new Reticule(this, pos, arme,t); // création du réticule sur la sourie + choix du réticule
     reticule->show();
 
     armes = new Armes(arme);
@@ -286,6 +286,11 @@ void EcranJeu::tick()
         if (reticule->getTouches()->getReload() && reticule->getTouches()->getAccelerometre()) {
             rechargerArme();
 			cout << "Rechargement de la mannette" << endl;
+        }
+
+        if (reticule->getTouches()->getReload() && (reticule->getTouches()->getEncodeur()!=0)) {
+            cout << "Pause du jeu" << endl;
+            mettreEnPause();
         }
         
 	}

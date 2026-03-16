@@ -1,8 +1,8 @@
 #include "Reticule.h"
 
-Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix) : QWidget(parent)
+Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : QWidget(parent)
 {
-	touches = new Touches();
+	touches = t;
 
 	posX = pos.x();
 	posY = pos.y();

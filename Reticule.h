@@ -29,7 +29,7 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule(QWidget* parent, const QPoint& pos, int choix);
+	Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t);
 	~Reticule();
 	void setPosition(const QPoint& pos);
 	string getPath(int choix) const;
