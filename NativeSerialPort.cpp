@@ -22,10 +22,8 @@ void SerialReaderThread::run()
     DWORD evtMask = 0;
 
     while (!m_stop.loadRelaxed()) {
-        // Bloque sans consommer de CPU jusqu'a ce qu'un octet arrive
         if (!WaitCommEvent(handle, &evtMask, nullptr)) break;
 
-        // Lit tout ce qui est disponible
         while (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
             QMutexLocker locker(&mutex);
             sharedBuffer.append(tmp, (int)bytesRead);
@@ -42,11 +40,10 @@ void SerialReaderThread::run()
     char tmp[256];
 
     while (!m_stop.loadRelaxed()) {
-        // Attend sans polling que des donnees arrivent sur le fd
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(fd, &rfds);
-        struct timeval tv = { 0, 50000 }; // timeout 50ms pour verifier m_stop
+        struct timeval tv = { 0, 50000 };
 
         int ret = select(fd + 1, &rfds, nullptr, nullptr, &tv);
         if (ret > 0) {
@@ -95,7 +92,6 @@ bool NativeSerialPort::open(OpenMode mode)
     dcb.Parity = NOPARITY;
     if (!SetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
 
-    // Timeout non-bloquant — le thread gere lui-meme la pause via msleep
     COMMTIMEOUTS timeouts = {};
     timeouts.ReadIntervalTimeout = MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = 0;
@@ -114,7 +110,6 @@ void NativeSerialPort::close()
 {
     if (m_reader) {
         m_reader->stop();
-        // Ferme le handle pour debloquer WaitCommEvent dans le thread
         if (m_reader->handle != INVALID_HANDLE_VALUE) {
             CloseHandle(m_reader->handle);
             m_reader->handle = INVALID_HANDLE_VALUE;
@@ -167,9 +162,8 @@ bool NativeSerialPort::open(OpenMode mode)
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
-    // Bloquant avec timeout de 100ms — le thread de lecture attend proprement
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 1; // 100ms
+    tty.c_cc[VTIME] = 1;
 
     if (tcsetattr(fd, TCSANOW, &tty) != 0) { ::close(fd); return false; }
 
@@ -224,10 +218,25 @@ QByteArray NativeSerialPort::readLine()
 }
 
 static const char* ARDUINO_KEYWORDS[] = {
-    "Arduino", "CH340", "CH341", "CP210", "FTDI", "FT232", "USB Serial", nullptr
+    "Arduino", "CH340", "CH341", "CP210", "FTDI", "FT232", "USB Serial", "USB de S", nullptr
 };
 
 #ifdef _WIN32
+
+static const struct { const char* vid; const char* pid; } ARDUINO_IDS[] = {
+    { "2341", "0042" }, 
+    { "2341", "0010" }, 
+    { "2341", "0043" }, 
+    { "2341", "0001" }, 
+    { "2341", "0036" }, 
+    { "2341", "003B" }, 
+    { "2341", "0069" }, 
+    { "1A86", "7523" }, 
+    { "1A86", "5523" }, 
+    { "10C4", "EA60" }, 
+    { "0403", "6001" }, 
+    { nullptr, nullptr }
+};
 
 QString NativeSerialPort::findArduinoPort()
 {
@@ -240,21 +249,32 @@ QString NativeSerialPort::findArduinoPort()
     devData.cbSize = sizeof(SP_DEVINFO_DATA);
 
     for (DWORD i = 0; SetupDiEnumDeviceInfo(devInfo, i, &devData); ++i) {
-        char friendlyName[256] = {};
+
+        char hardwareId[512] = {};
         SetupDiGetDeviceRegistryPropertyA(
-            devInfo, &devData, SPDRP_FRIENDLYNAME,
-            nullptr, (PBYTE)friendlyName, sizeof(friendlyName), nullptr
+            devInfo, &devData, SPDRP_HARDWAREID,
+            nullptr, (PBYTE)hardwareId, sizeof(hardwareId), nullptr
         );
 
+        QString hwId = QString::fromLatin1(hardwareId).toUpper();
+
         bool isArduino = false;
-        for (int k = 0; ARDUINO_KEYWORDS[k]; ++k) {
-            if (strstr(friendlyName, ARDUINO_KEYWORDS[k])) {
+        for (int k = 0; ARDUINO_IDS[k].vid; ++k) {
+            QString vidStr = QString("VID_%1").arg(ARDUINO_IDS[k].vid).toUpper();
+            QString pidStr = QString("PID_%1").arg(ARDUINO_IDS[k].pid).toUpper();
+            if (hwId.contains(vidStr) && hwId.contains(pidStr)) {
                 isArduino = true;
                 break;
             }
         }
 
         if (isArduino) {
+            char friendlyName[256] = {};
+            SetupDiGetDeviceRegistryPropertyA(
+                devInfo, &devData, SPDRP_FRIENDLYNAME,
+                nullptr, (PBYTE)friendlyName, sizeof(friendlyName), nullptr
+            );
+
             char* start = strrchr(friendlyName, '(');
             char* end = strrchr(friendlyName, ')');
             if (start && end && end > start) {
