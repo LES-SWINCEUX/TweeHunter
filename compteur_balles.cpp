@@ -1,11 +1,13 @@
 #include "compteur_balles.h"
 
-CompteurBalles::CompteurBalles(QWidget* parent)
+CompteurBalles::CompteurBalles(QWidget* parent,int balle)
     : QWidget(parent)
 {
+    setMaxBalles(balle);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_OpaquePaintEvent, false);
     setSpriteSheet();
+	
 }
 
 void CompteurBalles::setSpriteSheet()
@@ -24,7 +26,7 @@ void CompteurBalles::setSpriteSheet()
 
 void CompteurBalles::setBalles(int value)
 {
-    int clamped = std::clamp(value, 0, 9);
+    int clamped = std::clamp(value, 0, maxBalles);
     if (clamped == balles) {
         return;
     }

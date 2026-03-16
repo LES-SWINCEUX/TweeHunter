@@ -22,7 +22,7 @@
 #include "jeu.h"
 #include "Reticule.h"
 #include "vie.h"
-
+#include "Armes.h"
 #include "menu_pause_overlay.h"
 
 class EcranJeu : public QWidget
@@ -30,7 +30,7 @@ class EcranJeu : public QWidget
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1);
     ~EcranJeu();
     void tire();
 
@@ -88,7 +88,8 @@ private:
 
     Jeu* jeu = nullptr;
 
-    const int maxBalles = 9;
+    int maxBalles;
+	Armes* armes;
 
 	bool gachettePrecedente = false;
     int largeurMaxBalles = 275;
