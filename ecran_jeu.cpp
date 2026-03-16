@@ -17,7 +17,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
 
     //compteur de balle, points et vies
 
-    compteurBalles = new CompteurBalles(this,armes->nbMunitions());
+    compteurBalles = new CompteurBalles(this, armes->nbMunitions());
     vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
 
@@ -64,7 +64,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
 
     connect(&timer, &QTimer::timeout, this, [this]() {
         tick();
-    });
+        });
 
     timer.start();
 
@@ -80,40 +80,39 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     fadeInAnim->setStartValue(255);
     fadeInAnim->setEndValue(0);
 
-	//activation de sdl pour les manettes
+    //activation de sdl pour les manettes
     cout << "Initialisation de SDL3" << endl;
-    
+
     if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
         qDebug() << "Erreur SDL:" << SDL_GetError();
     }
 
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         overlay->hide();
-    });
+        });
 
 
-	gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
+    gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
 
     /*
     QTimer* timer = new QTimer(this);
     this->timerManette = timer;
     timer->start(16); // ~60 Hz
-    
+
     connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
         if (enPause || transitionVersMenu) {
             return;
         }
         if (reticule->tirer()) {
-			
+
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
                 tire();
-                cout << "Tire sur la mannette" << endl;
-                
-			}
+
+            }
         }
         else{
-			gachettePrecedente = false;
+            gachettePrecedente = false;
         }
     });*/
 
@@ -142,7 +141,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18,armes);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18, armes);
     }
     // Réinitialise le temps de jeu (utile si on revient sur l'écran)
     tempsJeuMs = 0;
@@ -151,7 +150,7 @@ void EcranJeu::showEvent(QShowEvent* e)
 
 void EcranJeu::keyPressEvent(QKeyEvent* e)
 {
-    if (e->isAutoRepeat()) { 
+    if (e->isAutoRepeat()) {
         e->ignore();
         return;
     }
@@ -230,9 +229,9 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
         menuPause->setGeometry(rect());
         menuPause->raise();
     }
-    if(jeu) {
+    if (jeu) {
         jeu->setTailleEcran(size());
-	}
+    }
 
     placerElementsGUI();
 }
@@ -243,21 +242,24 @@ void EcranJeu::tick()
         frameTimer.restart();
         return;
     }
+
+    // Sauvegarde le delta AVANT tout le reste pour eviter que restart() retourne ~0ms
+    qint64 deltaMs = frameTimer.restart();
+
     if (jeu) {
-		tempsJeuMs += frameTimer.restart();
-		jeu->update(tempsJeuMs);
+        tempsJeuMs += deltaMs;
+        jeu->update(tempsJeuMs);
     }
 
     SDL_Event event;
-	if (SDL_PollEvent(&event)) // s'active s'il y a un changement sur les imputs de la manette
-    {   
+    if (SDL_PollEvent(&event)) // s'active s'il y a un changement sur les imputs de la manette
+    {
         SDL_PumpEvents();
         if (reticule->tirer()) {
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
                 tire();
-                cout << "Tire sur la mannette" << endl;
 
             }
         }
@@ -266,16 +268,15 @@ void EcranJeu::tick()
         }
     }
 
-    if (reticule->getTouches()->isJoystickPersoConnected()){
+    if (reticule->getTouches()->isJoystickPersoConnected()) {
 
-		reticule->getTouches()->lirePerso(); //met à jour les données de la mannette personalisée
-        
+        reticule->getTouches()->lirePerso(); // met à jour les données de la mannette personalisée
+
         if (reticule->getTouches()->getGachette()) {
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
                 tire();
-                cout << "Tire sur la mannette" << endl;
 
             }
         }
@@ -285,7 +286,6 @@ void EcranJeu::tick()
 
         if (reticule->getTouches()->getReload() && reticule->getTouches()->getAccelerometre()) {
             rechargerArme();
-			cout << "Rechargement de la mannette" << endl;
         }
 
         if (reticule->getTouches()->getReload() && (reticule->getTouches()->getEncodeur()!=0)) {
@@ -296,6 +296,11 @@ void EcranJeu::tick()
 	}
     
 
+
+
+        // Applique le mouvement joystick avec le delta-time correct
+        reticule->applyJoystickPerso(this, (float)deltaMs);
+    }
 
     update();
 }
@@ -325,7 +330,7 @@ void EcranJeu::mettreEnPause()
     connect(menuPause, &MenuPauseOverlay::reprendreDemande, this, &EcranJeu::reprendreJeu);
     connect(menuPause, &MenuPauseOverlay::retourMenuDemande, this, [this]() {
         demarrerFadeOutVersMenu();
-    });
+        });
 }
 
 void EcranJeu::reprendreJeu()
@@ -397,7 +402,7 @@ void EcranJeu::demarrerFadeOutVersMenu()
     QObject::disconnect(fadeOutAnim, nullptr, this, nullptr);
     connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() {
         emit retourMenuDemande();
-    });
+        });
 
     fadeOutAnim->start();
 }
@@ -508,12 +513,12 @@ void EcranJeu::paintEvent(QPaintEvent*)
         painter.fillRect(rect(), Qt::black);
     }
     if (jeu) {
-		jeu->dessiner(painter, tempsJeuMs); 
+        jeu->dessiner(painter, tempsJeuMs);
     }
 
 
-	//Test de dessin du cercle de collision du tir
-    
+    //Test de dessin du cercle de collision du tir
+
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QPen(Qt::blue, 2));
     painter.setBrush(Qt::NoBrush);
@@ -521,7 +526,7 @@ void EcranJeu::paintEvent(QPaintEvent*)
     //painter.drawPath(armes->choixArme(5, 622, 300));
     //painter.drawPath(armes->choixArme(4, reticule->getX(), reticule->getY()));
 
-    
+
 }
 
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)
@@ -530,7 +535,7 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
-	//cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+    //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     int nombreBalles = 0;
     int nombreVies = vies->getDemiVies();
 
@@ -538,12 +543,12 @@ void EcranJeu::tire() {
         nombreBalles = compteurBalles->getBalles();
     }
 
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs,reticule->getChoixTir());
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, reticule->getChoixTir());
 
     if (gestionnaireAudio != nullptr && nombreBalles > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
     }
-    
+
     if (gestionnaireAudio != nullptr && nombreBalles <= 0) {
         gestionnaireAudio->playSfx("gun_empty");
     }
@@ -569,7 +574,7 @@ void EcranJeu::tire() {
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
         emit finPartie(scoreFinal);
-    });
+        });
 
     fadeInAnim->start();
 }
