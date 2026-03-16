@@ -26,17 +26,45 @@ void MainWindow::afficherMenuPrincipal() {
 
 void MainWindow::afficherEcranJeu() {
     if (!this->ecranJeu) {
-		this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this, 5);     //Le chiffre à la fin peut être changé pour passer d'un arme à l'autre
+        this->ecranJeu = new EcranJeu(this->gestionnaireAudio, this, 5);     //Le chiffre à la fin peut être changé pour passer d'un arme à l'autre
 
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);
-        });
+            });
 
         connect(this->ecranJeu, &EcranJeu::retourMenuDemande, this, [this]() {
             afficherMenuPrincipal();
-        });
-    }
+            });
+        qDebug() << "serialPort avant if:" << serialPort;
 
+        if (!serialPort) {
+            serialPort = new NativeSerialPort();
+            QString port = NativeSerialPort::findArduinoPort();
+            qDebug() << "Port trouve:" << port;
+            if (!port.isEmpty()) {
+                serialPort->setPortName(port);
+                serialPort->setBaudRate(115200);
+                bool ok = serialPort->open(NativeSerialPort::ReadWrite);
+                qDebug() << "Port ouvert:" << ok;
+            }
+            else {
+                qDebug() << "Aucun port Arduino trouve";
+            }
+        }
+        connect(this->ecranJeu, &EcranJeu::ballesChanged, this, [this](int nb) {
+            qDebug() << "ballesChanged recu dans MainWindow, nb:" << nb;
+            if (!serialPort || !serialPort->isOpen()) {
+                qDebug() << "serialPort non ouvert!";
+                return;
+            }
+            QJsonObject obj;
+            obj["type"] = "config";
+            obj["nb_balles"] = nb;
+            QJsonDocument doc(obj);
+            serialPort->write(doc.toJson(QJsonDocument::Compact) + "\n");
+            qDebug() << "Envoye a Arduino:" << doc.toJson(QJsonDocument::Compact);
+            });
+    }
     this->menuPrincipal  = nullptr;
     this->ecranFinPartie = nullptr;
 

@@ -96,6 +96,11 @@ private:
 
 	ModeJeu modeActuel;
 	bool enPause;
+
+	QList<Bush*> bushes;
+	BushLouche* bushLoucheActif = nullptr;
+	GestionnaireAudio* gestionnaireAudio = nullptr;
+	Armes* armes = nullptr;
 };
 
 #endif

@@ -36,7 +36,7 @@ public:
     bool isOpen() const;
 
     bool canReadLine();
-
+    bool write(const QByteArray& data);
     QByteArray readLine();
 
 private:

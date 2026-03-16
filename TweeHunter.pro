@@ -52,7 +52,7 @@ SOURCES += \
     panneau_pause_principal.cpp \
     menu_pause_overlay.cpp \
     Armes.cpp \
-    NativeSerialPort.cpp
+    NativeSerialPort.cpp \
     menu_pause_overlay.cpp \
     bush_louche.cpp \
     bush.cpp
@@ -95,7 +95,7 @@ HEADERS += \
     menu_pause_overlay.h \
     modejeu.h \
     bush_louche.h \
-    bush.h
+    bush.h \
     modejeu.h \
     Armes.h \
     NativeSerialPort.h

@@ -73,6 +73,13 @@ void NativeSerialPort::readIntoBuffer()
         m_buffer.append(tmp, bytesRead);
 }
 
+bool NativeSerialPort::write(const QByteArray& data)
+{
+    if (!m_isOpen) return false;
+    DWORD written = 0;
+    return WriteFile(m_handle, data.constData(), data.size(), &written, nullptr);
+}
+
 #else
 
 #include <fcntl.h>
@@ -158,6 +165,12 @@ void NativeSerialPort::readIntoBuffer()
     ssize_t n;
     while ((n = ::read(m_fd, tmp, sizeof(tmp))) > 0)
         m_buffer.append(tmp, (int)n);
+}
+
+bool NativeSerialPort::write(const QByteArray& data)
+{
+    if (!m_isOpen) return false;
+    return ::write(m_fd, data.constData(), data.size()) > 0;
 }
 
 #endif
