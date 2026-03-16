@@ -299,8 +299,10 @@ void EcranJeu::tick()
 
 
         // Applique le mouvement joystick avec le delta-time correct
+    if (sqrt((reticule->getTouches()->getxPerso() - 512) * (reticule->getTouches()->getxPerso() - 512) + (reticule->getTouches()->getyPerso() - 512) * (reticule->getTouches()->getyPerso() - 512)) > 35) {
         reticule->applyJoystickPerso(this, (float)deltaMs);
     }
+    
 
     update();
 }
