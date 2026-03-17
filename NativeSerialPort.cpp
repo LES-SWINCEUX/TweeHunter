@@ -15,6 +15,9 @@ void SerialReaderThread::stop()
 
 void SerialReaderThread::run()
 {
+    // On utilise ReadFile avec un timeout court au lieu de WaitCommEvent.
+    // WaitCommEvent bloque le handle entier et empeche WriteFile de fonctionner
+    // depuis le thread principal en meme temps.
     COMMTIMEOUTS timeouts = {};
     timeouts.ReadIntervalTimeout        = MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
@@ -226,6 +229,9 @@ bool NativeSerialPort::write(const QByteArray& data)
 #ifdef _WIN32
     if (m_handle == INVALID_HANDLE_VALUE) return false;
     {
+        // WriteFile sur un port serie synchrone est thread-safe avec ReadFile
+        // (files d'attente separees en lecture/ecriture).
+        // On boucle sur les ecritures partielles au cas ou.
         const char* ptr = data.constData();
         DWORD remaining = (DWORD)data.size();
         while (remaining > 0) {

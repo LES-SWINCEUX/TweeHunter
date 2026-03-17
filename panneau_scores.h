@@ -23,6 +23,8 @@ public:
     PanneauScores(QWidget* parent = nullptr);
     ~PanneauScores() = default;
 
+    QList<Bouton*> boutonsNavigables() const override;
+
 protected:
     void creer() override;
     void positionner() override;

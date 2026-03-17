@@ -7,6 +7,7 @@ PanneauPausePrincipal::PanneauPausePrincipal(QWidget* parent)
     : PanneauMenu(parent)
 {
     initialiserPanneau();
+    naviguerBas();
 }
 
 PanneauPausePrincipal::~PanneauPausePrincipal()
@@ -28,20 +29,29 @@ void PanneauPausePrincipal::creer()
     boutonQuitter = new Bouton("/images/menu/quitter_spritesheet_horizontal.png", 3, this);
     boutonQuitter->setEchelle(echelleBoutons);
 
-    connect(boutonJouer, &Bouton::clicked, this, &PanneauMenu::demanderJouer);
-    connect(boutonScores, &Bouton::clicked, this, &PanneauMenu::demanderScores);
+    connect(boutonJouer,   &Bouton::clicked, this, &PanneauMenu::demanderJouer);
+    connect(boutonScores,  &Bouton::clicked, this, &PanneauMenu::demanderScores);
     connect(boutonOptions, &Bouton::clicked, this, &PanneauMenu::demanderOptions);
     connect(boutonQuitter, &Bouton::clicked, this, &PanneauMenu::demanderQuitter);
+}
+
+QList<Bouton*> PanneauPausePrincipal::boutonsNavigables() const
+{
+    return { boutonJouer, boutonScores, boutonOptions, boutonQuitter };
 }
 
 void PanneauPausePrincipal::positionner()
 {
     std::vector<Bouton*> boutons = { boutonJouer, boutonScores, boutonOptions, boutonQuitter };
     boutons.erase(std::remove(boutons.begin(), boutons.end(), nullptr), boutons.end());
-    if (boutons.empty()) return;
+    if (boutons.empty()) {
+        return;
+    }
 
     const QSize base = boutons.front()->tailleImage();
-    if (!base.isValid()) return;
+    if (!base.isValid()) {
+        return;
+    }
 
     espacementBoutons = std::max(10, int(height() * 0.04f));
 
