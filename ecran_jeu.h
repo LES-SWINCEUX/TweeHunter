@@ -33,7 +33,7 @@ class EcranJeu : public QWidget
 public:
     EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1, Touches* t=nullptr);
     ~EcranJeu();
-    void tire();
+    void tire(int typeTire);
 
 signals:
     void finPartie(int score);
@@ -93,6 +93,7 @@ private:
 	Armes* armes;
 
 	bool gachettePrecedente = false;
+    bool powerUp = false;
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
 
