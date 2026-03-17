@@ -35,6 +35,10 @@ QPainterPath Armes::choixArme(int choix, int x, int y)
 		//cout << "Bombardement sélectionné" << endl;
 		Hitbox = CreerContourTarte(x-150,y-176/2);
 		return Hitbox;
+	case 30:
+		//cout << "Bombe utilisé<<endl;
+		Hitbox.addEllipse(QPointF(x, y), 300, 300);
+		return Hitbox;
 	}
 }
 
