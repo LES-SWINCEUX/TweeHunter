@@ -8,7 +8,7 @@
 #include <QDebug>
 #include <cmath>
 
-#include "NativeSerialPort.h"
+#include "NativeSerialPort.h"   // remplace QSerialPort
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -31,27 +31,41 @@ public:
 	void lirePerso();
 	int getxPerso();
 	int getyPerso();
-	
+
 	bool getGachette() const { return gachette; }
 	bool getReload() const { return reload; }
 	bool getAccelerometre() const { return accelerometre; }
+	int getEncodeur() const { return encodeur; }
+
+
+	int UseLastEncodeur();
+
+    void envoyerNbBalles(int nbBalles);
+    void envoyerRaw(const QByteArray& data);
 	
 
 private:
 	bool joystickOficiel;
 	bool joystickPerso;
 
-	SDL_Gamepad* gamepad=nullptr;
+	SDL_Gamepad* gamepad = nullptr;
 	int middleX;
 	int middleY;
 
-	int x=500;
-	int y=500;
+	int x = 500;
+	int y = 500;
 	bool gachette = false;
 	bool reload = false;
 	bool accelerometre = false;
-	
-	NativeSerialPort serial;
+
+	// Valeurs joystick en attente — seule la derniere par frame est appliquee
+	int  pendingX = 512;
+	int  pendingY = 512;
+	bool hasNewJoystick = false;
+	int encodeur = 0;
+	int lastEncodeur = 0;
+
+	NativeSerialPort serial;   // remplace QSerialPort
 
 };
 

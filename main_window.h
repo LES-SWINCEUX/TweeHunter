@@ -7,10 +7,7 @@
 #include "ecran_jeu.h"
 #include "ecran_fin_partie.h"
 #include "gestionnaire_audio.h"
-#include <QJsonObject>
-#include <QJsonDocument>
-#include "NativeSerialPort.h"
-
+#include "Touches.h"
 
 class MainWindow : public QMainWindow
 {
@@ -30,6 +27,7 @@ private:
     EcranFinPartie*  ecranFinPartie  = nullptr;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
-	NativeSerialPort* serialPort = nullptr;
+
+    Touches* touches = nullptr;
 };
 #endif

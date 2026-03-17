@@ -24,13 +24,14 @@
 #include "vie.h"
 #include "Armes.h"
 #include "menu_pause_overlay.h"
+#include "Touches.h"
 
 class EcranJeu : public QWidget
 {
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1, Touches* t=nullptr);
     ~EcranJeu();
     void tire();
 
@@ -97,6 +98,7 @@ private:
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
 
+    Touches* touches = nullptr;
 };
 
 #endif

@@ -1,7 +1,64 @@
 #include "NativeSerialPort.h"
 #include <QDebug>
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
+
+SerialReaderThread::SerialReaderThread(QObject* parent) : QThread(parent) {}
+
+void SerialReaderThread::stop()
+{
+    m_stop.storeRelaxed(1);
+}
 
 #ifdef _WIN32
+
+void SerialReaderThread::run()
+{
+    COMMTIMEOUTS timeouts = {};
+    timeouts.ReadIntervalTimeout        = MAXDWORD;
+    timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
+    timeouts.ReadTotalTimeoutConstant   = 50; // retour apres 50 ms max si rien a lire
+    SetCommTimeouts(handle, &timeouts);
+
+    char tmp[256];
+    DWORD bytesRead = 0;
+
+    while (!m_stop.loadRelaxed()) {
+        bytesRead = 0;
+        if (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
+            QMutexLocker locker(&mutex);
+            sharedBuffer.append(tmp, (int)bytesRead);
+        }
+    }
+}
+
+#else
+
+#include <unistd.h>
+
+void SerialReaderThread::run()
+{
+    char tmp[256];
+
+    while (!m_stop.loadRelaxed()) {
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(fd, &rfds);
+        struct timeval tv = { 0, 50000 };
+
+        int ret = select(fd + 1, &rfds, nullptr, nullptr, &tv);
+        if (ret > 0) {
+            ssize_t n = ::read(fd, tmp, sizeof(tmp));
+            if (n > 0) {
+                QMutexLocker locker(&mutex);
+                sharedBuffer.append(tmp, (int)n);
+            }
+        }
+    }
+}
+
+#endif
 
 NativeSerialPort::NativeSerialPort() {}
 
@@ -11,73 +68,56 @@ void NativeSerialPort::setPortName(const QString& name) { m_portName = name; }
 void NativeSerialPort::setBaudRate(int baudRate) { m_baudRate = baudRate; }
 bool NativeSerialPort::isOpen() const { return m_isOpen; }
 
+#ifdef _WIN32
+
 bool NativeSerialPort::open(OpenMode mode)
 {
     DWORD access = (mode == ReadWrite) ? (GENERIC_READ | GENERIC_WRITE) : GENERIC_READ;
 
     QString fullName = "\\\\.\\" + m_portName;
-    m_handle = CreateFileW(
+    HANDLE handle = CreateFileW(
         reinterpret_cast<LPCWSTR>(fullName.utf16()),
         access, 0, nullptr, OPEN_EXISTING, 0, nullptr
     );
 
-    if (m_handle == INVALID_HANDLE_VALUE) {
+    if (handle == INVALID_HANDLE_VALUE) {
         qDebug() << "NativeSerialPort: impossible d'ouvrir" << m_portName;
         return false;
     }
 
     DCB dcb = {};
     dcb.DCBlength = sizeof(DCB);
-    if (!GetCommState(m_handle, &dcb)) {
-        CloseHandle(m_handle);
-        m_handle = INVALID_HANDLE_VALUE;
-        return false;
-    }
+    if (!GetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
     dcb.BaudRate = m_baudRate;
     dcb.ByteSize = 8;
     dcb.StopBits = ONESTOPBIT;
     dcb.Parity = NOPARITY;
-    if (!SetCommState(m_handle, &dcb)) {
-        CloseHandle(m_handle);
-        m_handle = INVALID_HANDLE_VALUE;
-        return false;
-    }
+    if (!SetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
 
-    COMMTIMEOUTS timeouts = {};
-    timeouts.ReadIntervalTimeout = MAXDWORD;
-    timeouts.ReadTotalTimeoutMultiplier = 0;
-    timeouts.ReadTotalTimeoutConstant = 0;
-    SetCommTimeouts(m_handle, &timeouts);
+    m_reader = new SerialReaderThread();
+    m_reader->handle = handle;
+    m_reader->start(QThread::LowestPriority);
 
+    m_handle = handle;
     m_isOpen = true;
     return true;
 }
 
 void NativeSerialPort::close()
 {
-    if (m_handle != INVALID_HANDLE_VALUE) {
-        CloseHandle(m_handle);
-        m_handle = INVALID_HANDLE_VALUE;
+    if (m_reader) {
+        m_reader->stop();
+        if (m_reader->handle != INVALID_HANDLE_VALUE) {
+            CloseHandle(m_reader->handle);
+            m_reader->handle = INVALID_HANDLE_VALUE;
+        }
+        m_reader->wait();
+        delete m_reader;
+        m_reader = nullptr;
     }
+    m_handle = INVALID_HANDLE_VALUE;
     m_isOpen = false;
     m_buffer.clear();
-}
-
-void NativeSerialPort::readIntoBuffer()
-{
-    if (!m_isOpen) return;
-
-    char tmp[256];
-    DWORD bytesRead = 0;
-    while (ReadFile(m_handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0)
-        m_buffer.append(tmp, bytesRead);
-}
-
-bool NativeSerialPort::write(const QByteArray& data)
-{
-    if (!m_isOpen) return false;
-    DWORD written = 0;
-    return WriteFile(m_handle, data.constData(), data.size(), &written, nullptr);
 }
 
 #else
@@ -85,6 +125,7 @@ bool NativeSerialPort::write(const QByteArray& data)
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 
 static speed_t toBaudConstant(int baud)
 {
@@ -112,78 +153,72 @@ bool NativeSerialPort::open(OpenMode mode)
     int flags = (mode == ReadWrite) ? O_RDWR : O_RDONLY;
     flags |= O_NOCTTY | O_NONBLOCK;
 
-    m_fd = ::open(m_portName.toLocal8Bit().constData(), flags);
-    if (m_fd < 0) {
+    int fd = ::open(m_portName.toLocal8Bit().constData(), flags);
+    if (fd < 0) {
         qDebug() << "NativeSerialPort: impossible d'ouvrir" << m_portName;
         return false;
     }
 
     struct termios tty = {};
-    if (tcgetattr(m_fd, &tty) != 0) {
-        ::close(m_fd);
-        m_fd = -1;
-        return false;
-    }
+    if (tcgetattr(fd, &tty) != 0) { ::close(fd); return false; }
 
     speed_t speed = toBaudConstant(m_baudRate);
     cfsetispeed(&tty, speed);
     cfsetospeed(&tty, speed);
-
     cfmakeraw(&tty);
     tty.c_cflag |= (CLOCAL | CREAD);
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 0;
+    tty.c_cc[VTIME] = 1;
 
-    if (tcsetattr(m_fd, TCSANOW, &tty) != 0) {
-        ::close(m_fd);
-        m_fd = -1;
-        return false;
-    }
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) { ::close(fd); return false; }
 
+    m_reader = new SerialReaderThread();
+    m_reader->fd = fd;
+    m_reader->start(QThread::LowestPriority);
+
+    m_fd = fd;
     m_isOpen = true;
     return true;
 }
 
 void NativeSerialPort::close()
 {
-    if (m_fd >= 0) {
-        ::close(m_fd);
-        m_fd = -1;
+    if (m_reader) {
+        m_reader->stop();
+        m_reader->wait();
+        ::close(m_reader->fd);
+        delete m_reader;
+        m_reader = nullptr;
     }
+    m_fd = -1;
     m_isOpen = false;
     m_buffer.clear();
 }
 
-void NativeSerialPort::readIntoBuffer()
-{
-    if (!m_isOpen) return;
-
-    char tmp[256];
-    ssize_t n;
-    while ((n = ::read(m_fd, tmp, sizeof(tmp))) > 0)
-        m_buffer.append(tmp, (int)n);
-}
-
-bool NativeSerialPort::write(const QByteArray& data)
-{
-    if (!m_isOpen) return false;
-    return ::write(m_fd, data.constData(), data.size()) > 0;
-}
-
 #endif
+
+void NativeSerialPort::pullFromReader()
+{
+    if (!m_reader) return;
+    QMutexLocker locker(&m_reader->mutex);
+    if (!m_reader->sharedBuffer.isEmpty()) {
+        m_buffer.append(m_reader->sharedBuffer);
+        m_reader->sharedBuffer.clear();
+    }
+}
 
 bool NativeSerialPort::canReadLine()
 {
-    readIntoBuffer();
+    pullFromReader();
     return m_buffer.contains('\n');
 }
 
 QByteArray NativeSerialPort::readLine()
 {
-    readIntoBuffer();
+    pullFromReader();
     int idx = m_buffer.indexOf('\n');
     if (idx < 0) return QByteArray();
 
@@ -192,11 +227,77 @@ QByteArray NativeSerialPort::readLine()
     return line;
 }
 
+bool NativeSerialPort::write(const QByteArray& data)
+{
+    if (!m_isOpen || data.isEmpty()) return false;
+
+#ifdef _WIN32
+    if (m_handle == INVALID_HANDLE_VALUE) return false;
+    {
+        const char* ptr = data.constData();
+        DWORD remaining = (DWORD)data.size();
+        while (remaining > 0) {
+            DWORD bytesWritten = 0;
+            if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr))
+                return false;
+            ptr       += bytesWritten;
+            remaining -= bytesWritten;
+        }
+        FlushFileBuffers(m_handle);
+    }
+    return true;
+#else
+    if (m_fd < 0) return false;
+
+    // Le port est ouvert en O_NONBLOCK : on boucle sur EAGAIN pour ne pas perdre de bytes
+    const char* ptr = data.constData();
+    int remaining   = data.size();
+    const int maxRetries = 20;
+
+    for (int retry = 0; remaining > 0 && retry < maxRetries; ++retry) {
+        ssize_t n = ::write(m_fd, ptr, remaining);
+        if (n > 0) {
+            ptr       += n;
+            remaining -= (int)n;
+            retry      = 0; // reinitialise le compteur apres chaque succes partiel
+        } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            // Buffer kernel plein - on attend un peu avant de reessayer
+            struct timespec ts = { 0, 2000000 }; // 2 ms
+            nanosleep(&ts, nullptr);
+        } else {
+            // Erreur fatale
+            return false;
+        }
+    }
+
+    if (remaining > 0) return false;
+
+    // Attendre que tous les octets soient physiquement transmis
+    tcdrain(m_fd);
+    return true;
+#endif
+}
+
 static const char* ARDUINO_KEYWORDS[] = {
-    "Arduino", "CH340", "CH341", "CP210", "FTDI", "FT232", "USB Serial", nullptr
+    "Arduino", "CH340", "CH341", "CP210", "FTDI", "FT232", "USB Serial", "USB de S", nullptr
 };
 
 #ifdef _WIN32
+
+static const struct { const char* vid; const char* pid; } ARDUINO_IDS[] = {
+    { "2341", "0042" }, 
+    { "2341", "0010" }, 
+    { "2341", "0043" }, 
+    { "2341", "0001" }, 
+    { "2341", "0036" }, 
+    { "2341", "003B" }, 
+    { "2341", "0069" }, 
+    { "1A86", "7523" }, 
+    { "1A86", "5523" }, 
+    { "10C4", "EA60" }, 
+    { "0403", "6001" }, 
+    { nullptr, nullptr }
+};
 
 QString NativeSerialPort::findArduinoPort()
 {
@@ -210,23 +311,31 @@ QString NativeSerialPort::findArduinoPort()
 
     for (DWORD i = 0; SetupDiEnumDeviceInfo(devInfo, i, &devData); ++i) {
 
-        char friendlyName[256] = {};
+        char hardwareId[512] = {};
         SetupDiGetDeviceRegistryPropertyA(
-            devInfo, &devData, SPDRP_FRIENDLYNAME,
-            nullptr, (PBYTE)friendlyName, sizeof(friendlyName), nullptr
+            devInfo, &devData, SPDRP_HARDWAREID,
+            nullptr, (PBYTE)hardwareId, sizeof(hardwareId), nullptr
         );
 
-        qDebug() << "Port detecte:" << friendlyName;
+        QString hwId = QString::fromLatin1(hardwareId).toUpper();
 
         bool isArduino = false;
-        for (int k = 0; ARDUINO_KEYWORDS[k]; ++k) {
-            if (strstr(friendlyName, ARDUINO_KEYWORDS[k])) {
+        for (int k = 0; ARDUINO_IDS[k].vid; ++k) {
+            QString vidStr = QString("VID_%1").arg(ARDUINO_IDS[k].vid).toUpper();
+            QString pidStr = QString("PID_%1").arg(ARDUINO_IDS[k].pid).toUpper();
+            if (hwId.contains(vidStr) && hwId.contains(pidStr)) {
                 isArduino = true;
                 break;
             }
         }
 
         if (isArduino) {
+            char friendlyName[256] = {};
+            SetupDiGetDeviceRegistryPropertyA(
+                devInfo, &devData, SPDRP_FRIENDLYNAME,
+                nullptr, (PBYTE)friendlyName, sizeof(friendlyName), nullptr
+            );
+
             char* start = strrchr(friendlyName, '(');
             char* end = strrchr(friendlyName, ')');
             if (start && end && end > start) {
@@ -244,6 +353,7 @@ QString NativeSerialPort::findArduinoPort()
 #else
 
 #include <QDir>
+#include <QFile>
 
 QString NativeSerialPort::findArduinoPort()
 {
@@ -259,9 +369,8 @@ QString NativeSerialPort::findArduinoPort()
             if (mfgFile.open(QIODevice::ReadOnly)) {
                 QString mfg = QString::fromUtf8(mfgFile.readAll()).trimmed();
                 for (int k = 0; ARDUINO_KEYWORDS[k]; ++k) {
-                    if (mfg.contains(ARDUINO_KEYWORDS[k], Qt::CaseInsensitive)) {
+                    if (mfg.contains(ARDUINO_KEYWORDS[k], Qt::CaseInsensitive))
                         return "/dev/" + entry;
-                    }
                 }
             }
             return "/dev/" + entry;

@@ -1,4 +1,4 @@
-QT += core gui multimedia
+QT += core gui multimedia concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,9 +10,6 @@ LIBS += -L$$PWD/SDL3/SDL3-3.4.0/lib/x64 \
         -lSDL3
 
 win32: LIBS += -lsetupapi
-
-# Reduit les headers Windows pour eviter le conflit avec std::byte
-win32: DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX
 
 
 SOURCES += \

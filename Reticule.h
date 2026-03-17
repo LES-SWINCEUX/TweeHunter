@@ -29,19 +29,22 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule(QWidget* parent, const QPoint& pos, int choix);
+	Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t);
 	~Reticule();
 	void setPosition(const QPoint& pos);
 	string getPath(int choix) const;
 	void moveJoystick(int x, int y, QWidget* parent);
+	void moveJoystickPerso(int x, int y, QWidget* parent);
+
+	// Appelé par EcranJeu::tick() après lirePerso() — synchronisé avec le rendu
+	void applyJoystickPerso(QWidget* parent, float deltaMs);
+
 	int getX() const;
 	int getY() const;
 	bool tirer() const { return touches->RTpressed(); }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
 	int getChoixTir() const;
 	int getArme() const { return choixTir; }
-
-	void moveJoystickPerso(int x, int y, QWidget* parent);
 
 	Touches* getTouches() { return touches; }
 
@@ -59,7 +62,7 @@ private:
 	int posX;
 	int posY;
 
-	int protJoystick=2500;
+	int protJoystick = 2500;
 
 	int hauteurEcran;
 	int largeurEcran;
@@ -68,9 +71,10 @@ private:
 
 	int choixTir;
 
+	// Accumulation des fractions de pixels pour eviter les skips
+	float accumX = 0.0f;
+	float accumY = 0.0f;
+
 };
-
-
-
 
 #endif

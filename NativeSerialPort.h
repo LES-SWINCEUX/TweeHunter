@@ -3,6 +3,9 @@
 
 #include <QString>
 #include <QByteArray>
+#include <QMutex>
+#include <QThread>
+#include <QAtomicInt>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -17,6 +20,28 @@
 #else
 #include <termios.h>
 #endif
+
+class SerialReaderThread : public QThread
+{
+public:
+    explicit SerialReaderThread(QObject* parent = nullptr);
+    void stop();
+
+    QByteArray  sharedBuffer;
+    QMutex      mutex;
+
+#ifdef _WIN32
+    HANDLE      handle = INVALID_HANDLE_VALUE;
+#else
+    int         fd = -1;
+#endif
+
+protected:
+    void run() override;
+
+private:
+    QAtomicInt  m_stop{ 0 };
+};
 
 class NativeSerialPort
 {
@@ -39,18 +64,21 @@ public:
     bool write(const QByteArray& data);
     QByteArray readLine();
 
-private:
-    void readIntoBuffer();
+    bool write(const QByteArray& data);
 
-    QString     m_portName;
-    int         m_baudRate = 115200;
-    bool        m_isOpen = false;
-    QByteArray  m_buffer;
+private:
+    void pullFromReader();
+
+    QString m_portName;
+    int m_baudRate = 115200;
+    bool m_isOpen = false;
+    QByteArray m_buffer;
+    SerialReaderThread* m_reader = nullptr;
 
 #ifdef _WIN32
-    HANDLE      m_handle = INVALID_HANDLE_VALUE;
+    HANDLE m_handle = INVALID_HANDLE_VALUE;
 #else
-    int         m_fd = -1;
+    int m_fd = -1;
 #endif
 };
 
