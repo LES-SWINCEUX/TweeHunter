@@ -33,6 +33,7 @@ void CompteurBalles::setBalles(int value)
     balles = clamped;
     recalcFrameRect();
     update();
+    emit ballesChanged(balles);
 }
 
 void CompteurBalles::setEchelle(float s)
