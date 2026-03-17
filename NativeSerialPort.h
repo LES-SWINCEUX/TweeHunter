@@ -64,6 +64,8 @@ public:
 
     QByteArray readLine();
 
+    bool write(const QByteArray& data);
+
 private:
     void pullFromReader();
 
@@ -72,6 +74,12 @@ private:
     bool m_isOpen = false;
     QByteArray m_buffer;
     SerialReaderThread* m_reader = nullptr;
+
+#ifdef _WIN32
+    HANDLE m_handle = INVALID_HANDLE_VALUE;
+#else
+    int m_fd = -1;
+#endif
 };
 
 #endif

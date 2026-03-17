@@ -24,6 +24,7 @@
 #include "vie.h"
 #include "Armes.h"
 #include "menu_pause_overlay.h"
+#include "Touches.h"
 
 class EcranJeu : public QWidget
 {
@@ -95,6 +96,8 @@ private:
     bool powerUp = false;
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
+
+    Touches* touches = nullptr;
 };
 
 #endif
