@@ -189,7 +189,8 @@ void EcranJeu::mousePressEvent(QMouseEvent* event) {
         return;
     }
     cout << "Tire avec la souris" << endl;
-    tire();
+    tire(reticule->getChoixTir());
+
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -259,7 +260,7 @@ void EcranJeu::tick()
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
-                tire();
+                tire(reticule->getChoixTir());
 
             }
         }
@@ -272,15 +273,15 @@ void EcranJeu::tick()
 
         reticule->getTouches()->lirePerso(); // met à jour les données de la mannette personalisée
 
-        if (reticule->getTouches()->getGachette()) {
+        if (reticule->getTouches()->getGachette() && !reticule->getTouches()->getReload()) {
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
-                tire();
+                tire(reticule->getChoixTir());
 
             }
         }
-        else {
+        else if(!reticule->getTouches()->getGachette()) {
             gachettePrecedente = false;
         }
 
@@ -292,11 +293,23 @@ void EcranJeu::tick()
             cout << "Pause du jeu" << endl;
             mettreEnPause();
         }
-        
-	}
-    
 
+        if (reticule->getTouches()->getGachette() && reticule->getTouches()->getReload()) {
 
+            if (!powerUp) {
+                powerUp = true;
+                cout << "utilisation du power - up" << endl;
+                tire(30);
+            
+            }
+        }
+        else {
+            powerUp = false;
+        }
+    }
+            
+           
+       
 
         // Applique le mouvement joystick avec le delta-time correct
      reticule->applyJoystickPerso(this, (float)deltaMs);
@@ -523,8 +536,9 @@ void EcranJeu::paintEvent(QPaintEvent*)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QPen(Qt::blue, 2));
     painter.setBrush(Qt::NoBrush);
-    painter.drawPath(armes->choixArme(reticule->getArme(), 622, 300));
-    //painter.drawPath(armes->choixArme(5, 622, 300));
+
+    //painter.drawPath(armes->choixArme(reticule->getArme(), 622, 300));
+    painter.drawPath(armes->choixArme(30, 622, 300));
     //painter.drawPath(armes->choixArme(4, reticule->getX(), reticule->getY()));
 
 
@@ -535,7 +549,7 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
     reticule->setPosition(event->pos());
 }
 
-void EcranJeu::tire() {
+void EcranJeu::tire(int typeTire) {
     //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     int nombreBalles = 0;
     int nombreVies = vies->getDemiVies();
@@ -544,7 +558,7 @@ void EcranJeu::tire() {
         nombreBalles = compteurBalles->getBalles();
     }
 
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, reticule->getChoixTir());
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, typeTire);
 
     if (gestionnaireAudio != nullptr && nombreBalles > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
