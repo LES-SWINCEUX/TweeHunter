@@ -151,6 +151,9 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
     if (!jeu) {
         jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18, armes);
+        jeu->setOnMoteurDemande([this]() {
+            if (touches) touches->envoyerMoteur();
+        });
     }
 
     // Envoyer le nombre de balles initial à l'Arduino au démarrage de la partie
@@ -551,58 +554,51 @@ void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 }
 
 void EcranJeu::tire() {
-    //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    int nombreBalles = 0;
     int nombreVies = vies->getDemiVies();
 
     if (!compteurBalles) return;
 
-	int nombreBalles = compteurBalles->getBalles();
+    int nombreBalles = compteurBalles->getBalles();
     if (nombreBalles <= 0) {
+        if (gestionnaireAudio != nullptr)
+            gestionnaireAudio->playSfx("gun_empty");
         return;
-	}
-	bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, reticule->getArme());
-
-	compteurBalles->setBalles(nombreBalles - 1);
-	emit ballesChanged(nombreBalles - 1);
-    qDebug() << "ballesChanged emis, nouvelle valeur:" << (nombreBalles - 1);
-
-	cout << "Tire détecter à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+    }
 
     bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, reticule->getChoixTir());
 
-    if (gestionnaireAudio != nullptr && nombreBalles > 0) {
+    compteurBalles->setBalles(nombreBalles - 1);
+    emit ballesChanged(nombreBalles - 1);
+    qDebug() << "ballesChanged emis, nouvelle valeur:" << (nombreBalles - 1);
+
+    cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
+
+    if (gestionnaireAudio != nullptr) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
     }
 
-    if (gestionnaireAudio != nullptr && nombreBalles <= 0) {
-        gestionnaireAudio->playSfx("gun_empty");
+    if (nombreVies <= 0) {
+        timer.stop();
+
+        overlay = new FadeOverlay(this);
+        overlay->setGeometry(rect());
+        overlay->setAlpha(0);
+        overlay->show();
+        overlay->raise();
+
+        fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
+        fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+        fadeInAnim->setDuration(1000);
+        fadeInAnim->setStartValue(0);
+        fadeInAnim->setEndValue(255);
+
+        connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
+            int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
+            emit finPartie(scoreFinal);
+            });
+
+        fadeInAnim->start();
     }
-
-    if (vies->getDemiVies() > 0) {
-        return;
-    }
-
-    timer.stop();
-
-    overlay = new FadeOverlay(this);
-    overlay->setGeometry(rect());
-    overlay->setAlpha(0);
-    overlay->show();
-    overlay->raise();
-
-    fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
-    fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
-    fadeInAnim->setDuration(1000);
-    fadeInAnim->setStartValue(0);
-    fadeInAnim->setEndValue(255);
-
-    connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
-        int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
-        emit finPartie(scoreFinal);
-        });
-
-    fadeInAnim->start();
 }
 
 void EcranJeu::rechargerArme() {

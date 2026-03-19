@@ -189,6 +189,12 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 
 			compteurPoints->setPoints(score);
 			ciblesTouchees++;
+
+			if (cible->getType() == TypeTarget::MIXTE) {
+				if (onMoteurDemande) {
+					onMoteurDemande();
+				}
+			}
 		}
 	}
 

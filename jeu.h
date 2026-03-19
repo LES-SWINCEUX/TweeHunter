@@ -16,6 +16,7 @@
 #include "bush_louche.h"
 #include "gestionnaire_audio.h"
 #include "Armes.h"
+#include <functional>
 
 
 using namespace std;
@@ -74,7 +75,9 @@ public:
 	bool estEnPause() const {
 		return enPause;
 	}
-
+	void setOnMoteurDemande(std::function<void()> callback) {
+		onMoteurDemande = callback;
+	}
 
 private:
 	
@@ -101,6 +104,8 @@ private:
 	BushLouche* bushLoucheActif = nullptr;
 	GestionnaireAudio* gestionnaireAudio = nullptr;
 	Armes* armes = nullptr;
+
+	std::function<void()> onMoteurDemande;
 };
 
 #endif

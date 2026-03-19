@@ -16,9 +16,9 @@ void SerialReaderThread::stop()
 void SerialReaderThread::run()
 {
     COMMTIMEOUTS timeouts = {};
-    timeouts.ReadIntervalTimeout        = MAXDWORD;
+    timeouts.ReadIntervalTimeout = MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
-    timeouts.ReadTotalTimeoutConstant   = 50; // retour apres 50 ms max si rien a lire
+    timeouts.ReadTotalTimeoutConstant = 50;
     SetCommTimeouts(handle, &timeouts);
 
     char tmp[256];
@@ -60,6 +60,7 @@ void SerialReaderThread::run()
 
 #endif
 
+// Definitions communes (hors #ifdef)
 NativeSerialPort::NativeSerialPort() {}
 
 NativeSerialPort::~NativeSerialPort() { close(); }
@@ -139,14 +140,6 @@ static speed_t toBaudConstant(int baud)
     default:     return B9600;
     }
 }
-
-NativeSerialPort::NativeSerialPort() {}
-
-NativeSerialPort::~NativeSerialPort() { close(); }
-
-void NativeSerialPort::setPortName(const QString& name) { m_portName = name; }
-void NativeSerialPort::setBaudRate(int baudRate) { m_baudRate = baudRate; }
-bool NativeSerialPort::isOpen() const { return m_isOpen; }
 
 bool NativeSerialPort::open(OpenMode mode)
 {
@@ -240,7 +233,7 @@ bool NativeSerialPort::write(const QByteArray& data)
             DWORD bytesWritten = 0;
             if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr))
                 return false;
-            ptr       += bytesWritten;
+            ptr += bytesWritten;
             remaining -= bytesWritten;
         }
         FlushFileBuffers(m_handle);
@@ -249,30 +242,28 @@ bool NativeSerialPort::write(const QByteArray& data)
 #else
     if (m_fd < 0) return false;
 
-    // Le port est ouvert en O_NONBLOCK : on boucle sur EAGAIN pour ne pas perdre de bytes
     const char* ptr = data.constData();
-    int remaining   = data.size();
+    int remaining = data.size();
     const int maxRetries = 20;
 
     for (int retry = 0; remaining > 0 && retry < maxRetries; ++retry) {
         ssize_t n = ::write(m_fd, ptr, remaining);
         if (n > 0) {
-            ptr       += n;
+            ptr += n;
             remaining -= (int)n;
-            retry      = 0; // reinitialise le compteur apres chaque succes partiel
-        } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            // Buffer kernel plein - on attend un peu avant de reessayer
-            struct timespec ts = { 0, 2000000 }; // 2 ms
+            retry = 0;
+        }
+        else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            struct timespec ts = { 0, 2000000 };
             nanosleep(&ts, nullptr);
-        } else {
-            // Erreur fatale
+        }
+        else {
             return false;
         }
     }
 
     if (remaining > 0) return false;
 
-    // Attendre que tous les octets soient physiquement transmis
     tcdrain(m_fd);
     return true;
 #endif
@@ -285,17 +276,17 @@ static const char* ARDUINO_KEYWORDS[] = {
 #ifdef _WIN32
 
 static const struct { const char* vid; const char* pid; } ARDUINO_IDS[] = {
-    { "2341", "0042" }, 
-    { "2341", "0010" }, 
-    { "2341", "0043" }, 
-    { "2341", "0001" }, 
-    { "2341", "0036" }, 
-    { "2341", "003B" }, 
-    { "2341", "0069" }, 
-    { "1A86", "7523" }, 
-    { "1A86", "5523" }, 
-    { "10C4", "EA60" }, 
-    { "0403", "6001" }, 
+    { "2341", "0042" },
+    { "2341", "0010" },
+    { "2341", "0043" },
+    { "2341", "0001" },
+    { "2341", "0036" },
+    { "2341", "003B" },
+    { "2341", "0069" },
+    { "1A86", "7523" },
+    { "1A86", "5523" },
+    { "10C4", "EA60" },
+    { "0403", "6001" },
     { nullptr, nullptr }
 };
 

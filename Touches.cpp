@@ -194,3 +194,13 @@ void Touches::envoyerRaw(const QByteArray& data)
     if (!serial.isOpen()) return;
     serial.write(data);
 }
+
+void Touches::envoyerMoteur()
+{
+	if (!serial.isOpen()) return;
+    QJsonObject obj;
+    obj["type"] = "config";
+    obj["moteur"] = 1;
+	QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
+    serial.write(msg);
+}
