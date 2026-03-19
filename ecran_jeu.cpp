@@ -3,6 +3,7 @@
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme, Touches* t)
     : QWidget(parent)
 {
+    power_up = 3;
     //ajout à enlever apres test
     QPoint pos = QCursor::pos();
     pos = mapFromGlobal(pos);
@@ -203,8 +204,22 @@ void EcranJeu::mousePressEvent(QMouseEvent* event) {
         event->ignore();
         return;
     }
-    cout << "Tire avec la souris" << endl;
-    tire(reticule->getChoixTir());
+    if (event->button() == Qt::LeftButton) {
+        cout << "Tire avec la souris" << endl;
+        tire(reticule->getChoixTir());
+    }
+    else if (event->button() == Qt::RightButton) {
+         if (power_up > 0) {
+            cout << "power up avec la souris" << endl;
+            rechargerArme();
+            power_up--;
+            tire(30);
+            rechargerArme();
+         }
+         else {
+             cout << "Pas de power up disponible" << endl;
+         }
+    }
 
 }
 
@@ -313,9 +328,16 @@ void EcranJeu::tick()
 
             if (!powerUp) {
                 powerUp = true;
-                cout << "utilisation du power - up" << endl;
-                tire(30);
-            
+                if (power_up > 0) {
+                    cout << "power up avec la manette" << endl;
+                    rechargerArme();
+                    power_up--;
+                    tire(30);
+					rechargerArme();
+                }
+                else {
+                    cout << "Pas de power up disponible" << endl;
+                }
             }
         }
         else {

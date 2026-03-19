@@ -98,6 +98,8 @@ private:
     int largeurMinBalles = 120;
 
     Touches* touches = nullptr;
+
+    int power_up = 0;
 };
 
 #endif
