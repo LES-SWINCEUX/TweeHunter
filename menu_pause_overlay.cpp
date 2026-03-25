@@ -141,8 +141,8 @@ void MenuPauseOverlay::tickManette()
         touchesPerso->lirePerso();
 
         int jy = touchesPerso->getyPerso();
-        bool customHaut = (jy > 700);
-        bool customBas  = (jy < 300);
+        bool customHaut = (jy < 300);
+        bool customBas  = (jy > 700);
         bool customOk   = touchesPerso->getGachette();
 
         if (customHaut && !customHautPrecedent) panneau->naviguerHaut();

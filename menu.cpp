@@ -434,8 +434,8 @@ void MenuPrincipal::tickManette()
 
         // Joystick Y : 0-1023, centre ~512
         int jy = touchesPerso->getyPerso();
-        bool customHaut = (jy > 700);   // joystick poussé vers le haut
-        bool customBas  = (jy < 300);   // joystick poussé vers le bas
+        bool customHaut = (jy < 300);   // joystick poussé vers le haut
+        bool customBas  = (jy > 700);   // joystick poussé vers le bas
         bool customOk   = touchesPerso->getGachette();
 
         if (customHaut && !customHautPrecedent) panneau->naviguerHaut();
