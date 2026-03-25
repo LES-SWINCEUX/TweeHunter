@@ -562,12 +562,12 @@ void EcranJeu::paintEvent(QPaintEvent*)
 
     //Test de dessin du cercle de collision du tir
 
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(Qt::blue, 2));
-    painter.setBrush(Qt::NoBrush);
+    //painter.setRenderHint(QPainter::Antialiasing);
+    //painter.setPen(QPen(Qt::blue, 2));
+    //painter.setBrush(Qt::NoBrush);
 
     //painter.drawPath(armes->choixArme(reticule->getArme(), 622, 300));
-    painter.drawPath(armes->choixArme(30, 622, 300));
+    //painter.drawPath(armes->choixArme(30, 622, 300));
     //painter.drawPath(armes->choixArme(4, reticule->getX(), reticule->getY()));
 
 
