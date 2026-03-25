@@ -13,6 +13,8 @@ public:
     PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
     ~PanneauOptions();
 
+    QList<Bouton*> boutonsNavigables() const override;
+
 protected:
     void creer() override;
     void positionner() override;

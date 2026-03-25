@@ -4,6 +4,9 @@
 #include <QResizeEvent>
 #include <QWidget>
 #include <QDir>
+#include <QList>
+
+#include "bouton.h"
 
 class PanneauMenu : public QWidget
 {
@@ -16,6 +19,13 @@ public:
     }
 
     virtual ~PanneauMenu() = default;
+
+    void naviguerHaut();
+    void naviguerBas();
+    void confirmer();
+    void reinitialiserFocus();
+    void focusSurIndex(int index);
+    virtual QList<Bouton*> boutonsNavigables() const { return {}; }
 
 signals:
     void demanderJouer();
@@ -40,6 +50,10 @@ protected:
         QWidget::resizeEvent(e);
         positionner();
     }
+
+private:
+    int indexFocus = -1;
+    void appliquerFocus(int nouvelIndex);
 };
 
 #endif

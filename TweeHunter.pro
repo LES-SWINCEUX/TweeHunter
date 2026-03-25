@@ -16,6 +16,7 @@ SOURCES += \
     main.cpp \
     main_window.cpp \
     menu.cpp \
+    panneau_menu.cpp \
     panneau_principal.cpp \
     decoration_menu.cpp \
     bouton.cpp \

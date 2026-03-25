@@ -20,6 +20,8 @@
 #include <QPropertyAnimation>
 #include <iostream>
 #include <algorithm>
+#include <SDL3/SDL.h>
+#include "Touches.h"
 
 class PanneauMenu;
 
@@ -28,7 +30,7 @@ class MenuPrincipal : public QWidget
     Q_OBJECT
 
 public:
-    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, Touches* touches = nullptr);
     ~MenuPrincipal();
 
 signals:
@@ -38,6 +40,7 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* e) override;
     void showEvent(QShowEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
 
 private:
     QSharedPointer<QPixmap> arrierePlan;
@@ -46,6 +49,7 @@ private:
     QPixmap arrierePlanCache;
 
     QTimer timerAnimationTitre;
+    QTimer timerManette;              // poll SDL gamepad ~60 Hz
 
     FadeOverlay* overlay = nullptr;
 
@@ -73,6 +77,19 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
+    // Debounce manette SDL
+    bool dpadHautPrecedent  = false;
+    bool dpadBasPrecedent   = false;
+    bool boutonOkPrecedent  = false;
+
+    SDL_Gamepad* gamepad = nullptr;
+
+    // Manette custom
+    Touches* touchesPerso   = nullptr;
+    bool customHautPrecedent = false;
+    bool customBasPrecedent  = false;
+    bool customOkPrecedent   = false;
+
     QElapsedTimer timerPauseAnimation;
     QRect zonePanneauxBas() const;
     QRect zonePourPanneau(PanneauMenu* p) const;
@@ -84,6 +101,9 @@ private:
     void afficherOptions();
     void afficherPanneauScores();
     void afficherPanneauPrincipal();
+
+    void initialiserManette();
+    void tickManette();
 };
 
 #endif

@@ -15,7 +15,7 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::afficherMenuPrincipal() {
     if (this->menuPrincipal == nullptr) {
-        this->menuPrincipal = new MenuPrincipal(gestionnaireAudio, this);
+        this->menuPrincipal = new MenuPrincipal(gestionnaireAudio, this, touches);
         connect(this->menuPrincipal, &MenuPrincipal::jouerDemande, this, &MainWindow::afficherEcranJeu);
     }
 

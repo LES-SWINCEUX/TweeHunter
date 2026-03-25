@@ -284,6 +284,20 @@ void EcranJeu::tick()
         }
     }
 
+    if (gamepad) {
+        bool carre = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
+        if (carre && !carrePrecedent) {
+            rechargerArme();
+        }
+        carrePrecedent = carre;
+
+        bool start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+        if (start && !startPrecedent) {
+            enPause ? reprendreJeu() : mettreEnPause();
+        }
+        startPrecedent = start;
+    }
+
     if (reticule->getTouches()->isJoystickPersoConnected()) {
 
         reticule->getTouches()->lirePerso(); // met à jour les données de la mannette personalisée
@@ -351,7 +365,7 @@ void EcranJeu::mettreEnPause()
 
     unsetCursor();
 
-    menuPause = new MenuPauseOverlay(this->gestionnaireAudio, this);
+    menuPause = new MenuPauseOverlay(this->gestionnaireAudio, this, touches);
     menuPause->setGeometry(rect());
     menuPause->show();
     menuPause->raise();

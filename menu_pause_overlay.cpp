@@ -4,9 +4,10 @@
 
 #include "panneau_pause_principal.h"
 
-MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
+MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches)
     : QWidget(parent), titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
+    touchesPerso = touches;
     this->gestionnaireAudio = gestionnaireAudio;
 
     setAttribute(Qt::WA_TranslucentBackground);
@@ -14,6 +15,13 @@ MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget
     setFocus();
 
     configuerAnimationTitre();
+
+    // Timer poll manette SDL ~60 Hz
+    connect(&timerManette, &QTimer::timeout, this, &MenuPauseOverlay::tickManette);
+    timerManette.setInterval(16);
+    timerManette.start();
+
+    initialiserManette();
 
     afficherPanneauPrincipal();
 }
@@ -65,7 +73,86 @@ void MenuPauseOverlay::keyPressEvent(QKeyEvent* e)
         return;
     }
 
-    QWidget::keyPressEvent(e);
+    if (!panneau) { QWidget::keyPressEvent(e); return; }
+
+    switch (e->key()) {
+    case Qt::Key_Up:    panneau->naviguerHaut(); break;
+    case Qt::Key_Down:  panneau->naviguerBas();  break;
+    case Qt::Key_Return:
+    case Qt::Key_Space: panneau->confirmer();    break;
+    default: QWidget::keyPressEvent(e);
+    }
+}
+
+void MenuPauseOverlay::initialiserManette()
+{
+    SDL_Init(SDL_INIT_GAMEPAD);
+
+    int count = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&count);
+    if (ids && count > 0) {
+        gamepad = SDL_OpenGamepad(ids[0]);
+        SDL_free(ids);
+    }
+}
+
+void MenuPauseOverlay::tickManette()
+{
+    if (!panneau) return;
+
+    SDL_PumpEvents();
+
+    // --- Manette SDL (PlayStation) ---
+    if (!gamepad || !SDL_GamepadConnected(gamepad)) {
+        if (gamepad) { SDL_CloseGamepad(gamepad); gamepad = nullptr; }
+        initialiserManette();
+    }
+
+    bool haut   = false;
+    bool bas    = false;
+    bool ok     = false;
+    bool retour = false;
+
+    if (gamepad && SDL_GamepadConnected(gamepad)) {
+        bool dpadHaut     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
+        bool dpadBas      = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
+        bool joystickBas  = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
+        bool croix        = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
+        bool rond         = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST);
+
+        haut   = dpadHaut  || joystickHaut;
+        bas    = dpadBas   || joystickBas;
+        ok     = croix;      // Start retiré : il est réservé à l'ouverture/fermeture de la pause
+        retour = rond;
+    }
+
+    if (haut   && !dpadHautPrecedent)  panneau->naviguerHaut();
+    if (bas    && !dpadBasPrecedent)   panneau->naviguerBas();
+    if (ok     && !boutonOkPrecedent)  panneau->confirmer();
+    if (retour && !boutonOkPrecedent)  emit reprendreDemande();
+
+    dpadHautPrecedent = haut;
+    dpadBasPrecedent  = bas;
+    boutonOkPrecedent = ok || retour;
+
+    // --- Manette custom (série) ---
+    if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
+        touchesPerso->lirePerso();
+
+        int jy = touchesPerso->getyPerso();
+        bool customHaut = (jy > 700);
+        bool customBas  = (jy < 300);
+        bool customOk   = touchesPerso->getGachette();
+
+        if (customHaut && !customHautPrecedent) panneau->naviguerHaut();
+        if (customBas  && !customBasPrecedent)  panneau->naviguerBas();
+        if (customOk   && !customOkPrecedent)   panneau->confirmer();
+
+        customHautPrecedent = customHaut;
+        customBasPrecedent  = customBas;
+        customOkPrecedent   = customOk;
+    }
 }
 
 void MenuPauseOverlay::configuerAnimationTitre() {
@@ -134,7 +221,11 @@ void MenuPauseOverlay::afficherOptions() {
     panneau->show();
     panneau->raise();
 
-    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPauseOverlay::afficherPanneauPrincipal);
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
+        afficherPanneauPrincipal();
+        // Index 2 = bouton Options (Jouer=0, Scores=1, Options=2, Quitter=3)
+        panneau->focusSurIndex(2);
+    });
 }
 
 void MenuPauseOverlay::afficherPanneauScores()
@@ -154,7 +245,11 @@ void MenuPauseOverlay::afficherPanneauScores()
         ancien->deleteLater();
     }
 
-    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPauseOverlay::afficherPanneauPrincipal);
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
+        afficherPanneauPrincipal();
+        // Index 1 = bouton Scores (Jouer=0, Scores=1, Options=2, Quitter=3)
+        panneau->focusSurIndex(1);
+    });
 }
 
 void MenuPauseOverlay::afficherTitre(QPainter& painter) {
