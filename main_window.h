@@ -6,8 +6,10 @@
 #include "menu.h"
 #include "ecran_jeu.h"
 #include "ecran_fin_partie.h"
+#include "ecran_parametres.h"
 #include "gestionnaire_audio.h"
 #include "Touches.h"
+#include "configuration_partie.h"
 
 class MainWindow : public QMainWindow
 {
@@ -18,16 +20,20 @@ public:
     ~MainWindow();
 
     void afficherMenuPrincipal();
-    void afficherEcranJeu();
+    void afficherEcranParametres();
+    void afficherEcranJeu(const ConfigurationPartie& configuration);
     void afficherEcranFinPartie(int score);
 
 private:
-    MenuPrincipal*   menuPrincipal   = nullptr;
-    EcranJeu*        ecranJeu        = nullptr;
-    EcranFinPartie*  ecranFinPartie  = nullptr;
+    MenuPrincipal* menuPrincipal   = nullptr;
+    EcranParametres* ecranParametres = nullptr;
+    EcranJeu* ecranJeu        = nullptr;
+    EcranFinPartie* ecranFinPartie  = nullptr;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
     Touches* touches = nullptr;
+    ConfigurationPartie derniereConfigurationPartie;
+    bool aDerniereConfigurationPartie = false;
 };
 #endif

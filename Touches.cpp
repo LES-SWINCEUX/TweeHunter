@@ -68,6 +68,7 @@ Touches::~Touches() {
 }
 
 bool Touches::RTpressed() const {//Retourne si le bouton RT est pressé ou non
+
     Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     if (value > 10000) {
@@ -167,9 +168,7 @@ int Touches::UseLastEncodeur() {
 }
 
 int Touches::getxPerso() const { //récupére la valeur x la plus à jour du joystick personnalisé
-
     return x;
-
 }
 
 
@@ -184,7 +183,7 @@ void Touches::envoyerNbBalles(int nbBalles)
     }
 
     QJsonObject obj;
-    obj["type"]     = "config";
+    obj["type"] = "config";
     obj["nb_balles"] = nbBalles;
 
     QByteArray msg = "\n" + QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
