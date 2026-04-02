@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
 {
     locale::global(locale{ "" });
     QApplication a(argc, argv);
+    qRegisterMetaType<ConfigurationPartie>("ConfigurationPartie");
     MainWindow w;
 
     int id = QFontDatabase::addApplicationFont(QDir::currentPath() + "/fonts/PressStart2P-Regular.ttf");
