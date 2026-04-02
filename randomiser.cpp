@@ -12,6 +12,7 @@ void Randomiser::ajouterTypeTarget(const DefinitionTarget& definition)
 
 bool Randomiser::doitGenererTarget(qint64 tempsMs)
 {
+	tempsCourant = tempsMs;
 	if (prochainSpawn == 0) {
 		prochainSpawn = tempsMs + intervalSpawn;
 		return false;
@@ -49,6 +50,7 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	std::cout << "Destination: " << (bordArrivee == Bord::GAUCHE ? "Gauche" : "Droite")
 		<< " (" << pointArrivee.x() << ", " << pointArrivee.y() << ")" << std::endl;
 	std::cout << "Trajectoire: ";
+
 	switch (traj) {
 	case TypeTrajectoire::LINEAIRE: std::cout << "Linaire"; break;
 	case TypeTrajectoire::COURBE_HAUT: std::cout << "Courbe_haut"; break;
@@ -57,7 +59,8 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	}
 	std::cout << std::endl << std::endl;
 
-	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), traj);
+	double facteur = calculerFacteurVitesse(tempsCourant);
+	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin * facteur, def.vitesseMax * facteur), traj);
 
 	QSizeF taillePixels(tailleEcran.width() * def.tailleRelative, tailleEcran.height() * def.tailleRelative);
 
@@ -158,3 +161,43 @@ TypeTrajectoire Randomiser::choisirTrajectoire() const
 		return TypeTrajectoire::COURBE_BAS;
 	return TypeTrajectoire::ZIGZAG;
 }
+
+bool Randomiser::genererBushLouche(qint64 tempsMs)
+{
+	if (prochainBushLouche == 0) {
+		std::uniform_int_distribution<qint64> dist(-VARIATION_SPAWN_BUSH_LOUCHE, VARIATION_SPAWN_BUSH_LOUCHE);
+		prochainBushLouche = tempsMs + INTERVALLE_SPAWN_BUSH_LOUCHE + dist(generateur);
+		return false;
+	}
+
+	if (tempsMs >= prochainBushLouche) {
+		std::uniform_int_distribution<qint64> dist(-VARIATION_SPAWN_BUSH_LOUCHE, VARIATION_SPAWN_BUSH_LOUCHE);
+		prochainBushLouche = tempsMs + INTERVALLE_SPAWN_BUSH_LOUCHE + dist(generateur);
+		return true;
+	}
+
+	return false;
+}
+
+TypeLouche Randomiser::choisirTypeBushLouche() const
+{
+	std::uniform_int_distribution<int> dist(0, 2);
+	return static_cast<TypeLouche>(dist(generateur));
+}
+
+int Randomiser::choisirIndexBush(int nombreBush) const
+{
+	if (nombreBush <= 0) {
+		return 0;
+	}
+	std::uniform_int_distribution<int> dist(0, nombreBush - 1);
+	return dist(generateur);
+}
+
+double Randomiser::calculerFacteurVitesse(qint64 tempsMs) const
+{
+	int palier = tempsMs / INTERVALLE_DIFFICULTE;
+	double facteur = qPow(MULTIPLICATEUR_PALIER, palier);
+	return qMin(facteur, FACTEUR_MAX);
+}
+

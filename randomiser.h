@@ -12,6 +12,7 @@
 #include "targetmixte.h"
 #include "targetlegendaire.h"
 #include "targetbonus.h"
+#include "bush_louche.h"
 
 struct DefinitionTarget
 {
@@ -51,9 +52,15 @@ public:
 	qint64 getVariationFrequence() const {
 		return variationSpawn;
 	}
+	bool genererBushLouche(qint64 tempsMs);
+	TypeLouche choisirTypeBushLouche() const;
+	int choisirIndexBush(int nombreBush) const;
+
 
 private:
 	
+	qint64 tempsCourant = 0;
+
 	QPointF choisirPointDepart(Bord bord) const;
 	QPointF choisirPointArrivee(Bord bord) const;
 	Bord choisirBordAleatoire() const;
@@ -74,6 +81,17 @@ private:
 	static constexpr qint64 INTERVALLE_SPAWN_DEFAUT = 1500;
 	static constexpr qint64 VARIATION_SPAWN_DEFAUT = 500;
 	static constexpr double MARGE_ECRAN_DEFAULT = 100.0;
+
+	qint64 prochainBushLouche = 0;
+	static constexpr qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 11500;
+	static constexpr qint64 VARIATION_SPAWN_BUSH_LOUCHE = 20000;
+
+	qint64 tempsDebutPartie = 0;
+	static constexpr qint64 INTERVALLE_DIFFICULTE = 15000;
+	static constexpr double MULTIPLICATEUR_PALIER = 1.15;
+	static constexpr double FACTEUR_MAX = 3;
+
+	double calculerFacteurVitesse(qint64 tempsMs) const;
 
 };
 

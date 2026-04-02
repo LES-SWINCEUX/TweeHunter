@@ -53,7 +53,10 @@ SOURCES += \
     Armes.cpp \
     NativeSerialPort.cpp \
     bouton_options.cpp \
-    gestionnaire_configuration.cpp
+    gestionnaire_configuration.cpp \
+    menu_pause_overlay.cpp \
+    bush_louche.cpp \
+    bush.cpp
 
 HEADERS += \
     main_window.h \
@@ -92,6 +95,9 @@ HEADERS += \
     targetbonus.h \
     panneau_pause_principal.h \
     menu_pause_overlay.h \
+    modejeu.h \
+    bush_louche.h \
+    bush.h \
     modejeu.h \
     Armes.h \
     NativeSerialPort.h \

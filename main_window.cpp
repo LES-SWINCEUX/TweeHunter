@@ -66,7 +66,7 @@ void MainWindow::afficherEcranJeu(const ConfigurationPartie& configuration) {
 
         connect(this->ecranJeu, &EcranJeu::finPartie, this, [this](int score) {
             afficherEcranFinPartie(score);
-        });
+            });
 
         connect(this->ecranJeu, &EcranJeu::retourMenuDemande, this, [this]() {
             afficherMenuPrincipal();
