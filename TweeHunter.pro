@@ -25,6 +25,7 @@ SOURCES += \
     sprite_manager.cpp \
     ecran_jeu.cpp \
     ecran_fin_partie.cpp \
+    ecran_parametres.cpp \
     panneau_options.cpp \
     volume_bouton.cpp \
     fade_overlay.cpp \
@@ -50,7 +51,9 @@ SOURCES += \
     panneau_pause_principal.cpp \
     menu_pause_overlay.cpp \
     Armes.cpp \
-    NativeSerialPort.cpp
+    NativeSerialPort.cpp \
+    bouton_options.cpp \
+    gestionnaire_configuration.cpp
 
 HEADERS += \
     main_window.h \
@@ -64,6 +67,7 @@ HEADERS += \
     sprite_manager.h \
     ecran_jeu.h \
     ecran_fin_partie.h \
+    ecran_parametres.h \
     fade_overlay.h \
     panneau_options.h \
     volume_bouton.h \
@@ -90,7 +94,10 @@ HEADERS += \
     menu_pause_overlay.h \
     modejeu.h \
     Armes.h \
-    NativeSerialPort.h
+    NativeSerialPort.h \
+    configuration_partie.h \
+    bouton_options.h \
+    gestionnaire_configuration.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -44,9 +44,15 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		//cout << "Bombardement sélectionné" << endl;
 		Hitbox = CreerContourTarte(x-150,y-176/2);
 		return Hitbox;
+	case 6:
+		// Swince : comportement temporaire en attendant un réticule dédié
+		Hitbox.addEllipse(QPointF(x, y), 45, 45);
+		return Hitbox;
 	case 31:
 		//cout << "Bombe utilisé<<endl;
 		Hitbox.addEllipse(QPointF(x, y), 300, 300);
+		return Hitbox;
+	default:
 		return Hitbox;
 	}
 }
@@ -64,6 +70,8 @@ int Armes::nbMunitions() const
 		return 6;
 	case 5:
 		return 9;
+	case 6:
+		return 8;
 	default:
 		return 0;
 	}

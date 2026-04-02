@@ -31,10 +31,18 @@ void Bouton::setEchelle(float s)
     update();
 }
 
-void Bouton::setSelectionneManette(bool actif)
+void Bouton::setSelectionneManette(bool actifFocus)
 {
-    selectionne = actif;
-    if (!actif) clique = false;
+    focusManette = actifFocus;
+    if (!actifFocus) {
+        clique = false;
+    }
+    update();
+}
+
+void Bouton::setActif(bool actifPermanent)
+{
+    actif = actifPermanent;
     update();
 }
 
@@ -93,27 +101,27 @@ void Bouton::paintEvent(QPaintEvent*)
         return;
     }
 
-    Etat etat = Etat::Normal;
+    Etat etatAffiche = Etat::Normal;
     if (clique) {
-        etat = Etat::Clique;
+        etatAffiche = Etat::Clique;
     }
-    else if (selectionne) {
-        etat = Etat::Selectionne;
+    else if (actif || focusManette || survole) {
+        etatAffiche = Etat::Selectionne;
     }
 
-    const QRect rectangleBouton = rectangeEtat(etat);
+    const QRect rectangleBouton = rectangeEtat(etatAffiche);
     p.drawPixmap(rect(), *sprite, rectangleBouton);
 }
 
 void Bouton::enterEvent(QEnterEvent*)
 {
-    selectionne = true;
+    survole = true;
     update();
 }
 
 void Bouton::leaveEvent(QEvent*)
 {
-    selectionne = false;
+    survole = false;
     clique = false;
     update();
 }

@@ -1,7 +1,7 @@
-﻿#include "ecran_jeu.h"
+#include "ecran_jeu.h"
 
-EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme, Touches* t)
-    : QWidget(parent)
+EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
+    : QWidget(parent), configurationPartie(configuration)
 {
     int ChoixPowerUp = 1;
 
@@ -9,15 +9,16 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     QPoint pos = QCursor::pos();
     pos = mapFromGlobal(pos);
 
+    // Stocker la référence aux touches pour l'envoi série
+    this->touches = touches;
+
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-    reticule = new Reticule(this, pos, arme,t); // création du réticule sur la sourie + choix du réticule
+    const int armeReticule = (configurationPartie.arme == 6) ? 1 : configurationPartie.arme; // À changer lorsqu'on va avoir le réticule des Swinceux
+    reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, this->touches); // création du réticule sur la souris + choix du réticule
     reticule->show();
 
-    // Stocker la référence aux touches pour l'envoi série
-    touches = t;
-
-    armes = new Armes(arme,ChoixPowerUp);
+    armes = new Armes(configurationPartie.arme,ChoixPowerUp);
     maxBalles = armes->nbMunitions();
     power_up = armes->nbPowerUp();
 
@@ -28,9 +29,8 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     compteurPoints = new CompteurPoints(this);
 
     // Connecter le signal de changement de balles à l'envoi JSON série
-    if (touches) {
-        connect(compteurBalles, &CompteurBalles::ballesChanged,
-                touches, &Touches::envoyerNbBalles);
+    if (this->touches) {
+        connect(compteurBalles, &CompteurBalles::ballesChanged, this->touches, &Touches::envoyerNbBalles);
     }
 
     compteurBalles->move(20, height() - compteurBalles->height() + 120);
@@ -76,7 +76,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
 
     connect(&timer, &QTimer::timeout, this, [this]() {
         tick();
-        });
+    });
 
     timer.start();
 
@@ -153,7 +153,22 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18, armes);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes);
+
+        switch (configurationPartie.difficulte) {
+            case DifficultePartie::CHAOS:
+                jeu->setMaxCiblesSimultanees(8);
+                jeu->setFrequenceSpawn(450);
+                jeu->setVariationFrequence(200);
+                break;
+            case DifficultePartie::RNG:
+                // Placeholder: la difficulté RNG est bien mémorisée par l'écran de paramètres,
+                // mais l'effet de gameplay reste à définir.
+                break;
+            case DifficultePartie::NORMAL:
+            default:
+                break;
+            }
     }
 
     // Envoyer le nombre de balles initial à l'Arduino au démarrage de la partie
@@ -201,19 +216,18 @@ void EcranJeu::keyPressEvent(QKeyEvent* e)
     QWidget::keyPressEvent(e);
 }
 
-void EcranJeu::mousePressEvent(QMouseEvent* event) {
-    if (enPause || transitionVersMenu) {
+void EcranJeu::mouseMoveEvent(QMouseEvent* event)
+{
+    if (!event || !reticule) {
+        return;
+    }
+
+    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
         event->ignore();
         return;
     }
-    if (event->button() == Qt::LeftButton) {
-        cout << "Tire avec la souris" << endl;
-        tire();
-    }
-    else if (event->button() == Qt::RightButton) {
-        Power();
-    }
 
+    reticule->setPosition(event->pos());
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -267,7 +281,6 @@ void EcranJeu::tick()
         return;
     }
 
-    // Sauvegarde le delta AVANT tout le reste pour eviter que restart() retourne ~0ms
     qint64 deltaMs = frameTimer.restart();
 
     if (jeu) {
@@ -275,12 +288,13 @@ void EcranJeu::tick()
         jeu->update(tempsJeuMs);
     }
 
-    SDL_Event event;
-    if (SDL_PollEvent(&event)) // s'active s'il y a un changement sur les imputs de la manette
-    {
-        SDL_PumpEvents();
-        if (reticule->tirer()) {
+    if (configurationPartie.manette == TypeManette::STANDARD && gamepad) {
+        SDL_UpdateGamepads();
 
+        const bool tirerMaintenu =
+            SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
+
+        if (tirerMaintenu) {
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
                 tire();
@@ -290,49 +304,55 @@ void EcranJeu::tick()
         else {
             gachettePrecedente = false;
         }
-    }
 
-    if (gamepad) {
-        bool carre = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
-        if (carre && !carrePrecedent) {
+        // Choisis ici le bouton que tu veux pour reload
+        const bool reloadMaintenu =
+            SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
+
+        if (reloadMaintenu && !reloadPrecedent) {
             rechargerArme();
         }
-        carrePrecedent = carre;
+        reloadPrecedent = reloadMaintenu;
 
-        bool start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
-        if (start && !startPrecedent) {
-            enPause ? reprendreJeu() : mettreEnPause();
+        const bool startMaintenu =
+            SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+
+        if (startMaintenu && !startPrecedent) {
+            mettreEnPause();
         }
-        startPrecedent = start;
+        startPrecedent = startMaintenu;
     }
 
-    if (reticule->getTouches()->isJoystickPersoConnected()) {
+    if (configurationPartie.manette == TypeManette::CUSTOM &&
+        reticule->getTouches() &&
+        reticule->getTouches()->isJoystickPersoConnected()) {
 
-        reticule->getTouches()->lirePerso(); // met à jour les données de la mannette personalisée
+        reticule->getTouches()->lirePerso();
 
-        if (reticule->getTouches()->getGachette() && !reticule->getTouches()->getReload()) {
-
+        if (reticule->getTouches()->getGachette() &&
+            !reticule->getTouches()->getReload()) {
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
                 tire();
 
             }
         }
-        else if(!reticule->getTouches()->getGachette()) {
+        else if (!reticule->getTouches()->getGachette()) {
             gachettePrecedente = false;
         }
 
-        if (reticule->getTouches()->getReload() && reticule->getTouches()->getAccelerometre()) {
+        if (reticule->getTouches()->getReload() &&
+            reticule->getTouches()->getAccelerometre()) {
             rechargerArme();
         }
 
-        if (reticule->getTouches()->getReload() && (reticule->getTouches()->getEncodeur()!=0)) {
-            cout << "Pause du jeu" << endl;
+        if (reticule->getTouches()->getReload() &&
+            (reticule->getTouches()->getEncodeur() != 0)) {
             mettreEnPause();
         }
 
-        if (reticule->getTouches()->getGachette() && reticule->getTouches()->getReload()) {
-
+        if (reticule->getTouches()->getGachette() &&
+            reticule->getTouches()->getReload()) {
             if (!powerUp) {
                 powerUp = true;
 				Power();
@@ -341,15 +361,9 @@ void EcranJeu::tick()
         else {
             powerUp = false;
         }
-    }
-            
-           
-       
 
-        // Applique le mouvement joystick avec le delta-time correct
-     reticule->applyJoystickPerso(this, (float)deltaMs);
-    
-    
+        reticule->applyJoystickPerso(this, float(deltaMs));
+    }
 
     update();
 }
@@ -582,9 +596,25 @@ void EcranJeu::TestHitbox(QPainter& painter){
 }
 
 
-void EcranJeu::mouseMoveEvent(QMouseEvent* event)
+void EcranJeu::mousePressEvent(QMouseEvent* event)
 {
-    reticule->setPosition(event->pos());
+    if (enPause || transitionVersMenu) {
+        event->ignore();
+        return;
+    }
+
+    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
+        event->ignore();
+        return;
+    }
+
+    if (event->button() == Qt::LeftButton) {
+        cout << "Tire avec la souris" << endl;
+        tire();
+    }
+    else if (event->button() == Qt::RightButton) {
+        Power();
+    }
 }
 
 void EcranJeu::tire() {
