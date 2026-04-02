@@ -86,9 +86,20 @@ void EcranFinPartie::setScore(int s)
         labelScore->setText(QString::number(score));
 }
 
+void EcranFinPartie::setNomParDefaut(const QString& nom)
+{
+    nomParDefaut = nom.trimmed().toUpper();
+    if (champNom && champNom->text().trimmed().isEmpty() && !nomParDefaut.isEmpty()) {
+        champNom->setText(nomParDefaut);
+    }
+}
+
 void EcranFinPartie::showEvent(QShowEvent* e)
 {
     QWidget::showEvent(e);
+    if (champNom && !nomParDefaut.isEmpty()) {
+        champNom->setText(nomParDefaut);
+    }
     placerElements();
     lancerFadeIn();
 }

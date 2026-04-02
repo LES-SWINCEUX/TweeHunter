@@ -1,6 +1,6 @@
 #include "Reticule.h"
-
-Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : QWidget(parent)
+Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette manetteActive_, Touches* t)
+	: QWidget(parent), manetteActive(manetteActive_)
 {
 	touches = t;
 
@@ -20,31 +20,32 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : 
 	cout << touches->isJoystickConnected() << ": Reticule" << endl;
 
 	// Timer pour la manette SDL officielle seulement
-	if (touches->isJoystickConnected()) {
+	if (manetteActive == TypeManette::STANDARD && touches && touches->isJoystickConnected()) {
 		QTimer* timer = new QTimer(this);
-		timer->start(16); // ~60 Hz
+		timer->start(16);
 
 		gamepad = touches->getGamepad();
 
-		xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
-		yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
+		if (gamepad) {
+			xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
+			yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
+		}
 
 		connect(timer, &QTimer::timeout, this, [=]() {
 			if (!gamepad) return;
+
 			SDL_UpdateGamepads();
 
 			float x = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
 			float y = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
 
-			// Deadzone
 			if (std::fabs(x) < 0.1f) x = 0;
 			if (std::fabs(y) < 0.1f) y = 0;
 
-			if (sqrt((x - xini) * (x - xini) + (y - yini) * (y - yini)) > protJoystick) {
+			if (std::sqrt((x - xini) * (x - xini) + (y - yini) * (y - yini)) > protJoystick) {
 				moveJoystick(x, y, parent);
 			}
-
-			});
+		});
 	}
 
 	// Pas de timer ici pour la manette perso :

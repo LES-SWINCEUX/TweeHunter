@@ -19,6 +19,7 @@
 
 #include "Variete.h"
 #include "Touches.h"
+#include "configuration_partie.h"
 
 #include <SDL3/SDL.h>
 
@@ -29,7 +30,7 @@ class Reticule : public QWidget
 	Q_OBJECT
 public:
 
-	Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t);
+	Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette manetteActive, Touches* touches);
 	~Reticule();
 	void setPosition(const QPoint& pos);
 	string getPath(int choix) const;
@@ -57,6 +58,7 @@ private:
 
 	QPixmap image;
 	Touches* touches;
+	TypeManette manetteActive = TypeManette::CLAVIER_SOURIS;
 
 	int xini;
 	int yini;

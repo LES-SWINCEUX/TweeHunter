@@ -32,6 +32,7 @@ public:
     ~EcranFinPartie() = default;
 
     void setScore(int score);
+    void setNomParDefaut(const QString& nom);
 
 signals:
     void retourMenuDemande(const QString& nomJoueur, int score);
@@ -65,6 +66,7 @@ private:
     QPropertyAnimation* fadeAnim = nullptr;
 
     int score = 0;
+    QString nomParDefaut;
     QRect panneau;
 
     QLabel* labelVotreScore = nullptr;
@@ -95,4 +97,4 @@ private:
     const float BTN_H_RATIO = 0.17f;
 };
 
-#endif // ECRAN_FIN_PARTIE_H
+#endif
