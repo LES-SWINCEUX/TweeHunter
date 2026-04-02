@@ -12,13 +12,15 @@
 #include "panneau_options.h"
 #include "panneau_scores.h"
 #include "sprite_manager.h"
+#include <SDL3/SDL.h>
+#include "Touches.h"
 
 class MenuPauseOverlay : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    explicit MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, Touches* touches = nullptr);
     ~MenuPauseOverlay() override = default;
 
 signals:
@@ -36,6 +38,7 @@ private:
     QSharedPointer<QPixmap> titreSprite = nullptr;
 
     QTimer timerAnimationTitre;
+    QTimer timerManette;
     QElapsedTimer timerPauseAnimation;
 
     QRect zonePourPanneau(PanneauMenu* p) const;
@@ -49,6 +52,9 @@ private:
 
     void afficherTitre(QPainter& painter);
 
+    void initialiserManette();
+    void tickManette();
+
     const int nombreImageTitre = 12;
     const int tempsAnimation = 1000;
     const int tempsAttenteAnimation = 9000;
@@ -61,6 +67,19 @@ private:
     bool animationActive = true;
     bool fadeEnCours = false;
     bool cacherTitre = false;
+
+    // Debounce manette SDL
+    bool dpadHautPrecedent  = false;
+    bool dpadBasPrecedent   = false;
+    bool boutonOkPrecedent  = false;
+
+    SDL_Gamepad* gamepad = nullptr;
+
+    // Manette custom
+    Touches* touchesPerso    = nullptr;
+    bool customHautPrecedent = false;
+    bool customBasPrecedent  = false;
+    bool customOkPrecedent   = false;
 };
 
 #endif

@@ -11,6 +11,8 @@ public:
     PanneauPrincipal(QWidget* parent = nullptr);
     ~PanneauPrincipal();
 
+    QList<Bouton*> boutonsNavigables() const override;
+
 protected:
     void creer() override;
     void positionner() override;

@@ -1,11 +1,12 @@
 #include "menu.h"
 #include "panneau_scores.h"
 
-MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent) :
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
+    touchesPerso = touches;
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     this->gestionnaireAudio = gestionnaireAudio;
@@ -54,6 +55,13 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
 
     connect(estompeAnimation, &QPropertyAnimation::finished,
         this, &MenuPrincipal::jouerDemande);
+
+    // Timer poll manette SDL ~60 Hz
+    connect(&timerManette, &QTimer::timeout, this, &MenuPrincipal::tickManette);
+    timerManette.setInterval(16);
+    timerManette.start();
+
+    initialiserManette();
 
     afficherPanneauPrincipal();
 }
@@ -273,7 +281,11 @@ void MenuPrincipal::afficherOptions() {
     panneau->show();
     panneau->raise();
 
-    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
+        afficherPanneauPrincipal();
+        // Index 2 = bouton Options (Jouer=0, Scores=1, Options=2, Quitter=3)
+        panneau->focusSurIndex(2);
+    });
 }
 
 void MenuPrincipal::afficherPanneauPrincipal() {
@@ -346,5 +358,92 @@ void MenuPrincipal::afficherPanneauScores() {
     panneau->show();
     panneau->raise();
 
-    connect(panneau, &PanneauMenu::demanderRetourOptions, this, &MenuPrincipal::afficherPanneauPrincipal);
+    connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
+        afficherPanneauPrincipal();
+        // Index 1 = bouton Scores (Jouer=0, Scores=1, Options=2, Quitter=3)
+        panneau->focusSurIndex(1);
+    });
+}
+
+void MenuPrincipal::keyPressEvent(QKeyEvent* e)
+{
+    if (!panneau) { QWidget::keyPressEvent(e); return; }
+
+    switch (e->key()) {
+    case Qt::Key_Up:   panneau->naviguerHaut(); break;
+    case Qt::Key_Down: panneau->naviguerBas();  break;
+    case Qt::Key_Return:
+    case Qt::Key_Space: panneau->confirmer();   break;
+    default: QWidget::keyPressEvent(e);
+    }
+}
+
+void MenuPrincipal::initialiserManette()
+{
+    // SDL_INIT_GAMEPAD peut déjà être init par EcranJeu — SDL_Init est idempotent
+    SDL_Init(SDL_INIT_GAMEPAD);
+
+    int count = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&count);
+    if (ids && count > 0) {
+        gamepad = SDL_OpenGamepad(ids[0]);
+        SDL_free(ids);
+    }
+}
+
+void MenuPrincipal::tickManette()
+{
+    if (!panneau || fadeEnCours) return;
+
+    SDL_PumpEvents();
+
+    // --- Manette SDL (PlayStation) ---
+    if (!gamepad || !SDL_GamepadConnected(gamepad)) {
+        if (gamepad) { SDL_CloseGamepad(gamepad); gamepad = nullptr; }
+        initialiserManette();
+    }
+
+    bool haut = false;
+    bool bas  = false;
+    bool ok   = false;
+
+    if (gamepad && SDL_GamepadConnected(gamepad)) {
+        bool dpadHaut  = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
+        bool dpadBas   = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
+        bool joystickBas  = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
+        bool croix     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
+        bool start     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+
+        haut = dpadHaut  || joystickHaut;
+        bas  = dpadBas   || joystickBas;
+        ok   = croix     || start;
+    }
+
+    if (haut && !dpadHautPrecedent)  panneau->naviguerHaut();
+    if (bas  && !dpadBasPrecedent)   panneau->naviguerBas();
+    if (ok   && !boutonOkPrecedent)  panneau->confirmer();
+
+    dpadHautPrecedent = haut;
+    dpadBasPrecedent  = bas;
+    boutonOkPrecedent = ok;
+
+    // --- Manette custom (série) ---
+    if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
+        touchesPerso->lirePerso();
+
+        // Joystick Y : 0-1023, centre ~512
+        int jy = touchesPerso->getyPerso();
+        bool customHaut = (jy < 300);   // joystick poussé vers le haut
+        bool customBas  = (jy > 700);   // joystick poussé vers le bas
+        bool customOk   = touchesPerso->getGachette();
+
+        if (customHaut && !customHautPrecedent) panneau->naviguerHaut();
+        if (customBas  && !customBasPrecedent)  panneau->naviguerBas();
+        if (customOk   && !customOkPrecedent)   panneau->confirmer();
+
+        customHautPrecedent = customHaut;
+        customBasPrecedent  = customBas;
+        customOkPrecedent   = customOk;
+    }
 }

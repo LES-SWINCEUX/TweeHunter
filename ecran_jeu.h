@@ -25,15 +25,16 @@
 #include "Armes.h"
 #include "menu_pause_overlay.h"
 #include "Touches.h"
+#include "configuration_partie.h"
 
 class EcranJeu : public QWidget
 {
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1, Touches* t=nullptr);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& config, QWidget* parent = nullptr, Touches* touches = nullptr);
     ~EcranJeu();
-    void tire();
+    void tire(int typeTire);
 
 
 signals:
@@ -95,10 +96,15 @@ private:
 	Armes* armes;
 
 	bool gachettePrecedente = false;
+    bool reloadPrecedent = false;
+    bool startPrecedent = false;
+    bool powerUp = false;
+
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
 
     Touches* touches = nullptr;
+    ConfigurationPartie configurationPartie;
 };
 
 #endif

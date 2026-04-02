@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QTimer>
 #include <iostream>
 
 class Bouton : public QWidget
@@ -21,6 +22,10 @@ public:
 
     void setNombreImages(int nombre);
     void setEchelle(float s);
+    void setSelectionneManette(bool actif);
+    void setActif(bool actif);
+    bool estActif() const { return actif; }
+    void simulerClic();
     QSize sizeHint() const override;
     QSize tailleImage() const;
 
@@ -40,8 +45,9 @@ protected:
     int images = 3;
     float echelle = 1.0f;
 
-    Etat etat = Etat::Normal;
-    bool selectionne = false;
+    bool survole = false;
+    bool focusManette = false;
+    bool actif = false;
     bool clique = false;
 
     QRect rectangeEtat(Etat s) const;

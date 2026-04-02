@@ -8,6 +8,8 @@ PanneauScores::PanneauScores(QWidget* parent)
     fontPixel.setLetterSpacing(QFont::AbsoluteSpacing, 1);
 
     initialiserPanneau();
+
+    naviguerBas();
 }
 
 void PanneauScores::creer()
@@ -31,6 +33,11 @@ void PanneauScores::creer()
     connect(boutonRetour, &Bouton::clicked, this, &PanneauMenu::demanderRetourOptions);
 
     rafraichirLignes();
+}
+
+QList<Bouton*> PanneauScores::boutonsNavigables() const
+{
+    return { boutonRetour };
 }
 
 void PanneauScores::rafraichirLignes()

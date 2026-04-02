@@ -11,6 +11,8 @@ public:
     explicit PanneauPausePrincipal(QWidget* parent = nullptr);
     ~PanneauPausePrincipal() override;
 
+    QList<Bouton*> boutonsNavigables() const override;
+
 protected:
     void creer() override;
     void positionner() override;

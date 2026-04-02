@@ -29,8 +29,8 @@ public:
 	bool RTpressed() const;
 
 	void lirePerso();
-	int getxPerso();
-	int getyPerso();
+	int getxPerso() const;
+	int getyPerso() const;
 
 	bool getGachette() const { return gachette; }
 	bool getReload() const { return reload; }

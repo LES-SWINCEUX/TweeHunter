@@ -1,6 +1,6 @@
 #include "Touches.h"
 
-Touches::Touches()
+Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
 {
 
     //Initialisation des différentes méthodes de contrôle
@@ -68,6 +68,7 @@ Touches::~Touches() {
 }
 
 bool Touches::RTpressed() const {//Retourne si le bouton RT est pressé ou non
+
     Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     if (value > 10000) {
@@ -166,32 +167,34 @@ int Touches::UseLastEncodeur() {
     return temp;
 }
 
-int Touches::getxPerso() { //récupére la valeur x la plus à jour du joystick personnalisé
-
+int Touches::getxPerso() const { //récupére la valeur x la plus à jour du joystick personnalisé
     return x;
-
 }
 
 
-int Touches::getyPerso() { //récupére la valeur y la plus à jour du joystick personnalisé
+int Touches::getyPerso() const { //récupére la valeur y la plus à jour du joystick personnalisé
     return y;
 }
 
 void Touches::envoyerNbBalles(int nbBalles)
 {
-    if (!serial.isOpen()) return;
+    if (!serial.isOpen()) {
+        return;
+    }
 
     QJsonObject obj;
-    obj["type"]     = "config";
+    obj["type"] = "config";
     obj["nb_balles"] = nbBalles;
 
-    QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
+    QByteArray msg = "\n" + QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
 
 void Touches::envoyerRaw(const QByteArray& data)
 {
-    if (!serial.isOpen()) return;
+    if (!serial.isOpen()) {
+        return;
+    }
     serial.write(data);
 }
 
