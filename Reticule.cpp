@@ -14,18 +14,8 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : 
 	setAttribute(Qt::WA_AlwaysStackOnTop);
 	setAttribute(Qt::WA_StaticContents); // evite les repaints du parent quand le reticule bouge
 
-	image = QPixmap(QString::fromStdString(getPath(choix)));
-	if (image.isNull()) {
-		cout << "RETICULE::impossible de charger: " << endl;
-		cout << getPath(1) << endl;
-	}
-	else {
-		cout << "RETICULE::chargement réussi: " << endl;
-	}
+	ChangeReticule(parent, choixTir);
 
-	setFixedSize(image.size());
-	resize(parent->size());
-	setPosition(pos);
 
 	cout << touches->isJoystickConnected() << ": Reticule" << endl;
 
@@ -63,6 +53,26 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, Touches* t) : 
 
 Reticule::~Reticule() {
 }
+
+void Reticule::ChangeReticule(QWidget* parent,int choix) {
+
+	QPoint pos (posX,posY);
+
+	choixTir = choix;
+	image = QPixmap(QString::fromStdString(getPath(choix)));
+	if (image.isNull()) {
+		cout << "RETICULE::impossible de charger: " << endl;
+		cout << getPath(1) << endl;
+	}
+	else {
+		cout << "RETICULE::chargement réussi: " << endl;
+	}
+	setFixedSize(image.size());
+	resize(parent->size());
+	setPosition(pos);
+
+}
+
 
 string Reticule::getPath(int choix) const
 {
