@@ -609,7 +609,6 @@ void EcranJeu::mousePressEvent(QMouseEvent* event)
 
 void EcranJeu::tire(int typeTire) {
     //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    int nombreBalles = 0;
     int nombreVies = vies->getDemiVies();
 
     if (!compteurBalles) return;
