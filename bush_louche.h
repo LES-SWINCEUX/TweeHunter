@@ -37,7 +37,7 @@ public:
 	void detruire();
 
 	bool estActif() const {
-		return etat == EtatLouche::ACTIF;
+		return etat == EtatLouche::ACTIF && !touchee;
 	}
 	bool estInnactif() const {
 		return etat == EtatLouche::INACTIF;
@@ -67,12 +67,14 @@ private:
 	EtatLouche etat;
 	Sprite sprite;
 	Sprite spriteAvertissement;
-	qint64 tempsDebut;
+	qint64 tempsCreation = 0;
+	qint64 tempsEtatDebut = 0;
+	bool touchee = false;
 	bool disparait_ = false;
 
 	static constexpr qint64 DUREE_APPARITION = 500;
-	static constexpr qint64 DUREE_ACTIF = 1000;
-	static constexpr qint64 DUREE_AVERTISSEMENT = 2000;
+	static constexpr qint64 DUREE_ACTIF = 750;
+	static constexpr qint64 DUREE_AVERTISSEMENT = 1000;
 };
 
 #endif

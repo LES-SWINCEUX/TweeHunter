@@ -12,6 +12,7 @@ void Randomiser::ajouterTypeTarget(const DefinitionTarget& definition)
 
 bool Randomiser::doitGenererTarget(qint64 tempsMs)
 {
+	tempsCourant = tempsMs;
 	if (prochainSpawn == 0) {
 		prochainSpawn = tempsMs + intervalSpawn;
 		return false;
@@ -49,6 +50,7 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	std::cout << "Destination: " << (bordArrivee == Bord::GAUCHE ? "Gauche" : "Droite")
 		<< " (" << pointArrivee.x() << ", " << pointArrivee.y() << ")" << std::endl;
 	std::cout << "Trajectoire: ";
+
 	switch (traj) {
 	case TypeTrajectoire::LINEAIRE: std::cout << "Linaire"; break;
 	case TypeTrajectoire::COURBE_HAUT: std::cout << "Courbe_haut"; break;
@@ -57,7 +59,8 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	}
 	std::cout << std::endl << std::endl;
 
-	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin, def.vitesseMax), traj);
+	double facteur = calculerFacteurVitesse(tempsCourant);
+	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin * facteur, def.vitesseMax * facteur), traj);
 
 	QSizeF taillePixels(tailleEcran.width() * def.tailleRelative, tailleEcran.height() * def.tailleRelative);
 
@@ -190,3 +193,11 @@ int Randomiser::choisirIndexBush(int nombreBush) const
 	std::uniform_int_distribution<int> dist(0, nombreBush - 1);
 	return dist(generateur);
 }
+
+double Randomiser::calculerFacteurVitesse(qint64 tempsMs) const
+{
+	int palier = tempsMs / INTERVALLE_DIFFICULTE;
+	double facteur = qPow(MULTIPLICATEUR_PALIER, palier);
+	return qMin(facteur, FACTEUR_MAX);
+}
+

@@ -2,7 +2,7 @@
 
 BushLouche::BushLouche(const QPointF& position, TypeLouche type, const QSizeF& tailleBase, const QString& cheminSprite, int colonnes, int lignes, int cycle,
 	const QString& cheminAvertissement, int colonnesAvert, int lignesAvert, int cycleAvert)
-	: position(position), type(type), tailleBase(tailleBase), etat(EtatLouche::AVERTISSEMENT), tempsDebut(0)
+	: position(position), type(type), tailleBase(tailleBase), etat(EtatLouche::AVERTISSEMENT), tempsCreation(0), tempsEtatDebut(0), touchee(false)
 {
 	tailleFinale = QSizeF(tailleBase.width() * 1.0, tailleBase.height() * 1.0);
 
@@ -25,38 +25,43 @@ BushLouche::BushLouche(const QPointF& position, TypeLouche type, const QSizeF& t
 
 void BushLouche::update(qint64 tempsMs)
 {
-	if (tempsDebut == 0) {
-		tempsDebut = tempsMs;
+	if (tempsCreation == 0) {
+		tempsCreation = tempsMs;
+		tempsEtatDebut = tempsMs;
+
+		qint64 dureeVisible = DUREE_APPARITION + DUREE_ACTIF + DUREE_APPARITION;
+		sprite.setCycle(static_cast<int>(dureeVisible));
+		sprite.setClip(0, -1, false);
 	}
 
-	qint64 delta = tempsMs - tempsDebut;
+	qint64 delta = tempsMs - tempsEtatDebut;
 
 	switch (etat) {
 		case EtatLouche::AVERTISSEMENT:
 			if (delta >= DUREE_AVERTISSEMENT) {
 				etat = EtatLouche::APPARITION;
-				tempsDebut = tempsMs;
+				tempsEtatDebut = tempsMs;
 			}
 			break;
 
 		case EtatLouche::APPARITION:
 			if (delta >= DUREE_APPARITION) {
 				etat = EtatLouche::ACTIF;
-				tempsDebut = tempsMs;
+				tempsEtatDebut = tempsMs;
 			}
 			break;
 
 		case EtatLouche::ACTIF:
 			if (delta >= DUREE_ACTIF) {
 				etat = EtatLouche::DISPARITION;
-				tempsDebut = tempsMs;
+				tempsEtatDebut = tempsMs;
+				disparait_ = true;
 			}
 			break;
 
 		case EtatLouche::DISPARITION:
 			if (delta >= DUREE_APPARITION) {
 				etat = EtatLouche::INACTIF;
-				disparait_ = true;
 			}
 			break;
 
@@ -71,7 +76,9 @@ void BushLouche::dessiner(QPainter& painter, qint64 tempsMs)
 		return;
 	}
 
-	qint64 tempsLocal = tempsMs - tempsDebut;
+	qint64 tempsLocal = tempsMs - tempsEtatDebut;
+
+	//Avertissement
 
 	if (etat == EtatLouche::AVERTISSEMENT) {
 		if (!spriteAvertissement.estValide()) {
@@ -91,34 +98,39 @@ void BushLouche::dessiner(QPainter& painter, qint64 tempsMs)
 		return;
 	}
 
-	QSizeF tailleCourante = tailleBase;
-	double progression = 0.0;
-	qint64 tempsAnimation = tempsLocal;
+	//taille selon etat (plus utilise) 
 
-	if (etat == EtatLouche::APPARITION || etat == EtatLouche::ACTIF) {
-		progression = qMin(1.0, tempsLocal / (double)DUREE_APPARITION);
+	QSizeF tailleCourante = tailleFinale;
+
+	if (etat == EtatLouche::APPARITION) {
+		double progression = qMin(1.0, tempsLocal / (double)DUREE_APPARITION);
 		tailleCourante = QSizeF(
 			tailleBase.width() + (tailleFinale.width() - tailleBase.width()) * progression,
 			tailleBase.height() + (tailleFinale.height() - tailleBase.height()) * progression
 		);
-		tempsAnimation = tempsLocal;
 	}
-	else if (etat == EtatLouche::ACTIF) {
-		tailleCourante = tailleFinale;
-		tempsAnimation = 0;
-	}
+	
 	else if (etat == EtatLouche::DISPARITION) {
-		progression = qMin(1.0, tempsLocal / (double)DUREE_APPARITION);
+		double progression = qMin(1.0, tempsLocal / (double)DUREE_APPARITION);
 		tailleCourante = QSizeF(
 			tailleFinale.width() - (tailleFinale.width() - tailleBase.width()) * progression,
 			tailleFinale.height() - (tailleFinale.height() - tailleBase.height()) * progression
 		);
-		tempsAnimation = DUREE_APPARITION - tempsLocal;
-		if (tempsAnimation < 0) {
-			tempsAnimation = 0;
-		}
 	}
+	//Animation
 
+	qint64 tempsAnimation;
+	if (etat == EtatLouche::DISPARITION) {
+		qint64 dureeVisible = DUREE_APPARITION + DUREE_ACTIF + DUREE_APPARITION;
+		qint64 tempsForward = tempsMs - tempsCreation - DUREE_AVERTISSEMENT;
+		tempsAnimation = dureeVisible - (tempsForward - (DUREE_APPARITION + DUREE_ACTIF));
+		if (tempsAnimation < 0) tempsAnimation = 0;
+	}
+	else {
+		tempsAnimation = tempsMs - tempsCreation - DUREE_AVERTISSEMENT;
+		if (tempsAnimation < 0) tempsAnimation = 0;
+	}
+		
 	QRect dest(static_cast<int>(position.x() - tailleCourante.width() / 2),
 		static_cast<int>(position.y() - tailleCourante.height() / 2), static_cast<int>(tailleCourante.width()), static_cast<int>(tailleCourante.height()));
 		sprite.dessiner(painter, dest, tempsAnimation, true, false);
@@ -126,9 +138,7 @@ void BushLouche::dessiner(QPainter& painter, qint64 tempsMs)
 
 void BushLouche::detruire()
 	{
-		if (etat == EtatLouche::ACTIF) {
-			etat = EtatLouche::DISPARITION;
-		}
+		touchee = true;
 	}
 
 QRectF BushLouche::getBounds() const
@@ -165,7 +175,7 @@ QString BushLouche::getChemin() const
 
 bool BushLouche::intersecte(const QPainterPath& cercleReticule) const
 	{
-		if (etat != EtatLouche::ACTIF) {
+		if (etat != EtatLouche::ACTIF || touchee) {
 			return false;
 		}
 		

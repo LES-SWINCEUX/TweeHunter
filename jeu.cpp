@@ -75,7 +75,6 @@ void Jeu::update(qint64 tempsMs)
 		return;
 	}
 
-	bool aTouche = false;
 	if (randomiser && randomiser->doitGenererTarget(tempsMs)) {
 		if (ciblesActives.size() < maxCiblesSimultanees) {
 			Target* nouvelleCible = randomiser->genererTarget(modeActuel);

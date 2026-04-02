@@ -59,6 +59,8 @@ public:
 
 private:
 	
+	qint64 tempsCourant = 0;
+
 	QPointF choisirPointDepart(Bord bord) const;
 	QPointF choisirPointArrivee(Bord bord) const;
 	Bord choisirBordAleatoire() const;
@@ -83,6 +85,14 @@ private:
 	qint64 prochainBushLouche = 0;
 	static constexpr qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 500;
 	static constexpr qint64 VARIATION_SPAWN_BUSH_LOUCHE = 200;
+
+	qint64 tempsDebutPartie = 0;
+	static constexpr qint64 INTERVALLE_DIFFICULTE = 15000;
+	static constexpr double MULTIPLICATEUR_PALIER = 1.15;
+	static constexpr double FACTEUR_MAX = 3;
+
+	double calculerFacteurVitesse(qint64 tempsMs) const;
+
 };
 
 #endif
