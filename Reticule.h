@@ -49,6 +49,8 @@ public:
 
 	Touches* getTouches() { return touches; }
 
+	void ChangeReticule(QWidget* parent,int choix);
+
 protected:
 	void paintEvent(QPaintEvent* event) override;
 
