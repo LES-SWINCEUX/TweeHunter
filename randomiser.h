@@ -83,8 +83,8 @@ private:
 	static constexpr double MARGE_ECRAN_DEFAULT = 100.0;
 
 	qint64 prochainBushLouche = 0;
-	static constexpr qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 500;
-	static constexpr qint64 VARIATION_SPAWN_BUSH_LOUCHE = 200;
+	static constexpr qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 11500;
+	static constexpr qint64 VARIATION_SPAWN_BUSH_LOUCHE = 20000;
 
 	qint64 tempsDebutPartie = 0;
 	static constexpr qint64 INTERVALLE_DIFFICULTE = 15000;
