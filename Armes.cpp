@@ -1,10 +1,11 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, int PowerUp)
+Armes::Armes(int Arme, int PowerUp, QWidget* parent)
 {
 	ArmeActuelle = Arme;
 	PowerActuelle = PowerUp;
+	p = parent;
 }
 
 QPainterPath Armes::choixArme(int x, int y) {
@@ -12,7 +13,14 @@ QPainterPath Armes::choixArme(int x, int y) {
 }
 
 QPainterPath Armes::choixPowerUp(int x, int y) {
-	return Hitbox(PowerActuelle+30, x, y);
+	switch (PowerActuelle) {
+	case 1:
+		return Hitbox(PowerActuelle + 30, x, y);
+	case 4:
+		return Hitbox(PowerActuelle + 30, x, y);
+	default:
+		return Hitbox(PowerActuelle + 30, x, y);
+	}
 }
 
 QPainterPath Armes::Hitbox(int choix, int x, int y)
@@ -49,8 +57,12 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		Hitbox.addEllipse(QPointF(x, y), 45, 45);
 		return Hitbox;
 	case 31:
-		//cout << "Bombe utilisé<<endl;
+		//cout << "Bombe utilisé"<<endl;
 		Hitbox.addEllipse(QPointF(x, y), 300, 300);
+		return Hitbox;
+	case 34:
+		//cout << "Bombe atomique" <<endl;
+		Hitbox.addRect(0 ,0, p->width(), p->height());
 		return Hitbox;
 	default:
 		return Hitbox;

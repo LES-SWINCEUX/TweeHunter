@@ -133,6 +133,14 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	return verifierCollisions(armes->choixArme(x,y), tempsMs);
 }
 
+bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
+
+	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
+
+	return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
+
+}
+
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
 	cout << "Création de la hitbox de l'explosion avec un cercle centré sur la cannette" << endl;
 	return verifierCollisions(armes->Hitbox(explo,x,y), tempsMs);

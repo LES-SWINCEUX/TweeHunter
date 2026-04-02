@@ -3,7 +3,7 @@
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
     : QWidget(parent), configurationPartie(configuration)
 {
-    int ChoixPowerUp = 1;
+    int ChoixPowerUp = 4;
 
     //ajout à enlever apres test
     QPoint pos = QCursor::pos();
@@ -18,7 +18,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPart
     reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, this->touches); // création du réticule sur la souris + choix du réticule
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme,ChoixPowerUp);
+    armes = new Armes(configurationPartie.arme, ChoixPowerUp, this);
     maxBalles = armes->nbMunitions();
     power_up = armes->nbPowerUp();
 
@@ -579,7 +579,7 @@ void EcranJeu::paintEvent(QPaintEvent*)
         jeu->dessiner(painter, tempsJeuMs);
     }
 
-    //TestHitbox(painter);
+    TestHitbox(painter);
 }
 
 void EcranJeu::TestHitbox(QPainter& painter){
@@ -590,8 +590,8 @@ void EcranJeu::TestHitbox(QPainter& painter){
    painter.setPen(QPen(Qt::blue, 2));
    painter.setBrush(Qt::NoBrush);
 
-   painter.drawPath(armes->choixArme( 622, 300));
-   //painter.drawPath(armes->Hitbox(30, 622, 300));
+   //painter.drawPath(armes->choixArme( 622, 300));
+   painter.drawPath(armes->Hitbox(34, 622, 300));
    //painter.drawPath(armes->Hitbox(4, reticule->getX(), reticule->getY()));
 }
 
@@ -669,7 +669,7 @@ void EcranJeu::Power() {
 
     if (power_up > 0) {
         rechargerArme();
-        bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+        bool cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
 	}
 
     if (gestionnaireAudio != nullptr && power_up > 0) {

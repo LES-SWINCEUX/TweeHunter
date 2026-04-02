@@ -3,11 +3,12 @@
 
 #include <iostream>
 #include <QPainterPath>
+#include <QWidget>
 
 class Armes
 {
 public:
-	Armes(int Arme = 1, int PowerUp = 1);
+	Armes(int Arme = 1, int PowerUp = 1, QWidget* parent=nullptr );
 
 	QPainterPath choixArme(int x, int y) ;
 	QPainterPath choixPowerUp(int x, int y);
@@ -21,6 +22,7 @@ public:
 private:
 	int ArmeActuelle;
 	int PowerActuelle;
+	QWidget* p;
 
 };
 
