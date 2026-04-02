@@ -722,7 +722,27 @@ void EcranParametres::showEvent(QShowEvent* event)
     appliquerDisponibiliteManettes();
     appliquerEtatVisuel();
     placerElements();
-    appliquerFocus(0);
+
+    const bool manetteDisponible = (touches && touches->isJoystickConnected()) || (touches && touches->isJoystickPersoConnected());
+
+    if (manetteDisponible) {
+        appliquerFocus(0);
+    }
+    else {
+        if (indexFocus >= 0 && indexFocus < int(widgetsNavigables.size())) {
+            if (auto* bouton = qobject_cast<Bouton*>(widgetsNavigables[indexFocus])) {
+                bouton->setSelectionneManette(false);
+            }
+            else if (widgetsNavigables[indexFocus]) {
+                widgetsNavigables[indexFocus]->clearFocus();
+                widgetsNavigables[indexFocus]->update();
+            }
+        }
+
+        indexFocus = -1;
+        setFocus(Qt::OtherFocusReason);
+        update();
+    }
 
     if (overlay && fadeInAnim) {
         overlay->setGeometry(rect());
@@ -838,68 +858,135 @@ void EcranParametres::deplacerFocusDirection(int dx, int dy)
         return;
     }
 
+    auto focusWidget = [this](QWidget* cible) -> bool
+    {
+        if (!cible || !cible->isVisible() || !cible->isEnabled()) {
+            return false;
+        }
+
+        const auto it = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), cible);
+        if (it == widgetsNavigables.end()) {
+            return false;
+        }
+
+        appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
+        return true;
+    };
+
+    auto focusNom = [this, &focusWidget]() -> bool
+    {
+        return focusWidget(champNom);
+    };
+
+    auto manettesVisibles = [this]() -> std::vector<QWidget*>
+    {
+        std::vector<QWidget*> resultat;
+
+        if (boutonManetteStandard && boutonManetteStandard->isVisible() && boutonManetteStandard->isEnabled()) {
+            resultat.push_back(boutonManetteStandard);
+        }
+        if (boutonManetteCustom && boutonManetteCustom->isVisible() && boutonManetteCustom->isEnabled()) {
+            resultat.push_back(boutonManetteCustom);
+        }
+        if (boutonClavierSouris && boutonClavierSouris->isVisible() && boutonClavierSouris->isEnabled()) {
+            resultat.push_back(boutonClavierSouris);
+        }
+
+        return resultat;
+    };
+
+    auto premiereManetteVisible = [&]() -> QWidget*
+    {
+        auto liste = manettesVisibles();
+        return liste.empty() ? nullptr : liste.front();
+    };
+
+    auto deplacerDansRangee = [&](const std::vector<QWidget*>& rangee, int direction) -> bool
+    {
+        if (direction == 0) {
+            return false;
+        }
+
+        auto it = std::find(rangee.begin(), rangee.end(), courant);
+        if (it == rangee.end()) {
+            return false;
+        }
+
+        const int index = int(std::distance(rangee.begin(), it));
+        const int suivant = index + direction;
+
+        if (suivant < 0 || suivant >= int(rangee.size())) {
+            return true;
+        }
+
+        return focusWidget(rangee[suivant]);
+    };
+
+    const std::vector<QWidget*> rangeeMilieu = {
+        boutonMode18,
+        boutonModeNormal,
+        boutonDifficulteNormal,
+        boutonDifficulteRng,
+        boutonDifficulteChaos
+    };
+
+    const std::vector<QWidget*> rangeeBoutonsBas = {
+        boutonRetour,
+        boutonCommencer
+    };
+
+    const auto rangeeManette = manettesVisibles();
+
+    const bool focusSurBlocMilieu = courant == boutonMode18 || courant == boutonModeNormal || courant == boutonDifficulteNormal || courant == boutonDifficulteRng || courant == boutonDifficulteChaos;
+
     const bool focusSurManette = courant == boutonManetteStandard || courant == boutonManetteCustom || courant == boutonClavierSouris;
 
     const bool focusSurBoutonsBas = courant == boutonRetour || courant == boutonCommencer;
 
-    if (dy > 0 && focusSurManette && champNom) {
-        const auto itNom = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), champNom);
-        if (itNom != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itNom)));
+    if (dx != 0) {
+        if (courant == champNom) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeMilieu, dx)) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeManette, dx)) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeBoutonsBas, dx)) {
             return;
         }
     }
 
-    if (dy < 0 && focusSurBoutonsBas && champNom) {
-        const auto itNom = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), champNom);
-        if (itNom != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itNom)));
+    if (dy > 0 && focusSurBlocMilieu) {
+        if (focusWidget(premiereManetteVisible())) {
+            return;
+        }
+    }
+
+    if (dy > 0 && focusSurManette) {
+        if (focusNom()) {
+            return;
+        }
+    }
+
+    if (dy < 0 && focusSurBoutonsBas) {
+        if (focusNom()) {
             return;
         }
     }
 
     if (dy < 0 && courant == champNom) {
-        QWidget* cibleManette = nullptr;
-
-        if (boutonManetteCustom && boutonManetteCustom->isVisible() && boutonManetteCustom->isEnabled()) {
-            cibleManette = boutonManetteCustom;
-        }
-        else if (boutonManetteStandard && boutonManetteStandard->isVisible() && boutonManetteStandard->isEnabled()) {
-            cibleManette = boutonManetteStandard;
-        }
-        else if (boutonClavierSouris && boutonClavierSouris->isVisible() && boutonClavierSouris->isEnabled()) {
-            cibleManette = boutonClavierSouris;
-        }
-
-        if (cibleManette) {
-            const auto it = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), cibleManette);
-            if (it != widgetsNavigables.end()) {
-                appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
-                return;
-            }
-        }
-    }
-
-    if (dy > 0 && courant == champNom && boutonCommencer) {
-        const auto itJouer = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonCommencer);
-        if (itJouer != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itJouer)));
+        if (focusWidget(premiereManetteVisible())) {
             return;
         }
     }
 
-    if (dx > 0 && courant == boutonRetour && boutonCommencer) {
-        const auto itJouer = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonCommencer);
-        if (itJouer != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itJouer)));
-            return;
-        }
-    }
-
-    if (dx < 0 && courant == boutonCommencer && boutonRetour) {
-        const auto itRetour = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonRetour);
-        if (itRetour != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itRetour)));
+    if (dy > 0 && courant == champNom) {
+        if (focusWidget(boutonCommencer)) {
             return;
         }
     }
