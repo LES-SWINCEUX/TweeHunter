@@ -55,8 +55,7 @@ Reticule::~Reticule() {
 }
 
 void Reticule::ChangeReticule(QWidget* parent,int choix) {
-
-	QPoint pos (posX,posY);
+	QPoint pos(getX(), getY());
 
 	choixTir = choix;
 	image = QPixmap(QString::fromStdString(getPath(choix)));
@@ -69,6 +68,7 @@ void Reticule::ChangeReticule(QWidget* parent,int choix) {
 	}
 	setFixedSize(image.size());
 	resize(parent->size());
+
 	setPosition(pos);
 
 }

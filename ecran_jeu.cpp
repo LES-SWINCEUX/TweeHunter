@@ -3,7 +3,8 @@
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arme, Touches* t)
     : QWidget(parent)
 {
-    power_up = 3;
+    int ChoixPowerUp = 1;
+
     //ajout à enlever apres test
     QPoint pos = QCursor::pos();
     pos = mapFromGlobal(pos);
@@ -16,8 +17,9 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent,int arm
     // Stocker la référence aux touches pour l'envoi série
     touches = t;
 
-    armes = new Armes(arme);
+    armes = new Armes(arme,ChoixPowerUp);
     maxBalles = armes->nbMunitions();
+    power_up = armes->nbPowerUp();
 
     //compteur de balle, points et vies
 
@@ -206,19 +208,10 @@ void EcranJeu::mousePressEvent(QMouseEvent* event) {
     }
     if (event->button() == Qt::LeftButton) {
         cout << "Tire avec la souris" << endl;
-        tire(reticule->getChoixTir());
+        tire();
     }
     else if (event->button() == Qt::RightButton) {
-         if (power_up > 0) {
-            cout << "power up avec la souris" << endl;
-            rechargerArme();
-            power_up--;
-            tire(30);
-            rechargerArme();
-         }
-         else {
-             cout << "Pas de power up disponible" << endl;
-         }
+        Power();
     }
 
 }
@@ -290,7 +283,7 @@ void EcranJeu::tick()
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
-                tire(reticule->getChoixTir());
+                tire();
 
             }
         }
@@ -321,7 +314,7 @@ void EcranJeu::tick()
 
             if (!gachettePrecedente) {
                 gachettePrecedente = true;
-                tire(reticule->getChoixTir());
+                tire();
 
             }
         }
@@ -342,16 +335,7 @@ void EcranJeu::tick()
 
             if (!powerUp) {
                 powerUp = true;
-                if (power_up > 0) {
-                    cout << "power up avec la manette" << endl;
-                    rechargerArme();
-                    power_up--;
-                    tire(30);
-					rechargerArme();
-                }
-                else {
-                    cout << "Pas de power up disponible" << endl;
-                }
+				Power();
             }
         }
         else {
@@ -581,26 +565,29 @@ void EcranJeu::paintEvent(QPaintEvent*)
         jeu->dessiner(painter, tempsJeuMs);
     }
 
-
-    //Test de dessin du cercle de collision du tir
-
-    //painter.setRenderHint(QPainter::Antialiasing);
-    //painter.setPen(QPen(Qt::blue, 2));
-    //painter.setBrush(Qt::NoBrush);
-
-    //painter.drawPath(armes->choixArme(reticule->getArme(), 622, 300));
-    //painter.drawPath(armes->choixArme(30, 622, 300));
-    //painter.drawPath(armes->choixArme(4, reticule->getX(), reticule->getY()));
-
-
+    //TestHitbox(painter);
 }
+
+void EcranJeu::TestHitbox(QPainter& painter){
+
+   //Test de dessin du cercle de collision du tir
+
+   painter.setRenderHint(QPainter::Antialiasing);
+   painter.setPen(QPen(Qt::blue, 2));
+   painter.setBrush(Qt::NoBrush);
+
+   painter.drawPath(armes->choixArme( 622, 300));
+   //painter.drawPath(armes->Hitbox(30, 622, 300));
+   //painter.drawPath(armes->Hitbox(4, reticule->getX(), reticule->getY()));
+}
+
 
 void EcranJeu::mouseMoveEvent(QMouseEvent* event)
 {
     reticule->setPosition(event->pos());
 }
 
-void EcranJeu::tire(int typeTire) {
+void EcranJeu::tire() {
     //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
     int nombreBalles = 0;
     int nombreVies = vies->getDemiVies();
@@ -609,7 +596,7 @@ void EcranJeu::tire(int typeTire) {
         nombreBalles = compteurBalles->getBalles();
     }
 
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, typeTire);
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
 
     if (gestionnaireAudio != nullptr && nombreBalles > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
@@ -618,6 +605,52 @@ void EcranJeu::tire(int typeTire) {
     if (gestionnaireAudio != nullptr && nombreBalles <= 0) {
         gestionnaireAudio->playSfx("gun_empty");
     }
+
+    if (vies->getDemiVies() > 0) {
+        return;
+    }
+
+    timer.stop();
+
+    overlay = new FadeOverlay(this);
+    overlay->setGeometry(rect());
+    overlay->setAlpha(0);
+    overlay->show();
+    overlay->raise();
+
+    fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
+    fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeInAnim->setDuration(1000);
+    fadeInAnim->setStartValue(0);
+    fadeInAnim->setEndValue(255);
+
+    connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
+        int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
+        emit finPartie(scoreFinal);
+        });
+
+    fadeInAnim->start();
+}
+
+void EcranJeu::Power() {
+
+
+    bool cibleTouchee = 0;
+
+    if (power_up > 0) {
+        rechargerArme();
+        bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+	}
+
+    if (gestionnaireAudio != nullptr && power_up > 0) {
+        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
+
+    if (gestionnaireAudio != nullptr && power_up <= 0) {
+        gestionnaireAudio->playSfx("gun_empty");
+    }
+
+    power_up--;
 
     if (vies->getDemiVies() > 0) {
         return;

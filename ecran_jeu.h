@@ -33,7 +33,7 @@ class EcranJeu : public QWidget
 public:
     EcranJeu(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, int arme = 1, Touches* t=nullptr);
     ~EcranJeu();
-    void tire(int typeTire);
+    void tire();
 
 signals:
     void finPartie(int score);
@@ -46,6 +46,8 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
     void mouseMoveEvent(QMouseEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
+    void TestHitbox(QPainter& painter);
+    void Power();
 
 
 private:

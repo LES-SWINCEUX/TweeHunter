@@ -1,12 +1,21 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme)
+Armes::Armes(int Arme, int PowerUp)
 {
 	ArmeActuelle = Arme;
+	PowerActuelle = PowerUp;
 }
 
-QPainterPath Armes::choixArme(int choix, int x, int y)
+QPainterPath Armes::choixArme(int x, int y) {
+	return Hitbox(ArmeActuelle, x, y);
+}
+
+QPainterPath Armes::choixPowerUp(int x, int y) {
+	return Hitbox(PowerActuelle+30, x, y);
+}
+
+QPainterPath Armes::Hitbox(int choix, int x, int y)
 {
 	QPainterPath Hitbox;
 
@@ -35,7 +44,7 @@ QPainterPath Armes::choixArme(int choix, int x, int y)
 		//cout << "Bombardement sélectionné" << endl;
 		Hitbox = CreerContourTarte(x-150,y-176/2);
 		return Hitbox;
-	case 30:
+	case 31:
 		//cout << "Bombe utilisé<<endl;
 		Hitbox.addEllipse(QPointF(x, y), 300, 300);
 		return Hitbox;
@@ -55,6 +64,21 @@ int Armes::nbMunitions() const
 		return 6;
 	case 5:
 		return 9;
+	default:
+		return 0;
+	}
+}
+
+int Armes::nbPowerUp() const {
+	switch (PowerActuelle) {
+	case 1:
+		return 3;
+	case 2:
+		return 1;
+	case 3:
+		return 2;
+	case 4:
+		return 1;
 	default:
 		return 0;
 	}
