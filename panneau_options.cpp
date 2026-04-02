@@ -4,6 +4,7 @@ PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* pa
 {
     this->gestionnaireAudio = gestionnaireAudio;
     initialiserPanneau();
+    naviguerBas();
 }
 
 PanneauOptions::~PanneauOptions() {
@@ -22,6 +23,11 @@ void PanneauOptions::creer()
     volumeMusique->setEchelle(echelleBoutons);
 
     connect(retourBouton, &Bouton::clicked, this, &PanneauMenu::demanderRetourOptions);
+}
+
+QList<Bouton*> PanneauOptions::boutonsNavigables() const
+{
+    return { volumeMusique, volumeSFX, retourBouton };
 }
 
 static float clampf(float v, float lo, float hi)

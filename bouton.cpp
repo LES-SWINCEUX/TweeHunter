@@ -31,6 +31,25 @@ void Bouton::setEchelle(float s)
     update();
 }
 
+void Bouton::setSelectionneManette(bool actif)
+{
+    selectionne = actif;
+    if (!actif) clique = false;
+    update();
+}
+
+void Bouton::simulerClic()
+{
+    clique = true;
+    update();
+
+    QTimer::singleShot(80, this, [this]() {
+        clique = false;
+        update();
+        emit clicked();
+    });
+}
+
 QSize Bouton::tailleImage() const
 {
     if ((!sprite || sprite->isNull()) || images <= 0) {

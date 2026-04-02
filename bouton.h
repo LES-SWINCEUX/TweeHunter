@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QTimer>
 #include <iostream>
 
 class Bouton : public QWidget
@@ -21,6 +22,8 @@ public:
 
     void setNombreImages(int nombre);
     void setEchelle(float s);
+    void setSelectionneManette(bool actif);   // selection via manette (sans souris)
+    void simulerClic();                       // animation clic manette
     QSize sizeHint() const override;
     QSize tailleImage() const;
 

@@ -93,6 +93,8 @@ private:
 	Armes* armes;
 
 	bool gachettePrecedente = false;
+    bool carrePrecedent     = false;   // debounce bouton carré PS → reload
+    bool startPrecedent     = false;   // debounce bouton Start PS → pause
     bool powerUp = false;
     int largeurMaxBalles = 275;
     int largeurMinBalles = 120;
