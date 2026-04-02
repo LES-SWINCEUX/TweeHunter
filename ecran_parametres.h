@@ -58,6 +58,9 @@ private:
     void placerElements();
     void appliquerEtatVisuel();
     void centrerContenuVerticalement();
+    void appliquerDisponibiliteManettes();
+
+    TypeManette premiereManetteDisponible() const;
 
     int placerGrille(const std::vector<Bouton*>& boutons, int colonnes, int x, int y, int largeurDisponible, int hauteurBoutonCible, int espacementX, int espacementY);
 

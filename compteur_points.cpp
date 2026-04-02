@@ -149,5 +149,6 @@ void CompteurPoints::paintEvent(QPaintEvent*)
     int rightPadding = int(rect().width() * 0.08);
     textRect.adjust(leftPadding, 0, -rightPadding, 0);
 
+    p.setPen(Qt::white);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignRight, formatterPoints(points));
 }

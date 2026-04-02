@@ -11,14 +11,7 @@ void GestionnaireConfiguration::sauvegarder(const ConfigurationPartie& config)
     s.setValue("difficulte", int(config.difficulte));
     s.setValue("manette", int(config.manette));
     s.setValue("nomJoueur", config.nomJoueur);
-
-    s.beginWriteArray("powerUps");
-    int index = 0;
-    for (PowerUpType powerUp : config.powerUps) {
-        s.setArrayIndex(index++);
-        s.setValue("value", int(powerUp));
-    }
-    s.endArray();
+    s.setValue("powerUp", int(config.powerUp));
 
     s.endGroup();
 }
@@ -33,8 +26,7 @@ ConfigurationPartie GestionnaireConfiguration::charger() const
     config.difficulte = DifficultePartie::NORMAL;
     config.manette = TypeManette::STANDARD;
     config.nomJoueur = "";
-    config.powerUps.clear();
-    config.powerUps.insert(PowerUpType::GRENADE);
+    config.powerUp = PowerUpType::GRENADE;
 
     s.beginGroup("config");
 
@@ -43,18 +35,7 @@ ConfigurationPartie GestionnaireConfiguration::charger() const
     config.difficulte = DifficultePartie(s.value("difficulte", int(config.difficulte)).toInt());
     config.manette = TypeManette(s.value("manette", int(config.manette)).toInt());
     config.nomJoueur = s.value("nomJoueur", config.nomJoueur).toString();
-
-    config.powerUps.clear();
-    int n = s.beginReadArray("powerUps");
-    for (int i = 0; i < n; ++i) {
-        s.setArrayIndex(i);
-        config.powerUps.insert(PowerUpType(s.value("value").toInt()));
-    }
-    s.endArray();
-
-    if (config.powerUps.isEmpty()) {
-        config.powerUps.insert(PowerUpType::GRENADE);
-    }
+    config.powerUp = PowerUpType(s.value("powerUp", int(config.powerUp)).toInt());
 
     s.endGroup();
 
@@ -66,5 +47,13 @@ void GestionnaireConfiguration::reset()
     QSettings s("TweeHunter", "ConfigPartie");
     s.beginGroup("config");
     s.remove("");
+    s.endGroup();
+}
+
+void GestionnaireConfiguration::sauvegarderManette(TypeManette manette)
+{
+    QSettings s("TweeHunter", "ConfigPartie");
+    s.beginGroup("config");
+    s.setValue("manette", int(manette));
     s.endGroup();
 }
