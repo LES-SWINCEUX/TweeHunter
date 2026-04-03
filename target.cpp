@@ -22,7 +22,6 @@ void Target::chargerSprite(Sprite& sprite, const QString& cheminSprite, int colo
 	QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(cheminResolu);
 
 	if (!pix || pix->isNull()) {
-		std::cout << "TARGET::Erreur chargement Target ->" << cheminSprite.toStdString() << std::endl;
 		return;
 	}
 

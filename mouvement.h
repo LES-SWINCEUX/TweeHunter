@@ -61,12 +61,12 @@ private:
 
 	QPointF positionDepart;
 	QPointF positionFin;
-	double vitesse; // pixels par seconde
+	double vitesse;
 	TypeTrajectoire type;
 
 	qint64 tempsDebut;
 	double distanceTotale;
-	double dureeTrajet; //ms
+	double dureeTrajet;
 	bool arrive;
 
 	static constexpr double AMPLITUDE_ZIGZAG = 50.0;

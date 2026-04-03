@@ -72,7 +72,7 @@ private:
     void TestHitbox(QPainter& painter);
 
     ConfigurationPartie configurationPartie;
-    bool enPause          = false;
+    bool enPause = false;
     bool transitionVersMenu = false;
 
     QTimer timer;
@@ -88,7 +88,7 @@ private:
     GestionnaireEntrees* gestionnaireEntrees = nullptr;
     Reticule* reticule = nullptr;
     SDL_Gamepad* gamepad  = nullptr;
-    Touches* touches  = nullptr;
+    Touches* touches = nullptr;
 
     CompteurBalles* compteurBalles = nullptr;
     Vies* vies = nullptr;

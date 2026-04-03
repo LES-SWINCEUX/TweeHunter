@@ -92,8 +92,8 @@ void EcranParametres::creerInterface()
     boutonTacticalNuke = new Bouton("/images/parameters/tactical_nuke.png", 3, this);
 
     boutonDifficulteNormal = new BoutonOptions("NORMAL", "MODE CLASSIQUE", BoutonOptions::Theme::Bleu, this);
-    boutonDifficulteRng = new BoutonOptions("RNG", "RÉTICULE ALÉATOIRE", BoutonOptions::Theme::Vert, this);
-    boutonDifficulteChaos = new BoutonOptions("CHAOS", "ÉNORMÉMENT D'ENNEMIS", BoutonOptions::Theme::Rouge, this);
+    boutonDifficulteRng = new BoutonOptions("RNG", "RÉTICULE ALÉATOIRE", BoutonOptions::Theme::Vert, this);
+    boutonDifficulteChaos = new BoutonOptions("CHAOS", "ÉNORMÉMENT D'ENNEMIS", BoutonOptions::Theme::Rouge, this);
 
     boutonManetteStandard = new Bouton("/images/parameters/manette_standard.png", 3, this);
     boutonManetteCustom = new Bouton("/images/parameters/manette_custom.png", 3, this);
@@ -589,6 +589,8 @@ void EcranParametres::placerElements()
 
     centrerContenuVerticalement();
 
+    aideFont_pixelSize = std::max(8, int(12 * std::clamp(float(H) / 1080.0f, 0.7f, 1.0f)));
+
     if (overlay) {
         overlay->setGeometry(rect());
         overlay->raise();
@@ -683,16 +685,6 @@ void EcranParametres::paintEvent(QPaintEvent*)
     dessinerPixmap(painter, titreChoixManetteImg, rectTitreChoixManette);
     dessinerPixmap(painter, titreNomImg, rectTitreNom);
     dessinerPixmap(painter, fondNomImg, rectFondNom);
-
-    QFont aideFont("Press Start 2P");
-    aideFont.setPixelSize(std::max(8, int(12 * std::clamp(float(height()) / 1080.0f, 0.7f, 1.0f))));
-    painter.setFont(aideFont);
-    painter.setPen(QColor("#FFF2A6"));
-    painter.drawText(
-        QRect(20, height() - 30, width() - 40, 20),
-        Qt::AlignLeft | Qt::AlignVCenter,
-        "ESC - RETOUR"
-    );
 }
 
 void EcranParametres::resizeEvent(QResizeEvent* event)

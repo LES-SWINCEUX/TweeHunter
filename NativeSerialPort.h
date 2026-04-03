@@ -27,20 +27,20 @@ public:
     explicit SerialReaderThread(QObject* parent = nullptr);
     void stop();
 
-    QByteArray  sharedBuffer;
-    QMutex      mutex;
+    QByteArray sharedBuffer;
+    QMutex mutex;
 
 #ifdef _WIN32
-    HANDLE      handle = INVALID_HANDLE_VALUE;
+    HANDLE handle = INVALID_HANDLE_VALUE;
 #else
-    int         fd = -1;
+    int fd = -1;
 #endif
 
 protected:
     void run() override;
 
 private:
-    QAtomicInt  m_stop{ 0 };
+    QAtomicInt m_stop{ 0 };
 };
 
 class NativeSerialPort

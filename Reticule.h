@@ -37,7 +37,6 @@ public:
 	void moveJoystick(int x, int y, QWidget* parent);
 	void moveJoystickPerso(int x, int y, QWidget* parent);
 
-	// Appelé par EcranJeu::tick() après lirePerso() — synchronisé avec le rendu
 	void applyJoystickPerso(QWidget* parent, float deltaMs);
 
 	int getX() const;
@@ -75,7 +74,6 @@ private:
 
 	int choixTir;
 
-	// Accumulation des fractions de pixels pour eviter les skips
 	float accumX = 0.0f;
 	float accumY = 0.0f;
 

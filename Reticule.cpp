@@ -16,8 +16,6 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 
 	ChangeReticule(parent, choixTir);
 
-	cout << touches->isJoystickConnected() << ": Reticule" << endl;
-
 	if (manetteActive == TypeManette::STANDARD && touches && touches->isJoystickConnected()) {
 		QTimer* timer = new QTimer(this);
 		timer->start(16);
@@ -55,8 +53,7 @@ void Reticule::ChangeReticule(QWidget* parent,int choix) {
 
 	choixTir = choix;
 	image = QPixmap(QString::fromStdString(getPath(choix)));
-	if (image.isNull()) {
-	}
+
 	setFixedSize(image.size());
 	resize(parent->size());
 

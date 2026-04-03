@@ -160,6 +160,7 @@ private:
 
     bool transitionEnCours = false;
     QFont policeTitre;
+    int aideFont_pixelSize = 12;
 };
 
 #endif

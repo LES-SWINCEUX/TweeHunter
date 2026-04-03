@@ -8,7 +8,7 @@
 #include <QDebug>
 #include <cmath>
 
-#include "NativeSerialPort.h"   // remplace QSerialPort
+#include "NativeSerialPort.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -16,7 +16,6 @@ using namespace std;
 
 class Touches : public QObject
 {
-
 	Q_OBJECT
 
 public:
@@ -59,15 +58,13 @@ private:
 	bool reload = false;
 	bool accelerometre = false;
 
-	// Valeurs joystick en attente — seule la derniere par frame est appliquee
 	int  pendingX = 512;
 	int  pendingY = 512;
 	bool hasNewJoystick = false;
 	int encodeur = 0;
 	int lastEncodeur = 0;
 
-	NativeSerialPort serial;   // remplace QSerialPort
-
+	NativeSerialPort serial;
 };
 
 #endif

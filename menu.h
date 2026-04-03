@@ -49,7 +49,7 @@ private:
     QPixmap arrierePlanCache;
 
     QTimer timerAnimationTitre;
-    QTimer timerManette;              // poll SDL gamepad ~60 Hz
+    QTimer timerManette;
 
     FadeOverlay* overlay = nullptr;
 
@@ -77,14 +77,12 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
-    // Debounce manette SDL
     bool dpadHautPrecedent  = false;
     bool dpadBasPrecedent   = false;
     bool boutonOkPrecedent  = false;
 
     SDL_Gamepad* gamepad = nullptr;
 
-    // Manette custom
     Touches* touchesPerso   = nullptr;
     bool customHautPrecedent = false;
     bool customBasPrecedent  = false;

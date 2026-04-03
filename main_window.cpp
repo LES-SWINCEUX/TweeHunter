@@ -11,7 +11,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     afficherMenuPrincipal();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    delete touches;
+}
 
 void MainWindow::afficherMenuPrincipal() {
     if (this->menuPrincipal == nullptr) {

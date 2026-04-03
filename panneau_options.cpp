@@ -1,4 +1,4 @@
-﻿#include "panneau_options.h"
+#include "panneau_options.h"
 
 PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent) : PanneauMenu(parent)
 {
@@ -7,9 +7,7 @@ PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* pa
     naviguerBas();
 }
 
-PanneauOptions::~PanneauOptions() {
-    std::cout << "PanneauOptions détruit" << std::endl;
-}
+PanneauOptions::~PanneauOptions() {}
 
 void PanneauOptions::creer()
 {

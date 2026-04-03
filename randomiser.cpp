@@ -1,13 +1,11 @@
 #include "randomiser.h"
 
 Randomiser::Randomiser(const QSizeF& tailleEcran)
-	: tailleEcran(tailleEcran),
-	intervalSpawn(INTERVALLE_SPAWN_DEFAUT),
-	variationSpawn(VARIATION_SPAWN_DEFAUT),
-	margeEcran(MARGE_ECRAN_DEFAULT),
-	generateur(std::random_device{}())
-{
-}
+	: tailleEcran(tailleEcran), 
+	intervalSpawn(INTERVALLE_SPAWN_DEFAUT), 
+	variationSpawn(VARIATION_SPAWN_DEFAUT), 
+	margeEcran(MARGE_ECRAN_DEFAULT), 
+	generateur(std::random_device{}()) {}
 
 void Randomiser::ajouterTypeTarget(const DefinitionTarget& definition)
 {
@@ -144,7 +142,7 @@ TypeTrajectoire Randomiser::choisirTrajectoire() const
 	if (choix < 2) {
 		return TypeTrajectoire::LINEAIRE;
 	}
-
+		
 	if (choix < 4) {
 		return TypeTrajectoire::COURBE_HAUT;
 	}
@@ -152,7 +150,7 @@ TypeTrajectoire Randomiser::choisirTrajectoire() const
 	if (choix < 6) {
 		return TypeTrajectoire::COURBE_BAS;
 	}
-
+		
 	return TypeTrajectoire::ZIGZAG;
 }
 

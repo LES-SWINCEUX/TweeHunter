@@ -11,8 +11,7 @@ class TexteMenu : public QWidget
 {
     Q_OBJECT
 public:
-    TexteMenu(QWidget* parent = nullptr)
-        : QWidget(parent)
+    TexteMenu(QWidget* parent = nullptr) : QWidget(parent)
     {
         setAttribute(Qt::WA_TranslucentBackground);
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -40,11 +39,11 @@ protected:
 
 private:
     QString texte;
-    QFont   styleEcriture;
-    QColor  remplissage = QColor("#FFE066");
-    QColor  contour = QColor("#B11B1B");
-    QColor  ombrage = QColor(0, 0, 0, 200);
-    float   largeurContour = 4.0f;
+    QFont styleEcriture;
+    QColor remplissage = QColor("#FFE066");
+    QColor contour = QColor("#B11B1B");
+    QColor ombrage = QColor(0, 0, 0, 200);
+    float largeurContour = 4.0f;
     QPointF ombrageOffset = QPointF(3.0, 3.0);
     Qt::Alignment m_alignment = Qt::AlignCenter | Qt::AlignVCenter;
 };

@@ -255,12 +255,10 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-
 	return verifierCollisions(armes->choixArme(x, y), tempsMs);
 }
 
-bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
-	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()
@@ -410,8 +408,7 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 
 		QColor ombre(0, 0, 0, alpha / 2);
 		painter.setPen(ombre);
-		painter.drawText(QRectF(pos.x() - 60 + 2, pos.y() - 20 + 2, 120, 40),
-			Qt::AlignCenter, texte);
+		painter.drawText(QRectF(pos.x() - 60 + 2, pos.y() - 20 + 2, 120, 40), Qt::AlignCenter, texte);
 
 		painter.setPen(couleurTexte);
 		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40), Qt::AlignCenter, texte);

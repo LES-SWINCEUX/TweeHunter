@@ -11,13 +11,6 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
 
     this->gestionnaireAudio = gestionnaireAudio;
 
-    if (!arrierePlan || arrierePlan->isNull()) {
-        std::cout << "MENU::Arrière plan non-chargé";
-    }
-    if (!titreSprite || titreSprite->isNull()) {
-        std::cout << "MENU::Titre non-chargé";
-    }
-
     configuerAnimationTitre();
 
     cannettes = new DecorationMenu(this);
@@ -50,13 +43,11 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
 
     if (this->gestionnaireAudio != nullptr) {
-        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume", this);
     }
 
-    connect(estompeAnimation, &QPropertyAnimation::finished,
-        this, &MenuPrincipal::jouerDemande);
+    connect(estompeAnimation, &QPropertyAnimation::finished, this, &MenuPrincipal::jouerDemande);
 
-    // Timer poll manette SDL ~60 Hz
     connect(&timerManette, &QTimer::timeout, this, &MenuPrincipal::tickManette);
     timerManette.setInterval(16);
     timerManette.start();
@@ -267,7 +258,6 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 }
 
 void MenuPrincipal::afficherOptions() {
-    std::cout << "Affichages des options" << std::endl;
     PanneauMenu* ancienPanneau = panneau;
 
     panneau = new PanneauOptions(this->gestionnaireAudio, this);
@@ -309,14 +299,14 @@ void MenuPrincipal::afficherPanneauPrincipal() {
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
 
     connect(panneau, &PanneauMenu::demanderQuitter, this, []() {
-        std::cout << "Demande de sortie de l'application" << std::endl;
         qApp->quit();
-        });
+    });
 
     connect(panneau, &PanneauMenu::demanderJouer, this, [this]() {
-        if (fadeEnCours) return;
+        if (fadeEnCours) {
+            return;
+        }
 
-        std::cout << "Demande de landement de la partie" << std::endl;
         fadeEnCours = true;
 
         setEnabled(false);
@@ -331,14 +321,15 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         estompeAnimation->setEndValue(255);
 
         if (this->gestionnaireAudio != nullptr) {
+            estompeMusique->stop();
             estompeMusique->setDuration(1000);
             estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
             estompeMusique->setEndValue(0.0);
-            estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+            estompeMusique->start();
         }
 
         estompeAnimation->start();
-        });
+    });
 }
 
 void MenuPrincipal::afficherPanneauScores() {
@@ -380,7 +371,6 @@ void MenuPrincipal::keyPressEvent(QKeyEvent* e)
 
 void MenuPrincipal::initialiserManette()
 {
-    // SDL_INIT_GAMEPAD peut déjà être init par EcranJeu — SDL_Init est idempotent
     SDL_Init(SDL_INIT_GAMEPAD);
 
     int count = 0;
@@ -393,13 +383,17 @@ void MenuPrincipal::initialiserManette()
 
 void MenuPrincipal::tickManette()
 {
-    if (!panneau || fadeEnCours) return;
+    if (!panneau || fadeEnCours) {
+        return;
+    }
 
     SDL_PumpEvents();
 
-    // --- Manette SDL (PlayStation) ---
     if (!gamepad || !SDL_GamepadConnected(gamepad)) {
-        if (gamepad) { SDL_CloseGamepad(gamepad); gamepad = nullptr; }
+        if (gamepad) { 
+            SDL_CloseGamepad(gamepad); 
+            gamepad = nullptr; 
+        }
         initialiserManette();
     }
 
@@ -408,42 +402,56 @@ void MenuPrincipal::tickManette()
     bool ok   = false;
 
     if (gamepad && SDL_GamepadConnected(gamepad)) {
-        bool dpadHaut  = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-        bool dpadBas   = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
+        bool dpadBas = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
         bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
-        bool joystickBas  = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
-        bool croix     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-        bool start     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+        bool joystickBas = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
+        bool croix = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
+        bool start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
 
-        haut = dpadHaut  || joystickHaut;
-        bas  = dpadBas   || joystickBas;
-        ok   = croix     || start;
+        haut = dpadHaut || joystickHaut;
+        bas = dpadBas || joystickBas;
+        ok = croix || start;
     }
 
-    if (haut && !dpadHautPrecedent)  panneau->naviguerHaut();
-    if (bas  && !dpadBasPrecedent)   panneau->naviguerBas();
-    if (ok   && !boutonOkPrecedent)  panneau->confirmer();
+    if (haut && !dpadHautPrecedent) {
+        panneau->naviguerHaut();
+    }
+
+    if (bas && !dpadBasPrecedent) {
+        panneau->naviguerBas();
+    }
+
+    if (ok && !boutonOkPrecedent) {
+        panneau->confirmer();
+    }
 
     dpadHautPrecedent = haut;
-    dpadBasPrecedent  = bas;
+    dpadBasPrecedent = bas;
     boutonOkPrecedent = ok;
 
-    // --- Manette custom (série) ---
     if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
         touchesPerso->lirePerso();
 
-        // Joystick Y : 0-1023, centre ~512
         int jy = touchesPerso->getyPerso();
-        bool customHaut = (jy < 300);   // joystick poussé vers le haut
-        bool customBas  = (jy > 700);   // joystick poussé vers le bas
-        bool customOk   = touchesPerso->getGachette();
+        bool customHaut = (jy < 300);
+        bool customBas = (jy > 700);
+        bool customOk = touchesPerso->getGachette();
 
-        if (customHaut && !customHautPrecedent) panneau->naviguerHaut();
-        if (customBas  && !customBasPrecedent)  panneau->naviguerBas();
-        if (customOk   && !customOkPrecedent)   panneau->confirmer();
+        if (customHaut && !customHautPrecedent) {
+            panneau->naviguerHaut();
+        }
+
+        if (customBas && !customBasPrecedent) {
+            panneau->naviguerBas();
+        }
+
+        if (customOk && !customOkPrecedent) {
+            panneau->confirmer();
+        }
 
         customHautPrecedent = customHaut;
-        customBasPrecedent  = customBas;
-        customOkPrecedent   = customOk;
+        customBasPrecedent = customBas;
+        customOkPrecedent = customOk;
     }
 }

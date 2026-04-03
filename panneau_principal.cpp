@@ -6,9 +6,7 @@ PanneauPrincipal::PanneauPrincipal(QWidget* parent) : PanneauMenu(parent)
     naviguerBas();
 }
 
-PanneauPrincipal::~PanneauPrincipal() {
-    std::cout << "Panneau Principal détuit" << std::endl;
-}
+PanneauPrincipal::~PanneauPrincipal() {}
 
 void PanneauPrincipal::creer()
 {

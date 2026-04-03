@@ -72,13 +72,22 @@ void MenuPauseOverlay::keyPressEvent(QKeyEvent* e)
         return;
     }
 
-    if (!panneau) { QWidget::keyPressEvent(e); return; }
+    if (!panneau) { 
+        QWidget::keyPressEvent(e);
+        return; 
+    }
 
     switch (e->key()) {
-    case Qt::Key_Up:    panneau->naviguerHaut(); break;
-    case Qt::Key_Down:  panneau->naviguerBas();  break;
+    case Qt::Key_Up:
+        panneau->naviguerHaut();
+        break;
+    case Qt::Key_Down:
+        panneau->naviguerBas();  
+        break;
     case Qt::Key_Return:
-    case Qt::Key_Space: panneau->confirmer();    break;
+    case Qt::Key_Space: 
+        panneau->confirmer();
+        break;
     default: QWidget::keyPressEvent(e);
     }
 }
@@ -103,15 +112,16 @@ void MenuPauseOverlay::tickManette()
 
     SDL_PumpEvents();
 
-    // --- Manette SDL (PlayStation) ---
     if (!gamepad || !SDL_GamepadConnected(gamepad)) {
-        if (gamepad) { SDL_CloseGamepad(gamepad); gamepad = nullptr; }
+        if (gamepad) { 
+            SDL_CloseGamepad(gamepad); gamepad = nullptr;
+        }
         initialiserManette();
     }
 
-    bool haut   = false;
-    bool bas    = false;
-    bool ok     = false;
+    bool haut = false;
+    bool bas = false;
+    bool ok = false;
     bool retour = false;
 
     if (gamepad && SDL_GamepadConnected(gamepad)) {
@@ -122,9 +132,9 @@ void MenuPauseOverlay::tickManette()
         bool croix = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
         bool rond = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST);
 
-        haut = dpadHaut  || joystickHaut;
-        bas = dpadBas   || joystickBas;
-        ok = croix;
+        haut = dpadHaut || joystickHaut;
+        bas = dpadBas || joystickBas;
+        ok = croix;      
         retour = rond;
     }
 
