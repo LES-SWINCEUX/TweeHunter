@@ -7,7 +7,7 @@ CompteurPowerUp::CompteurPowerUp(QWidget* parent, PowerUpType type, int nbInitia
     , nbMax(nbInitial)
 {
     setAttribute(Qt::WA_TranslucentBackground, true);
-    setAttribute(Qt::WA_OpaquePaintEvent,      false);
+    setAttribute(Qt::WA_OpaquePaintEvent, false);
     chargerSpriteSheet();
 
     labelCount = new QLabel(this);
