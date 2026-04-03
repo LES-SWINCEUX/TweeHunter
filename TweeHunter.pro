@@ -56,7 +56,8 @@ SOURCES += \
     gestionnaire_configuration.cpp \
     menu_pause_overlay.cpp \
     bush_louche.cpp \
-    bush.cpp
+    bush.cpp \
+    gestionnaire_entrees.cpp
 
 HEADERS += \
     main_window.h \
@@ -103,7 +104,8 @@ HEADERS += \
     NativeSerialPort.h \
     configuration_partie.h \
     bouton_options.h \
-    gestionnaire_configuration.h
+    gestionnaire_configuration.h \
+    gestionnaire_entrees.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

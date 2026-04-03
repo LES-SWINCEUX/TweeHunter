@@ -11,7 +11,6 @@
 #include <QPixmap>
 #include <SDL3/SDL.h>
 #include <QKeyEvent>
-#include <QTimer>
 #include <QDebug>
 #include <cmath>
 
@@ -19,6 +18,7 @@
 #include "compteur_points.h"
 #include "fade_overlay.h"
 #include "gestionnaire_audio.h"
+#include "gestionnaire_entrees.h"
 #include "jeu.h"
 #include "Reticule.h"
 #include "vie.h"
@@ -27,88 +27,114 @@
 #include "Touches.h"
 #include "configuration_partie.h"
 
+// ---------------------------------------------------------------------------
+// EcranJeu
+//
+// Écran principal de jeu. Coordonne :
+//   - la boucle de jeu (tick à 60 Hz)
+//   - le rendu (paintEvent)
+//   - la gestion des entrées (déléguée à GestionnaireEntrees)
+//   - le HUD (CompteurBalles, Vies, CompteurPoints)
+//   - les transitions (pause, fin de partie, retour au menu)
+// ---------------------------------------------------------------------------
 class EcranJeu : public QWidget
 {
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& config, QWidget* parent = nullptr, Touches* touches = nullptr);
+    EcranJeu(GestionnaireAudio*        gestionnaireAudio,
+             const ConfigurationPartie& config,
+             QWidget*                  parent  = nullptr,
+             Touches*                  touches = nullptr);
     ~EcranJeu();
-    void tire();
 
+    void tire();
 
 signals:
     void finPartie(int score);
     void retourMenuDemande();
-	void ballesChanged(int nbBalles);
+    void ballesChanged(int nbBalles);
 
 protected:
-    void paintEvent(QPaintEvent*) override;
-    void resizeEvent(QResizeEvent* e) override;
-    void showEvent(QShowEvent* e) override;
-    void keyPressEvent(QKeyEvent* e) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-	void mousePressEvent(QMouseEvent* event) override;
-    void TestHitbox(QPainter& painter);
-    void Power();
-
+    void paintEvent(QPaintEvent*)            override;
+    void resizeEvent(QResizeEvent* e)        override;
+    void showEvent(QShowEvent* e)            override;
+    void keyPressEvent(QKeyEvent* e)         override;
+    void mouseMoveEvent(QMouseEvent* event)  override;
+    void mousePressEvent(QMouseEvent* event) override;
 
 private:
+    // -- Initialisation (appelées depuis le constructeur) --
+    void initReticuleEtArmes();
+    void initHUD();
+    void initAudio();
+    void initAnimations();
+    void initMinuterie();
+
+    // -- Boucle de jeu --
     void tick();
-    void placerElementsGUI();
+
+    // -- Tir --
+    void Power();
     void rechargerArme();
 
+    // -- HUD --
+    void placerElementsGUI();
+
+    // -- Transitions --
     void mettreEnPause();
     void reprendreJeu();
     void demarrerFadeOutVersMenu();
+    void declencherFinPartie(); // Sécurisé contre les appels multiples
 
-    QTimer timer;
-    QElapsedTimer elapsed;
+    // -- Debug --
+    void TestHitbox(QPainter& painter);
+
+    // -- État général --
+    ConfigurationPartie configurationPartie;
+    bool enPause          = false;
+    bool transitionVersMenu = false;
+
+    // -- Boucle de jeu --
+    QTimer        timer;
     QElapsedTimer frameTimer;
-    qint64 tempsJeuMs = 0;
+    QElapsedTimer elapsed;
+    qint64        tempsJeuMs = 0;
 
-    FadeOverlay* overlay = nullptr;
-    FadeOverlay* overlayFadeOut = nullptr;
-    GestionnaireAudio* gestionnaireAudio = nullptr;
+    // -- Logique de jeu --
+    Jeu*   jeu      = nullptr;
+    Armes* armes    = nullptr;
+    int    maxBalles = 0;
+    int    power_up  = 0;
+
+    // -- Entrées --
+    GestionnaireEntrees* gestionnaireEntrees = nullptr;
+    Reticule*    reticule = nullptr;
+    SDL_Gamepad* gamepad  = nullptr;
+    Touches*     touches  = nullptr;
+
+    // -- HUD --
+    CompteurBalles* compteurBalles = nullptr;
+    Vies*           vies           = nullptr;
+    CompteurPoints* compteurPoints = nullptr;
+    static constexpr int LARGEUR_MIN_BALLES = 120;
+    static constexpr int LARGEUR_MAX_BALLES = 275;
+
+    // -- Arrière-plan --
+    QSharedPointer<QPixmap> arrierePlan;
+    QPixmap                 arrierePlanCache;
+
+    // -- Overlays et animations --
+    GestionnaireAudio*  gestionnaireAudio = nullptr;
+    FadeOverlay*        overlay           = nullptr;
+    FadeOverlay*        overlayFadeOut    = nullptr;
+    MenuPauseOverlay*   menuPause         = nullptr;
+    QTimer*             timerManette      = nullptr;
 
     QPropertyAnimation* estompeMusique = nullptr;
-    QPropertyAnimation* fadeInAnim = nullptr;
-    QPropertyAnimation* fadeOutAnim = nullptr;
+    QPropertyAnimation* fadeInAnim     = nullptr;
+    QPropertyAnimation* fadeOutAnim    = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
-
-    QSharedPointer<QPixmap> arrierePlan;
-    QPixmap arrierePlanCache;
-    
-    Reticule* reticule;
-
-    CompteurBalles* compteurBalles = nullptr;
-    Vies* vies = nullptr;
-    CompteurPoints* compteurPoints = nullptr;
-
-    SDL_Gamepad* gamepad = nullptr;
-
-    bool enPause = false;
-    bool transitionVersMenu = false;
-    MenuPauseOverlay* menuPause = nullptr;
-    QTimer* timerManette = nullptr;
-
-    Jeu* jeu = nullptr;
-
-    int maxBalles;
-	Armes* armes;
-
-	bool gachettePrecedente = false;
-    bool reloadPrecedent = false;
-    bool startPrecedent = false;
-    bool powerUp = false;
-
-    int largeurMaxBalles = 275;
-    int largeurMinBalles = 120;
-
-    Touches* touches = nullptr;
-
-    int power_up = 0;
-    ConfigurationPartie configurationPartie;
 };
 
-#endif
+#endif // ECRAN_JEU_H

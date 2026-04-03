@@ -17,11 +17,20 @@
 #include "gestionnaire_audio.h"
 #include "Armes.h"
 #include <functional>
+#include <QFont>
+#include <QColor>
 
+// Indicateur de score flottant affich� lors d'un tir r�ussi
+struct IndicateurScore {
+	QPointF position;      // position d'apparition (centre de la cible)
+	int     points;        // valeur affich�e (positif ou n�gatif)
+	qint64  tempsDebut;    // timestamp de cr�ation
+	static constexpr qint64 DUREE_MS = 1200; // dur�e totale de l'animation
+};
 
 using namespace std;
 
-class Jeu 
+class Jeu
 {
 
 public:
@@ -80,7 +89,7 @@ public:
 	}
 
 private:
-	
+
 	static QSharedPointer<QPixmap> spriteDestruction;
 	void nettoyerCiblesInactives();
 
@@ -106,6 +115,11 @@ private:
 	Armes* armes = nullptr;
 
 	std::function<void()> onMoteurDemande;
+
+	// Indicateurs de score flottants
+	QList<IndicateurScore> indicateurs;
+	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
+	void nettoyerIndicateurs(qint64 tempsMs);
 };
 
 #endif
