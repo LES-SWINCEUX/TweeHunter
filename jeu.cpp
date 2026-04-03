@@ -150,7 +150,7 @@ bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
 		connect(timer, &QTimer::timeout, this, [this]() {
 			// Ton code qui s'exécute chaque 0.1 seconde
 			verifierCollisions(armes->choixArme(reticule->getX(), reticule->getY()), TempsMs);
-
+			TempsMs += 100;  // Incrémente le temps de 0.1 seconde
 			compteur++;
 			if (compteur >= 100) {  // 100 x 0.1s = 10 secondes
 				timer->stop();
