@@ -33,7 +33,7 @@ void EcranJeu::initReticuleEtArmes()
     reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, touches);
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme, 1);
+    armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
     maxBalles = armes->nbMunitions();
     power_up  = armes->nbPowerUp();
 

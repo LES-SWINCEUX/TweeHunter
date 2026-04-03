@@ -1,7 +1,7 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, int PowerUp)
+Armes::Armes(int Arme, PowerUpType PowerUp)
 {
 	ArmeActuelle = Arme;
 	PowerActuelle = PowerUp;
@@ -12,7 +12,18 @@ QPainterPath Armes::choixArme(int x, int y) {
 }
 
 QPainterPath Armes::choixPowerUp(int x, int y) {
-	return Hitbox(PowerActuelle+30, x, y);
+	return Hitbox(PowerActuelle, x, y);
+}
+
+QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
+	QPainterPath Hitbox;
+	switch (choix) {
+		case PowerUpType::GRENADE:
+			Hitbox.addEllipse(QPointF(x, y), 300, 300);
+			return Hitbox;
+		default:
+			return Hitbox;
+	}
 }
 
 QPainterPath Armes::Hitbox(int choix, int x, int y)
@@ -48,10 +59,6 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		// Swince : comportement temporaire en attendant un réticule dédié
 		Hitbox.addEllipse(QPointF(x, y), 45, 45);
 		return Hitbox;
-	case 31:
-		//cout << "Bombe utilisé<<endl;
-		Hitbox.addEllipse(QPointF(x, y), 300, 300);
-		return Hitbox;
 	default:
 		return Hitbox;
 	}
@@ -79,13 +86,13 @@ int Armes::nbMunitions() const
 
 int Armes::nbPowerUp() const {
 	switch (PowerActuelle) {
-	case 1:
+	case PowerUpType::GRENADE:
 		return 3;
-	case 2:
+	case PowerUpType::ZAP:
 		return 1;
-	case 3:
+	case PowerUpType::MITRAILLETTE:
 		return 2;
-	case 4:
+	case PowerUpType::TACTICAL_NUKE:
 		return 1;
 	default:
 		return 0;
