@@ -18,17 +18,21 @@
 #include <QShowEvent>
 #include <algorithm>
 
+#include <QTimer>
+#include <SDL3/SDL.h>
+
 #include "fade_overlay.h"
 #include "sprite_manager.h"
 #include "bouton.h"
 #include "gestionnaire_audio.h"
+#include "Touches.h"
 
 class EcranFinPartie : public QWidget
 {
     Q_OBJECT
 
 public:
-    EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, Touches* touches = nullptr);
     ~EcranFinPartie() = default;
 
     void setScore(int score);
@@ -60,8 +64,8 @@ private:
     QPixmap panneauCache;
 
     QSharedPointer<QPixmap> titreImg;
-    QPixmap titreCache;
-    QRect titreCacheRect;
+    QPixmap titreCache;       // cache du titre mis à l'échelle (recalculé uniquement au resize)
+    QRect   titreCacheRect;   // position/taille précalculée du titre
 
     FadeOverlay* overlay = nullptr;
     QPropertyAnimation* fadeAnim = nullptr;
@@ -77,6 +81,17 @@ private:
     Bouton* boutonValider = nullptr;
 
     QFont fontPixel;
+
+    // --- Manette ---
+    Touches*     touches      = nullptr;
+    SDL_Gamepad* gamepad      = nullptr;
+    QTimer       timerManette;
+    bool         boutonOkPrecedent     = false;
+    bool         customOkPrecedent     = false;
+    bool         transitionEnCours     = false;
+
+    void initialiserManette();
+    void tickManette();
 
     const int SRC_W = 1536;
     const int SRC_H = 1024;
