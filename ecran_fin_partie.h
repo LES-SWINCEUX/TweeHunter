@@ -61,6 +61,7 @@ private:
 
     QSharedPointer<QPixmap> titreImg;
     QPixmap titreCache;
+    QRect titreCacheRect;
 
     FadeOverlay* overlay = nullptr;
     QPropertyAnimation* fadeAnim = nullptr;

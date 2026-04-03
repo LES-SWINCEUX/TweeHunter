@@ -27,25 +27,12 @@
 #include "Touches.h"
 #include "configuration_partie.h"
 
-// ---------------------------------------------------------------------------
-// EcranJeu
-//
-// Écran principal de jeu. Coordonne :
-//   - la boucle de jeu (tick à 60 Hz)
-//   - le rendu (paintEvent)
-//   - la gestion des entrées (déléguée à GestionnaireEntrees)
-//   - le HUD (CompteurBalles, Vies, CompteurPoints)
-//   - les transitions (pause, fin de partie, retour au menu)
-// ---------------------------------------------------------------------------
 class EcranJeu : public QWidget
 {
     Q_OBJECT
 
 public:
-    EcranJeu(GestionnaireAudio*        gestionnaireAudio,
-             const ConfigurationPartie& config,
-             QWidget*                  parent  = nullptr,
-             Touches*                  touches = nullptr);
+    EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& config, QWidget* parent  = nullptr, Touches* touches = nullptr);
     ~EcranJeu();
 
     void tire();
@@ -64,77 +51,64 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
 
 private:
-    // -- Initialisation (appelées depuis le constructeur) --
     void initReticuleEtArmes();
     void initHUD();
     void initAudio();
     void initAnimations();
     void initMinuterie();
 
-    // -- Boucle de jeu --
     void tick();
 
-    // -- Tir --
     void Power();
     void rechargerArme();
 
-    // -- HUD --
     void placerElementsGUI();
 
-    // -- Transitions --
     void mettreEnPause();
     void reprendreJeu();
     void demarrerFadeOutVersMenu();
-    void declencherFinPartie(); // Sécurisé contre les appels multiples
+    void declencherFinPartie();
 
-    // -- Debug --
     void TestHitbox(QPainter& painter);
 
-    // -- État général --
     ConfigurationPartie configurationPartie;
     bool enPause          = false;
     bool transitionVersMenu = false;
 
-    // -- Boucle de jeu --
-    QTimer        timer;
+    QTimer timer;
     QElapsedTimer frameTimer;
     QElapsedTimer elapsed;
-    qint64        tempsJeuMs = 0;
+    qint64 tempsJeuMs = 0;
 
-    // -- Logique de jeu --
-    Jeu*   jeu      = nullptr;
-    Armes* armes    = nullptr;
-    int    maxBalles = 0;
-    int    power_up  = 0;
+    Jeu* jeu = nullptr;
+    Armes* armes = nullptr;
+    int maxBalles = 0;
+    int power_up = 0;
 
-    // -- Entrées --
     GestionnaireEntrees* gestionnaireEntrees = nullptr;
-    Reticule*    reticule = nullptr;
+    Reticule* reticule = nullptr;
     SDL_Gamepad* gamepad  = nullptr;
-    Touches*     touches  = nullptr;
+    Touches* touches  = nullptr;
 
-    // -- HUD --
     CompteurBalles* compteurBalles = nullptr;
-    Vies*           vies           = nullptr;
+    Vies* vies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     static constexpr int LARGEUR_MIN_BALLES = 120;
     static constexpr int LARGEUR_MAX_BALLES = 275;
 
-    // -- Arrière-plan --
     QSharedPointer<QPixmap> arrierePlan;
-    QPixmap                 arrierePlanCache;
+    QPixmap arrierePlanCache;
 
-    // -- Overlays et animations --
-    GestionnaireAudio*  gestionnaireAudio = nullptr;
-    FadeOverlay*        overlay           = nullptr;
-    FadeOverlay*        overlayFadeOut    = nullptr;
-    MenuPauseOverlay*   menuPause         = nullptr;
-    QTimer*             timerManette      = nullptr;
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+    FadeOverlay* overlay = nullptr;
+    FadeOverlay* overlayFadeOut = nullptr;
+    MenuPauseOverlay* menuPause = nullptr;
+    QTimer* timerManette = nullptr;
 
     QPropertyAnimation* estompeMusique = nullptr;
-    QPropertyAnimation* fadeInAnim     = nullptr;
-    QPropertyAnimation* fadeOutAnim    = nullptr;
+    QPropertyAnimation* fadeInAnim = nullptr;
+    QPropertyAnimation* fadeOutAnim = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
 };
 
-#endif // ECRAN_JEU_H
+#endif

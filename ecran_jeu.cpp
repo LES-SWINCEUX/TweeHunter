@@ -21,6 +21,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPart
 EcranJeu::~EcranJeu()
 {
     delete jeu;
+    delete armes;
 }
 
 void EcranJeu::initReticuleEtArmes()
@@ -149,7 +150,7 @@ void EcranJeu::showEvent(QShowEvent* e)
                 jeu->setVariationFrequence(200);
                 break;
             case DifficultePartie::RNG:
-                // Effet de gameplay à définir
+                // Effet de gameplay Ã  dÃ©finir
                 break;
             case DifficultePartie::NORMAL:
             default:
@@ -428,6 +429,12 @@ void EcranJeu::mettreEnPause()
 
     unsetCursor();
 
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
     menuPause = new MenuPauseOverlay(gestionnaireAudio, this, touches);
     menuPause->setGeometry(rect());
     menuPause->show();
@@ -489,7 +496,7 @@ void EcranJeu::demarrerFadeOutVersMenu()
     overlayFadeOut->show();
     overlayFadeOut->raise();
 
-    // Animation du fondu écran
+    // Animation du fondu Ã©cran
     if (!fadeOutAnim) {
         fadeOutAnim = new QPropertyAnimation(overlayFadeOut, "alpha", this);
         fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
@@ -538,14 +545,20 @@ void EcranJeu::declencherFinPartie()
         reticule->hide();
     }
 
-    overlay = new FadeOverlay(this);
+    if (!overlay) {
+        overlay = new FadeOverlay(this);
+    }
     overlay->setGeometry(rect());
     overlay->setAlpha(0);
     overlay->show();
     overlay->raise();
 
-    fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
-    fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    if (!fadeInAnim) {
+        fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
+        fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    }
+    fadeInAnim->stop();
+    QObject::disconnect(fadeInAnim, nullptr, this, nullptr);
     fadeInAnim->setDuration(1000);
     fadeInAnim->setStartValue(0);
     fadeInAnim->setEndValue(255);

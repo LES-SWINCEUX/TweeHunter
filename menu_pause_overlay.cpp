@@ -16,7 +16,6 @@ MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget
 
     configuerAnimationTitre();
 
-    // Timer poll manette SDL ~60 Hz
     connect(&timerManette, &QTimer::timeout, this, &MenuPauseOverlay::tickManette);
     timerManette.setInterval(16);
     timerManette.start();
@@ -86,7 +85,9 @@ void MenuPauseOverlay::keyPressEvent(QKeyEvent* e)
 
 void MenuPauseOverlay::initialiserManette()
 {
-    SDL_Init(SDL_INIT_GAMEPAD);
+    if (!SDL_WasInit(SDL_INIT_GAMEPAD)) {
+        SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+    }
 
     int count = 0;
     SDL_JoystickID* ids = SDL_GetGamepads(&count);
@@ -114,29 +115,39 @@ void MenuPauseOverlay::tickManette()
     bool retour = false;
 
     if (gamepad && SDL_GamepadConnected(gamepad)) {
-        bool dpadHaut     = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-        bool dpadBas      = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
+        bool dpadBas = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
         bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
-        bool joystickBas  = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
-        bool croix        = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-        bool rond         = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST);
+        bool joystickBas = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
+        bool croix = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
+        bool rond = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST);
 
-        haut   = dpadHaut  || joystickHaut;
-        bas    = dpadBas   || joystickBas;
-        ok     = croix;      // Start retiré : il est réservé à l'ouverture/fermeture de la pause
+        haut = dpadHaut  || joystickHaut;
+        bas = dpadBas   || joystickBas;
+        ok = croix;
         retour = rond;
     }
 
-    if (haut   && !dpadHautPrecedent)  panneau->naviguerHaut();
-    if (bas    && !dpadBasPrecedent)   panneau->naviguerBas();
-    if (ok     && !boutonOkPrecedent)  panneau->confirmer();
-    if (retour && !boutonOkPrecedent)  emit reprendreDemande();
+    if (haut && !dpadHautPrecedent) {
+        panneau->naviguerHaut();
+    }
+
+    if (bas && !dpadBasPrecedent) {
+        panneau->naviguerBas();
+    }
+
+    if (ok && !boutonOkPrecedent) {
+        panneau->confirmer();
+    }
+
+    if (retour && !boutonOkPrecedent) {
+        emit reprendreDemande();
+    }
 
     dpadHautPrecedent = haut;
-    dpadBasPrecedent  = bas;
+    dpadBasPrecedent = bas;
     boutonOkPrecedent = ok || retour;
 
-    // --- Manette custom (série) ---
     if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
         touchesPerso->lirePerso();
 
@@ -145,13 +156,21 @@ void MenuPauseOverlay::tickManette()
         bool customBas  = (jy > 700);
         bool customOk   = touchesPerso->getGachette();
 
-        if (customHaut && !customHautPrecedent) panneau->naviguerHaut();
-        if (customBas  && !customBasPrecedent)  panneau->naviguerBas();
-        if (customOk   && !customOkPrecedent)   panneau->confirmer();
+        if (customHaut && !customHautPrecedent) {
+            panneau->naviguerHaut();
+        }
+
+        if (customBas && !customBasPrecedent) {
+            panneau->naviguerBas();
+        }
+
+        if (customOk && !customOkPrecedent) {
+            panneau->confirmer();
+        }
 
         customHautPrecedent = customHaut;
-        customBasPrecedent  = customBas;
-        customOkPrecedent   = customOk;
+        customBasPrecedent = customBas;
+        customOkPrecedent = customOk;
     }
 }
 
@@ -280,9 +299,5 @@ void MenuPauseOverlay::afficherTitre(QPainter& painter) {
     int positionY = int(height() * 0.04f) - int(height() * 0.06f);
     positionY = std::max(0, positionY);
 
-    painter.drawPixmap(
-        QRect(positionX, positionY, int(largeur), int(hauteur)),
-        *titreSprite,
-        src
-    );
+    painter.drawPixmap(QRect(positionX, positionY, int(largeur), int(hauteur)), *titreSprite, src);
 }

@@ -1,4 +1,4 @@
-﻿#include "jeu.h"
+#include "jeu.h"
 
 static const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
 static constexpr int COLONNES_DESTRUCTION = 4;
@@ -15,7 +15,6 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
 		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
-		//Explosion(Mouvement::LINEAIRE, tempsMs, 31);
 	}
 	randomiser = new Randomiser(tailleEcran);
 
@@ -53,7 +52,6 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	this->vies = vies;
 
 	initialiserCiblesParDefaut();
-	qDebug() << QDir::currentPath();
 }
 
 Jeu::~Jeu()
@@ -227,20 +225,6 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 
 		compteurPoints->setPoints(score);
-
-		//if (gestionnaireAudio) {
-		//	switch (bushLoucheActif->getType()) {
-		//	case TypeLouche::LOUCHE_1:
-		//		gestionnaireAudio->playSfx("louche_1");
-		//		break;
-		//	case TypeLouche::LOUCHE_2:
-		//		gestionnaireAudio->playSfx("louche_2");
-		//		break;
-		//	case TypeLouche::BONUS_3:
-		//		gestionnaireAudio->playSfx("bonus_3");
-		//		break;
-		//	}
-		//}
 	}
 	return aTouche;
 }
@@ -271,13 +255,11 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	cout << "Cr�ation de la hitbox du tir avec un cercle centr� sur le r�ticule dans la classe Arme" << endl;
 
 	return verifierCollisions(armes->choixArme(x, y), tempsMs);
 }
 
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
-	cout << "Cr�ation de la hitbox de l'explosion avec un cercle centr� sur la cannette" << endl;
 	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
 }
 
@@ -399,49 +381,39 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 {
 	if (indicateurs.isEmpty()) return;
 
-	QFont font;
-	font.setFamily("Press Start 2P");
-	font.setPixelSize(26);
-	font.setBold(true);
-	font.setStyleStrategy(QFont::NoAntialias);
+	static QFont font = []() {
+		QFont f;
+		f.setFamily("Press Start 2P");
+		f.setPixelSize(26);
+		f.setBold(true);
+		f.setStyleStrategy(QFont::NoAntialias);
+		return f;
+	}();
 	painter.setFont(font);
 
 	for (const IndicateurScore& indic : indicateurs) {
 		qint64 tempsEcoule = tempsMs - indic.tempsDebut;
 		if (tempsEcoule < 0 || tempsEcoule >= IndicateurScore::DUREE_MS) continue;
 
-		// Progression de 0.0 � 1.0
 		double t = double(tempsEcoule) / double(IndicateurScore::DUREE_MS);
 
-		// Monter de 60px au fil du temps
 		double decalageY = -60.0 * t;
 
-		// Alpha : plein pendant 60%, puis fondu jusqu'� 0
-		int alpha = (t < 0.6)
-			? 255
-			: int(255.0 * (1.0 - (t - 0.6) / 0.4));
+		int alpha = (t < 0.6) ? 255 : int(255.0 * (1.0 - (t - 0.6) / 0.4));
 		alpha = qBound(0, alpha, 255);
 
-		// Couleur selon le signe des points
-		QColor couleurTexte = (indic.points >= 0)
-			? QColor(80, 255, 80, alpha)    // vert pour les points positifs
-			: QColor(255, 80, 80, alpha);   // rouge pour les malus
+		QColor couleurTexte = (indic.points >= 0) ? QColor(80, 255, 80, alpha) : QColor(255, 80, 80, alpha);
 
-		QString texte = (indic.points >= 0)
-			? QString("+%1").arg(indic.points)
-			: QString("%1").arg(indic.points);
+		QString texte = (indic.points >= 0) ? QString("+%1").arg(indic.points) : QString("%1").arg(indic.points);
 
 		QPointF pos = indic.position + QPointF(0, decalageY);
 
-		// Ombre port�e pour la lisibilit�
 		QColor ombre(0, 0, 0, alpha / 2);
 		painter.setPen(ombre);
 		painter.drawText(QRectF(pos.x() - 60 + 2, pos.y() - 20 + 2, 120, 40),
 			Qt::AlignCenter, texte);
 
-		// Texte principal
 		painter.setPen(couleurTexte);
-		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40),
-			Qt::AlignCenter, texte);
+		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40), Qt::AlignCenter, texte);
 	}
 }

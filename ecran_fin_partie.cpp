@@ -111,6 +111,20 @@ void EcranFinPartie::resizeEvent(QResizeEvent* e)
     arrierePlanCache = buildCache(arrierePlan);
     panneauCache = buildCache(panneauImg);
 
+    titreCache = QPixmap();
+    titreCacheRect = QRect();
+    if (titreImg && !titreImg->isNull()) {
+        QRect pan = srcRectToScreen(width(), height(), PAN_SRC_X, PAN_SRC_Y, PAN_SRC_W, PAN_SRC_H);
+        int titreH = int(pan.height() * 0.22f);
+        titreCache = titreImg->scaledToHeight(titreH, Qt::SmoothTransformation);
+        int titreW = titreCache.width();
+        float offsetRatio = 0.001f;
+        int offsetGauche = int(pan.width() * offsetRatio);
+        int titreX = pan.x() + (pan.width() - titreW) / 2 - offsetGauche;
+        int titreY = pan.top() - int(titreH * 0.75f);
+        titreCacheRect = QRect(titreX, titreY, titreW, titreH);
+    }
+
     if (overlay) {
         overlay->setGeometry(rect());
         overlay->raise();
@@ -247,24 +261,8 @@ void EcranFinPartie::paintEvent(QPaintEvent*)
         painter.drawPixmap(0, 40, panneauCache);
     }
 
-    if (titreImg && !titreImg->isNull()) {
-
-        QRect pan = srcRectToScreen(width(), height(), PAN_SRC_X, PAN_SRC_Y, PAN_SRC_W, PAN_SRC_H);
-
-        int titreH = int(pan.height() * 0.22f);
-
-        QPixmap titreScaled = titreImg->scaledToHeight(titreH, Qt::SmoothTransformation);
-
-        int titreW = titreScaled.width();
-
-        float offsetRatio = 0.001f;
-        int offsetGauche = int(pan.width() * offsetRatio);
-
-        int titreX = pan.x() + (pan.width() - titreW) / 2 - offsetGauche;
-
-        int titreY = pan.top() - int(titreH * 0.75f);
-
+    if (!titreCache.isNull()) {
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.drawPixmap(titreX, titreY, titreScaled);
+        painter.drawPixmap(titreCacheRect, titreCache);
     }
 }

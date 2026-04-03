@@ -100,16 +100,11 @@ bool Target::intersecte(const QPainterPath& cercleReticule) const
 		return false;
 	}
 
-	int reductionHitbox = 35; // Réduction de la hitbox pour une meilleure jouabilité
-
-	QPainterPath conversionQPainterPath;//Création d'un QPainterPath qui parmet de comparer le cercle du réticule avec le rectangle de la cible
-
+	int reductionHitbox = 35;
 	QRectF Hitbox = getBounds();
-	Hitbox = Hitbox.adjusted(reductionHitbox, reductionHitbox, -reductionHitbox, -reductionHitbox); // Réduction de la hitbox pour une meilleure jouabilité
-	
-	conversionQPainterPath.addRect(Hitbox); // Ajout du rectangle de la cible au QPainterPath
+	Hitbox = Hitbox.adjusted(reductionHitbox, reductionHitbox, -reductionHitbox, -reductionHitbox);
 
-	return conversionQPainterPath.intersects(cercleReticule);
+	return cercleReticule.intersects(Hitbox);
 }
 
 QRectF Target::getBounds() const

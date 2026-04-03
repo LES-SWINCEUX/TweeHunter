@@ -17,13 +17,10 @@ public:
 	int nbMunitions() const;
 	int nbPowerUp() const;
 
-
 private:
 	int ArmeActuelle;
 	int PowerActuelle;
 
 };
-
-
 
 #endif

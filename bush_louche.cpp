@@ -180,11 +180,8 @@ bool BushLouche::intersecte(const QPainterPath& cercleReticule) const
 	}
 
 	int reductionHitbox = 30;
-	QPainterPath conversionQPainterPath;
 	QRectF Hitbox = getBounds();
 	Hitbox = Hitbox.adjusted(reductionHitbox, reductionHitbox, -reductionHitbox, -reductionHitbox);
 
-	conversionQPainterPath.addRect(Hitbox);
-	return conversionQPainterPath.intersects(cercleReticule);
-
+	return cercleReticule.intersects(Hitbox);
 }

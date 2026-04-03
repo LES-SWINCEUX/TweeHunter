@@ -1,7 +1,11 @@
 #include "randomiser.h"
 
 Randomiser::Randomiser(const QSizeF& tailleEcran)
-	: tailleEcran(tailleEcran), intervalSpawn(INTERVALLE_SPAWN_DEFAUT), variationSpawn(VARIATION_SPAWN_DEFAUT), margeEcran(MARGE_ECRAN_DEFAULT), generateur(std::random_device{}())
+	: tailleEcran(tailleEcran),
+	intervalSpawn(INTERVALLE_SPAWN_DEFAUT),
+	variationSpawn(VARIATION_SPAWN_DEFAUT),
+	margeEcran(MARGE_ECRAN_DEFAULT),
+	generateur(std::random_device{}())
 {
 }
 
@@ -42,22 +46,6 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	Bord bordArrivee = choisirBordOppose(bordDepart);
 	QPointF pointArrivee = choisirPointArrivee(bordArrivee);
 	TypeTrajectoire traj = choisirTrajectoire();
-
-	std::cout << "Nouvelle cible" << std::endl;
-	std::cout << "Type: " << (int)def.type << std::endl;
-	std::cout << "Spawn: " << (bordDepart == Bord::GAUCHE ? "Gauche" : "Droite")
-		<< " (" << pointDepart.x() << ", " << pointDepart.y() << ")" << std::endl;
-	std::cout << "Destination: " << (bordArrivee == Bord::GAUCHE ? "Gauche" : "Droite")
-		<< " (" << pointArrivee.x() << ", " << pointArrivee.y() << ")" << std::endl;
-	std::cout << "Trajectoire: ";
-
-	switch (traj) {
-	case TypeTrajectoire::LINEAIRE: std::cout << "Linaire"; break;
-	case TypeTrajectoire::COURBE_HAUT: std::cout << "Courbe_haut"; break;
-	case TypeTrajectoire::COURBE_BAS: std::cout << "Courbe_bas"; break;
-	case TypeTrajectoire::ZIGZAG: std::cout << "Zigzag"; break;
-	}
-	std::cout << std::endl << std::endl;
 
 	double facteur = calculerFacteurVitesse(tempsCourant);
 	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin * facteur, def.vitesseMax * facteur), traj);
@@ -153,12 +141,18 @@ TypeTrajectoire Randomiser::choisirTrajectoire() const
 	std::uniform_int_distribution<int> dist(0, 9);
 	int choix = dist(generateur);
 
-	if (choix < 2)
+	if (choix < 2) {
 		return TypeTrajectoire::LINEAIRE;
-	if (choix < 4)
+	}
+
+	if (choix < 4) {
 		return TypeTrajectoire::COURBE_HAUT;
-	if (choix < 6) 
+	}
+
+	if (choix < 6) {
 		return TypeTrajectoire::COURBE_BAS;
+	}
+
 	return TypeTrajectoire::ZIGZAG;
 }
 
