@@ -50,7 +50,7 @@ void EcranJeu::initReticuleEtArmes()
     connect(gestionnaireEntrees, &GestionnaireEntrees::pauseDemande, this, &EcranJeu::mettreEnPause);
     connect(gestionnaireEntrees, &GestionnaireEntrees::powerUpDemande, this, &EcranJeu::Power);
     connect(gestionnaireEntrees, &GestionnaireEntrees::joystickDeplace, this, [this](float delta) {
-            reticule->applyJoystickPerso(this, delta);
+        reticule->applyJoystickPerso(this, delta);
     });
 }
 
@@ -59,6 +59,7 @@ void EcranJeu::initHUD()
     compteurBalles = new CompteurBalles(this, armes->nbMunitions());
     vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
+    compteurPowerUp = new CompteurPowerUp(this, configurationPartie.powerUp, armes->nbPowerUp());
 
     compteurBalles->setBalles(armes->nbMunitions());
     compteurBalles->show();
@@ -71,6 +72,8 @@ void EcranJeu::initHUD()
     compteurPoints->setAnimation(true);
     compteurPoints->setVitesseAnimation(2, 1);
     compteurPoints->show();
+
+    compteurPowerUp->show();
 
     if (touches) {
         connect(compteurBalles, &CompteurBalles::ballesChanged, touches, &Touches::envoyerNbBalles);
@@ -305,8 +308,9 @@ void EcranJeu::Power()
     }
 
     rechargerArme();
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, true);
     power_up--;
+    if (compteurPowerUp) compteurPowerUp->setPowerUp(power_up);
 
     if (gestionnaireAudio) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
@@ -345,6 +349,19 @@ void EcranJeu::placerElementsGUI()
 
         compteurBalles->setEchelle(float(largeurCible) / float(largeurOriginale));
         compteurBalles->move(marge, hauteurEcran - compteurBalles->height() - marge);
+    }
+
+    if (compteurPowerUp && compteurBalles) {
+        QSize iconBase = compteurPowerUp->tailleIconBase();
+        if (!iconBase.isEmpty()) {
+            float s = float(compteurBalles->height()) / float(iconBase.height());
+            compteurPowerUp->setEchelle(s);
+        }
+
+        int x = compteurBalles->x();
+        int y = compteurBalles->y() - compteurPowerUp->height() - marge;
+        compteurPowerUp->move(x, y);
+        compteurPowerUp->raise();
     }
 
     if (compteurPoints && compteurBalles) {

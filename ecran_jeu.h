@@ -16,6 +16,7 @@
 
 #include "compteur_balles.h"
 #include "compteur_points.h"
+#include "compteur_powerup.h"
 #include "fade_overlay.h"
 #include "gestionnaire_audio.h"
 #include "gestionnaire_entrees.h"
@@ -93,6 +94,7 @@ private:
     CompteurBalles* compteurBalles = nullptr;
     Vies* vies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
+    CompteurPowerUp* compteurPowerUp = nullptr;
     static constexpr int LARGEUR_MIN_BALLES = 120;
     static constexpr int LARGEUR_MAX_BALLES = 275;
 

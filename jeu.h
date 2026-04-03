@@ -68,7 +68,7 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool Tirer(const int x, const int y, qint64 tempsMs, bool powerUp = false);
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
 

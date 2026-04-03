@@ -247,15 +247,15 @@ void Jeu::reinitialiser()
 	}
 }
 
-bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
+bool Jeu::Tirer(const int x, const int y, qint64 tempsMs, bool powerUp) {
 
 	if (compteurBalles && compteurBalles->getBalles() <= 0) {
 		return false;
 	}
-	if (compteurBalles) {
+	if (compteurBalles && !powerUp) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+	return verifierCollisions(powerUp ? armes->choixPowerUp(x, y) : armes->choixArme(x, y), tempsMs);
 }
 
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
