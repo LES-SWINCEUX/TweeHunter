@@ -68,7 +68,9 @@ void CompteurPowerUp::setEchelle(float s)
 
 void CompteurPowerUp::recalcWidgetSize()
 {
-    if (tailleIcon.isEmpty()) return;
+    if (tailleIcon.isEmpty()) {
+        return;
+    }
 
     int iconW = int(tailleIcon.width() * echelle);
     int iconH = int(tailleIcon.height() * echelle);
@@ -78,7 +80,7 @@ void CompteurPowerUp::recalcWidgetSize()
         QFont font = labelCount->font();
         font.setPixelSize(fontSize);
         labelCount->setFont(font);
-        labelCount->setText(QString("x%1").arg(nbRestant)); // toujours sync
+        labelCount->setText(QString("x%1").arg(nbRestant));
         labelCount->adjustSize();
         labelCount->move(iconW, 0);
         labelCount->setFixedHeight(iconH);
@@ -91,7 +93,9 @@ void CompteurPowerUp::recalcWidgetSize()
 
 void CompteurPowerUp::paintEvent(QPaintEvent*)
 {
-    if (!spriteSheet || spriteSheet->isNull()) return;
+    if (!spriteSheet || spriteSheet->isNull()) {
+        return;
+    }
 
     QPainter p(this);
     p.setRenderHint(QPainter::SmoothPixmapTransform, false);
