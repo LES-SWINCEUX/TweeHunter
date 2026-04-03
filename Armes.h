@@ -18,6 +18,13 @@ public:
 	int nbMunitions() const;
 	int nbPowerUp() const;
 
+	int getArmeActuelle() const {
+		return ArmeActuelle;
+	}
+	int getPowerActuelle() const {
+		return PowerActuelle;
+	}
+
 
 private:
 	int ArmeActuelle;

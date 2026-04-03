@@ -8,19 +8,22 @@
 #include "vie.h"
 #include <QList>
 #include <QSizeF>
+#include <QTimer>
 #include <QPainter>
 #include <iostream>
 #include "modejeu.h"
 #include <QPainterPath>
 #include "Armes.h"
+#include "Reticule.h"
 
 using namespace std;
 
-class Jeu 
+class Jeu :	public QWidget
 {
+	Q_OBJECT
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1));
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1), Reticule* R);
 
 	~Jeu();
 
@@ -94,6 +97,12 @@ private:
 	ModeJeu modeActuel;
 	bool enPause;
 	Armes* armes;
+	QTimer* timer;
+	int compteur;
+	Reticule* reticule;
+
+
+	qint64 TempsMs;
 
 };
 

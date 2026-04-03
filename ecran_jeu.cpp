@@ -3,7 +3,7 @@
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
     : QWidget(parent), configurationPartie(configuration)
 {
-    int ChoixPowerUp = 4;
+    int ChoixPowerUp = 2;
 
     //ajout à enlever apres test
     QPoint pos = QCursor::pos();
@@ -153,7 +153,7 @@ void EcranJeu::showEvent(QShowEvent* e)
         fadeInAnim->start();
     }
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes,reticule);
 
         switch (configurationPartie.difficulte) {
             case DifficultePartie::CHAOS:
