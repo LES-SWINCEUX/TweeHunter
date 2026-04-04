@@ -35,6 +35,8 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio,
 
     creerInterface();
 
+    appliquerDisponibiliteManettes();
+
     chargerConfiguration(GestionnaireConfiguration::instance().charger());
 
     connecterSignaux();
@@ -90,8 +92,8 @@ void EcranParametres::creerInterface()
     boutonTacticalNuke = new Bouton("/images/parameters/tactical_nuke.png", 3, this);
 
     boutonDifficulteNormal = new BoutonOptions("NORMAL", "MODE CLASSIQUE", BoutonOptions::Theme::Bleu, this);
-    boutonDifficulteRng = new BoutonOptions("RNG", "RÉTICULE ALÉATOIRE", BoutonOptions::Theme::Vert, this);
-    boutonDifficulteChaos = new BoutonOptions("CHAOS", "ÉNORMÉMENT D'ENNEMIS", BoutonOptions::Theme::Rouge, this);
+    boutonDifficulteRng = new BoutonOptions("RNG", "RÉTICULE ALÉATOIRE", BoutonOptions::Theme::Vert, this);
+    boutonDifficulteChaos = new BoutonOptions("CHAOS", "ÉNORMÉMENT D'ENNEMIS", BoutonOptions::Theme::Rouge, this);
 
     boutonManetteStandard = new Bouton("/images/parameters/manette_standard.png", 3, this);
     boutonManetteCustom = new Bouton("/images/parameters/manette_custom.png", 3, this);
@@ -135,8 +137,7 @@ void EcranParametres::creerInterface()
     configuration.modeJeu = ModeJeu::MOINS_18;
     configuration.difficulte = DifficultePartie::NORMAL;
     configuration.manette = TypeManette::STANDARD;
-    configuration.powerUps.clear();
-    configuration.powerUps.insert(PowerUpType::GRENADE);
+    configuration.powerUp = PowerUpType::GRENADE;
 }
 
 void EcranParametres::connecterSignaux()
@@ -197,8 +198,7 @@ void EcranParametres::connecterSignaux()
         });
 
     auto selectionnerPowerUp = [this](PowerUpType powerUp, Bouton* bouton) {
-        configuration.powerUps.clear();
-        configuration.powerUps.insert(powerUp);
+        configuration.powerUp = powerUp;
         appliquerEtatVisuel();
 
         const auto it = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), bouton);
@@ -277,6 +277,8 @@ void EcranParametres::connecterSignaux()
 
 void EcranParametres::appliquerEtatVisuel()
 {
+    appliquerDisponibiliteManettes();
+
     boutonCarabine->setActif(configuration.arme == 1);
     boutonShotgun->setActif(configuration.arme == 2);
     boutonBombardier->setActif(configuration.arme == 4);
@@ -284,10 +286,10 @@ void EcranParametres::appliquerEtatVisuel()
     boutonTarte->setActif(configuration.arme == 5);
     boutonSwince->setActif(configuration.arme == 6);
 
-    boutonGrenade->setActif(configuration.aPowerUp(PowerUpType::GRENADE));
-    boutonZap->setActif(configuration.aPowerUp(PowerUpType::ZAP));
-    boutonMitraillette->setActif(configuration.aPowerUp(PowerUpType::MITRAILLETTE));
-    boutonTacticalNuke->setActif(configuration.aPowerUp(PowerUpType::TACTICAL_NUKE));
+    boutonGrenade->setActif(configuration.powerUp ==PowerUpType::GRENADE);
+    boutonZap->setActif(configuration.powerUp == PowerUpType::ZAP);
+    boutonMitraillette->setActif(configuration.powerUp == PowerUpType::MITRAILLETTE);
+    boutonTacticalNuke->setActif(configuration.powerUp == PowerUpType::TACTICAL_NUKE);
 
     boutonMode18->setSelected(configuration.modeJeu == ModeJeu::PLUS_18);
     boutonModeNormal->setSelected(configuration.modeJeu == ModeJeu::MOINS_18);
@@ -440,9 +442,13 @@ void EcranParametres::placerElements()
     const int xArmes = xTop;
     const int xPowerUps = xArmes + largeurArmes + ecartColonnes;
 
-    rectTitreArmes = calculerRectTitre(titreChoixArmeImg, xArmes + largeurArmes / 2, y, int(38 * echelle), int(largeurArmes * 0.42f));
+    appliquerDisponibiliteManettes();
 
-    rectTitrePowerUps = calculerRectTitre(titrePowerUpsImg, xPowerUps + largeurPowerUps / 2, y, int(38 * echelle), int(largeurPowerUps * 0.92f));
+    const int hauteurBanniereHaut = int(38 * echelle);
+
+    rectTitreArmes = calculerRectTitre(titreChoixArmeImg, xArmes + largeurArmes / 2, y, hauteurBanniereHaut, int(largeurArmes * 0.52f));
+
+    rectTitrePowerUps = calculerRectTitre(titrePowerUpsImg, xPowerUps + largeurPowerUps / 2, y, hauteurBanniereHaut, int(largeurPowerUps * 1.18f));
 
     const int yTop = std::max(rectTitreArmes.bottom(), rectTitrePowerUps.bottom()) + 1 + espacementTitre;
 
@@ -496,15 +502,45 @@ void EcranParametres::placerElements()
 
     const int hauteurManette = int(145 * echelle);
 
-    const int largeurManette = estimerLargeurGrille(boutonManetteStandard, 3, int(largeurContenu * 0.44f), hauteurManette, espacementX);
+    std::vector<Bouton*> boutonsManetteVisibles;
+    if (boutonManetteStandard && boutonManetteStandard->isVisible()) {
+        boutonsManetteVisibles.push_back(boutonManetteStandard);
+    }
+    if (boutonManetteCustom && boutonManetteCustom->isVisible()) {
+        boutonsManetteVisibles.push_back(boutonManetteCustom);
+    }
+    if (boutonClavierSouris && boutonClavierSouris->isVisible()) {
+        boutonsManetteVisibles.push_back(boutonClavierSouris);
+    }
 
-    const int xManette = centreX - largeurManette / 2;
+    int largeurManette = 0;
+    int xManette = centreX;
 
-    rectTitreChoixManette = calculerRectTitre(titreChoixManetteImg, centreX, y, int(38 * echelle), int(largeurManette * 0.66f));
+    if (!boutonsManetteVisibles.empty()) {
+        largeurManette = estimerLargeurGrille(boutonsManetteVisibles.front(), int(boutonsManetteVisibles.size()), int(largeurContenu * 0.44f), hauteurManette, espacementX);
+
+        xManette = centreX - largeurManette / 2;
+    }
+
+    const int largeurBanniereManette = std::clamp(
+        std::max(int(largeurManette * 0.90f), int(largeurContenu * 0.22f)),
+        260,
+        520
+    );
+
+    rectTitreChoixManette = calculerRectTitre(
+        titreChoixManetteImg,
+        centreX,
+        y,
+        int(38 * echelle),
+        largeurBanniereManette
+    );
 
     y = rectTitreChoixManette.bottom() + 1 + espacementTitre;
 
-    y += placerGrille({ boutonManetteStandard, boutonManetteCustom, boutonClavierSouris }, 3, xManette, y, largeurManette, hauteurManette, espacementX, espacementY) + espacementSection;
+    if (!boutonsManetteVisibles.empty()) {
+        y += placerGrille(boutonsManetteVisibles, int(boutonsManetteVisibles.size()), xManette, y, largeurManette, hauteurManette, espacementX, espacementY) + espacementSection;
+    }
 
     const int largeurBlocNom = std::clamp(int(largeurContenu * 0.18f), 280, 380);
 
@@ -552,6 +588,8 @@ void EcranParametres::placerElements()
     }
 
     centrerContenuVerticalement();
+
+    aideFont_pixelSize = std::max(8, int(12 * std::clamp(float(H) / 1080.0f, 0.7f, 1.0f)));
 
     if (overlay) {
         overlay->setGeometry(rect());
@@ -647,16 +685,6 @@ void EcranParametres::paintEvent(QPaintEvent*)
     dessinerPixmap(painter, titreChoixManetteImg, rectTitreChoixManette);
     dessinerPixmap(painter, titreNomImg, rectTitreNom);
     dessinerPixmap(painter, fondNomImg, rectFondNom);
-
-    QFont aideFont("Press Start 2P");
-    aideFont.setPixelSize(std::max(8, int(12 * std::clamp(float(height()) / 1080.0f, 0.7f, 1.0f))));
-    painter.setFont(aideFont);
-    painter.setPen(QColor("#FFF2A6"));
-    painter.drawText(
-        QRect(20, height() - 30, width() - 40, 20),
-        Qt::AlignLeft | Qt::AlignVCenter,
-        "ESC - RETOUR"
-    );
 }
 
 void EcranParametres::resizeEvent(QResizeEvent* event)
@@ -673,7 +701,6 @@ void EcranParametres::resizeEvent(QResizeEvent* event)
 
     placerElements();
 }
-
 void EcranParametres::showEvent(QShowEvent* event)
 {
     QWidget::showEvent(event);
@@ -684,8 +711,30 @@ void EcranParametres::showEvent(QShowEvent* event)
     verrouNavigationJoystick = false;
     verrouNavigationJoystickCustom = false;
 
+    appliquerDisponibiliteManettes();
+    appliquerEtatVisuel();
     placerElements();
-    appliquerFocus(0);
+
+    const bool manetteDisponible = (touches && touches->isJoystickConnected()) || (touches && touches->isJoystickPersoConnected());
+
+    if (manetteDisponible) {
+        appliquerFocus(0);
+    }
+    else {
+        if (indexFocus >= 0 && indexFocus < int(widgetsNavigables.size())) {
+            if (auto* bouton = qobject_cast<Bouton*>(widgetsNavigables[indexFocus])) {
+                bouton->setSelectionneManette(false);
+            }
+            else if (widgetsNavigables[indexFocus]) {
+                widgetsNavigables[indexFocus]->clearFocus();
+                widgetsNavigables[indexFocus]->update();
+            }
+        }
+
+        indexFocus = -1;
+        setFocus(Qt::OtherFocusReason);
+        update();
+    }
 
     if (overlay && fadeInAnim) {
         overlay->setGeometry(rect());
@@ -801,54 +850,135 @@ void EcranParametres::deplacerFocusDirection(int dx, int dy)
         return;
     }
 
+    auto focusWidget = [this](QWidget* cible) -> bool
+    {
+        if (!cible || !cible->isVisible() || !cible->isEnabled()) {
+            return false;
+        }
+
+        const auto it = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), cible);
+        if (it == widgetsNavigables.end()) {
+            return false;
+        }
+
+        appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
+        return true;
+    };
+
+    auto focusNom = [this, &focusWidget]() -> bool
+    {
+        return focusWidget(champNom);
+    };
+
+    auto manettesVisibles = [this]() -> std::vector<QWidget*>
+    {
+        std::vector<QWidget*> resultat;
+
+        if (boutonManetteStandard && boutonManetteStandard->isVisible() && boutonManetteStandard->isEnabled()) {
+            resultat.push_back(boutonManetteStandard);
+        }
+        if (boutonManetteCustom && boutonManetteCustom->isVisible() && boutonManetteCustom->isEnabled()) {
+            resultat.push_back(boutonManetteCustom);
+        }
+        if (boutonClavierSouris && boutonClavierSouris->isVisible() && boutonClavierSouris->isEnabled()) {
+            resultat.push_back(boutonClavierSouris);
+        }
+
+        return resultat;
+    };
+
+    auto premiereManetteVisible = [&]() -> QWidget*
+    {
+        auto liste = manettesVisibles();
+        return liste.empty() ? nullptr : liste.front();
+    };
+
+    auto deplacerDansRangee = [&](const std::vector<QWidget*>& rangee, int direction) -> bool
+    {
+        if (direction == 0) {
+            return false;
+        }
+
+        auto it = std::find(rangee.begin(), rangee.end(), courant);
+        if (it == rangee.end()) {
+            return false;
+        }
+
+        const int index = int(std::distance(rangee.begin(), it));
+        const int suivant = index + direction;
+
+        if (suivant < 0 || suivant >= int(rangee.size())) {
+            return true;
+        }
+
+        return focusWidget(rangee[suivant]);
+    };
+
+    const std::vector<QWidget*> rangeeMilieu = {
+        boutonMode18,
+        boutonModeNormal,
+        boutonDifficulteNormal,
+        boutonDifficulteRng,
+        boutonDifficulteChaos
+    };
+
+    const std::vector<QWidget*> rangeeBoutonsBas = {
+        boutonRetour,
+        boutonCommencer
+    };
+
+    const auto rangeeManette = manettesVisibles();
+
+    const bool focusSurBlocMilieu = courant == boutonMode18 || courant == boutonModeNormal || courant == boutonDifficulteNormal || courant == boutonDifficulteRng || courant == boutonDifficulteChaos;
+
     const bool focusSurManette = courant == boutonManetteStandard || courant == boutonManetteCustom || courant == boutonClavierSouris;
 
     const bool focusSurBoutonsBas = courant == boutonRetour || courant == boutonCommencer;
 
-    if (dy > 0 && focusSurManette && champNom) {
-        const auto itNom = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), champNom);
-        if (itNom != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itNom)));
+    if (dx != 0) {
+        if (courant == champNom) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeMilieu, dx)) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeManette, dx)) {
+            return;
+        }
+
+        if (deplacerDansRangee(rangeeBoutonsBas, dx)) {
             return;
         }
     }
 
-    if (dy < 0 && focusSurBoutonsBas && champNom) {
-        const auto itNom = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), champNom);
-        if (itNom != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itNom)));
+    if (dy > 0 && focusSurBlocMilieu) {
+        if (focusWidget(premiereManetteVisible())) {
             return;
         }
     }
 
-    if (dy < 0 && courant == champNom && boutonManetteCustom) {
-        const auto itManette = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonManetteCustom);
-        if (itManette != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itManette)));
+    if (dy > 0 && focusSurManette) {
+        if (focusNom()) {
             return;
         }
     }
 
-    if (dy > 0 && courant == champNom && boutonCommencer) {
-        const auto itJouer = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonCommencer);
-        if (itJouer != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itJouer)));
+    if (dy < 0 && focusSurBoutonsBas) {
+        if (focusNom()) {
             return;
         }
     }
 
-    if (dx > 0 && courant == boutonRetour && boutonCommencer) {
-        const auto itJouer = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonCommencer);
-        if (itJouer != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itJouer)));
+    if (dy < 0 && courant == champNom) {
+        if (focusWidget(premiereManetteVisible())) {
             return;
         }
     }
 
-    if (dx < 0 && courant == boutonCommencer && boutonRetour) {
-        const auto itRetour = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), boutonRetour);
-        if (itRetour != widgetsNavigables.end()) {
-            appliquerFocus(int(std::distance(widgetsNavigables.begin(), itRetour)));
+    if (dy > 0 && courant == champNom) {
+        if (focusWidget(boutonCommencer)) {
             return;
         }
     }
@@ -1161,10 +1291,80 @@ void EcranParametres::chargerConfiguration(const ConfigurationPartie& config)
 {
     configuration = config;
 
-    if (champNom) {
-        champNom->setText(config.nomJoueur.toUpper());
+    const bool standardDisponible = touches && touches->isJoystickConnected();
+    const bool customDisponible = touches && touches->isJoystickPersoConnected();
+
+    bool manetteCorrigee = false;
+
+    if (configuration.manette == TypeManette::STANDARD && !standardDisponible) {
+        configuration.manette = premiereManetteDisponible();
+        manetteCorrigee = true;
     }
 
+    if (configuration.manette == TypeManette::CUSTOM && !customDisponible) {
+        configuration.manette = premiereManetteDisponible();
+        manetteCorrigee = true;
+    }
+
+    if (champNom) {
+        champNom->setText(configuration.nomJoueur.toUpper());
+    }
+
+    appliquerDisponibiliteManettes();
     appliquerEtatVisuel();
     update();
+
+    if (manetteCorrigee) {
+        GestionnaireConfiguration::instance().sauvegarderManette(configuration.manette);
+    }
+}
+
+TypeManette EcranParametres::premiereManetteDisponible() const
+{
+    if (touches && touches->isJoystickConnected()) {
+        return TypeManette::STANDARD;
+    }
+
+    if (touches && touches->isJoystickPersoConnected()) {
+        return TypeManette::CUSTOM;
+    }
+
+    return TypeManette::CLAVIER_SOURIS;
+}
+
+void EcranParametres::appliquerDisponibiliteManettes()
+{
+    const bool standardDisponible = touches && touches->isJoystickConnected();
+    const bool customDisponible = touches && touches->isJoystickPersoConnected();
+
+    if (boutonManetteStandard) {
+        boutonManetteStandard->setVisible(standardDisponible);
+        boutonManetteStandard->setEnabled(standardDisponible);
+    }
+
+    if (boutonManetteCustom) {
+        boutonManetteCustom->setVisible(customDisponible);
+        boutonManetteCustom->setEnabled(customDisponible);
+    }
+
+    if (boutonClavierSouris) {
+        boutonClavierSouris->setVisible(true);
+        boutonClavierSouris->setEnabled(true);
+    }
+
+    bool manetteCorrigee = false;
+
+    if (configuration.manette == TypeManette::STANDARD && !standardDisponible) {
+        configuration.manette = premiereManetteDisponible();
+        manetteCorrigee = true;
+    }
+
+    if (configuration.manette == TypeManette::CUSTOM && !customDisponible) {
+        configuration.manette = premiereManetteDisponible();
+        manetteCorrigee = true;
+    }
+
+    if (manetteCorrigee) {
+        GestionnaireConfiguration::instance().sauvegarderManette(configuration.manette);
+    }
 }

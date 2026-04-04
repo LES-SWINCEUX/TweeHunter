@@ -43,7 +43,7 @@ void DecorationMenu::setSprite(const QString& cheminSprite)
 {
     QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(cheminSprite.startsWith(":/") ? cheminSprite : (QDir::currentPath() + cheminSprite));
     if (!pix || pix->isNull()) {
-        std::cout << "MENU_DECORATION::impossible de charger ->" << cheminSprite.toStdString() << std::endl;
+        qWarning() << "MENU_DECORATION: impossible de charger ->" << cheminSprite;
         return;
     }
 

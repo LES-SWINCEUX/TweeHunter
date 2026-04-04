@@ -37,13 +37,8 @@ struct ConfigurationPartie
     ModeJeu modeJeu = ModeJeu::MOINS_18;
     DifficultePartie difficulte = DifficultePartie::NORMAL;
     TypeManette manette = TypeManette::STANDARD;
-    QSet<PowerUpType> powerUps;
+    PowerUpType powerUp = PowerUpType::GRENADE;
     QString nomJoueur;
-
-    bool aPowerUp(PowerUpType powerUp) const
-    {
-        return powerUps.contains(powerUp);
-    }
 };
 
 Q_DECLARE_METATYPE(ConfigurationPartie)

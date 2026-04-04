@@ -15,9 +15,6 @@ void SerialReaderThread::stop()
 
 void SerialReaderThread::run()
 {
-    // On utilise ReadFile avec un timeout court au lieu de WaitCommEvent.
-    // WaitCommEvent bloque le handle entier et empeche WriteFile de fonctionner
-    // depuis le thread principal en meme temps.
     COMMTIMEOUTS timeouts = {};
     timeouts.ReadIntervalTimeout = MAXDWORD;
     timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
@@ -63,7 +60,6 @@ void SerialReaderThread::run()
 
 #endif
 
-// Definitions communes (hors #ifdef)
 NativeSerialPort::NativeSerialPort() {}
 
 NativeSerialPort::~NativeSerialPort() { close(); }
@@ -91,12 +87,20 @@ bool NativeSerialPort::open(OpenMode mode)
 
     DCB dcb = {};
     dcb.DCBlength = sizeof(DCB);
-    if (!GetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
+
+    if (!GetCommState(handle, &dcb)) { 
+        CloseHandle(handle); 
+        return false; 
+    }
+
     dcb.BaudRate = m_baudRate;
     dcb.ByteSize = 8;
     dcb.StopBits = ONESTOPBIT;
     dcb.Parity = NOPARITY;
-    if (!SetCommState(handle, &dcb)) { CloseHandle(handle); return false; }
+    if (!SetCommState(handle, &dcb)) { 
+        CloseHandle(handle); 
+        return false; 
+    }
 
     m_reader = new SerialReaderThread();
     m_reader->handle = handle;
@@ -156,7 +160,11 @@ bool NativeSerialPort::open(OpenMode mode)
     }
 
     struct termios tty = {};
-    if (tcgetattr(fd, &tty) != 0) { ::close(fd); return false; }
+
+    if (tcgetattr(fd, &tty) != 0) { 
+        ::close(fd); 
+        return false; 
+    }
 
     speed_t speed = toBaudConstant(m_baudRate);
     cfsetispeed(&tty, speed);
@@ -198,7 +206,10 @@ void NativeSerialPort::close()
 
 void NativeSerialPort::pullFromReader()
 {
-    if (!m_reader) return;
+    if (!m_reader) {
+        return;
+    }
+
     QMutexLocker locker(&m_reader->mutex);
     if (!m_reader->sharedBuffer.isEmpty()) {
         m_buffer.append(m_reader->sharedBuffer);
@@ -216,7 +227,10 @@ QByteArray NativeSerialPort::readLine()
 {
     pullFromReader();
     int idx = m_buffer.indexOf('\n');
-    if (idx < 0) return QByteArray();
+
+    if (idx < 0) {
+        return QByteArray();
+    }
 
     QByteArray line = m_buffer.left(idx + 1);
     m_buffer.remove(0, idx + 1);
@@ -225,20 +239,25 @@ QByteArray NativeSerialPort::readLine()
 
 bool NativeSerialPort::write(const QByteArray& data)
 {
-    if (!m_isOpen || data.isEmpty()) return false;
+    if (!m_isOpen || data.isEmpty()) {
+        return false;
+    }
 
 #ifdef _WIN32
-    if (m_handle == INVALID_HANDLE_VALUE) return false;
+    if (m_handle == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
     {
-        // WriteFile sur un port serie synchrone est thread-safe avec ReadFile
-        // (files d'attente separees en lecture/ecriture).
-        // On boucle sur les ecritures partielles au cas ou.
         const char* ptr = data.constData();
         DWORD remaining = (DWORD)data.size();
         while (remaining > 0) {
             DWORD bytesWritten = 0;
-            if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr))
+
+            if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr)) {
                 return false;
+            }
+                
             ptr += bytesWritten;
             remaining -= bytesWritten;
         }
@@ -246,7 +265,9 @@ bool NativeSerialPort::write(const QByteArray& data)
     }
     return true;
 #else
-    if (m_fd < 0) return false;
+    if (m_fd < 0) {
+        return false;
+    }
 
     const char* ptr = data.constData();
     int remaining = data.size();
@@ -268,7 +289,9 @@ bool NativeSerialPort::write(const QByteArray& data)
         }
     }
 
-    if (remaining > 0) return false;
+    if (remaining > 0) {
+        return false;
+    }
 
     tcdrain(m_fd);
     return true;
@@ -301,7 +324,10 @@ QString NativeSerialPort::findArduinoPort()
     HDEVINFO devInfo = SetupDiGetClassDevs(
         &GUID_DEVCLASS_PORTS, nullptr, nullptr, DIGCF_PRESENT
     );
-    if (devInfo == INVALID_HANDLE_VALUE) return QString();
+
+    if (devInfo == INVALID_HANDLE_VALUE) {
+        return QString();
+    }
 
     SP_DEVINFO_DATA devData;
     devData.cbSize = sizeof(SP_DEVINFO_DATA);

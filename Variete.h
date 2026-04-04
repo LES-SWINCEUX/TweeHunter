@@ -14,13 +14,9 @@ class Variete
 
 		string findpath(int iteration);
 
-
 	private:
 		string BasePath;
 
 };
-
-
-
 
 #endif

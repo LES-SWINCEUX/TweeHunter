@@ -20,7 +20,7 @@ public:
     float getEchelle() const { return echelle; }
 
     QSize frameSize() const { return tailleFrame; }
-    void setMaxBalles(int max) {maxBalles = max; balles = max;}// Ajuste le nombre de balles si nécessaire
+    void setMaxBalles(int max) { maxBalles = max; balles = max; }
 
 signals:
     void ballesChanged(int nbBalles);

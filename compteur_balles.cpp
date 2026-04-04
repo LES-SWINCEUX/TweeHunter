@@ -7,7 +7,6 @@ CompteurBalles::CompteurBalles(QWidget* parent,int balle)
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_OpaquePaintEvent, false);
     setSpriteSheet();
-	
 }
 
 void CompteurBalles::setSpriteSheet()
@@ -59,8 +58,7 @@ void CompteurBalles::recalcFrameRect()
     int col = balles % cols;
     int row = balles / cols;
 
-    rectangleFrame = QRect(col * tailleFrame.width(), row * tailleFrame.height(),
-        tailleFrame.width(), tailleFrame.height());
+    rectangleFrame = QRect(col * tailleFrame.width(), row * tailleFrame.height(), tailleFrame.width(), tailleFrame.height());
 }
 
 void CompteurBalles::recalcWidgetSize()
@@ -80,7 +78,7 @@ void CompteurBalles::paintEvent(QPaintEvent*)
     }
 
     QPainter p(this);
-    p.setRenderHint(QPainter::SmoothPixmapTransform, false); // pixel perfect
+    p.setRenderHint(QPainter::SmoothPixmapTransform, false);
     p.setRenderHint(QPainter::Antialiasing, false);
 
     p.drawPixmap(rect(), *spriteSheet, rectangleFrame);

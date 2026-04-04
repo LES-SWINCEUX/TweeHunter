@@ -3,27 +3,44 @@
 
 #include <iostream>
 #include <QPainterPath>
+#include <QWidget>
+
+using namespace std;
+
+#include "configuration_partie.h"
 
 class Armes
 {
 public:
-	Armes(int Arme = 1, int PowerUp = 1);
+	Armes(int Arme = 1, PowerUpType PowerUp = PowerUpType::GRENADE);
 
-	QPainterPath choixArme(int x, int y) ;
+	QPainterPath choixArme(int x, int y);
 	QPainterPath choixPowerUp(int x, int y);
 
 	QPainterPath Hitbox(int choix, int x, int y);
+	QPainterPath Hitbox(PowerUpType choix, int x, int y);
 	QPainterPath CreerContourTarte(int x, int y);
 	int nbMunitions() const;
 	int nbPowerUp() const;
+	int getMult() { return mult; }
+	void setMult(int value) { mult = value; }
 
+	int getArmeActuelle() const {
+		return ArmeActuelle;
+	}
+	PowerUpType getPowerActuelle() const {
+		return PowerActuelle;
+	}
+
+	void setFenetre(QWidget* fenetre) {
+		p = fenetre;
+	}
 
 private:
 	int ArmeActuelle;
-	int PowerActuelle;
-
+	PowerUpType PowerActuelle = PowerUpType::GRENADE;
+	QWidget* p = nullptr;
+	int mult = 1;
 };
-
-
 
 #endif

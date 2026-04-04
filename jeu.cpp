@@ -15,7 +15,6 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
 		spriteDestruction = SpriteManager::instance().getPixmap(chemin);
-		//Explosion(Mouvement::LINEAIRE, tempsMs, 31);
 	}
 	randomiser = new Randomiser(tailleEcran);
 
@@ -83,7 +82,7 @@ void Jeu::update(qint64 tempsMs)
 			}
 		}
 	}
-	
+
 	for (Target* cible : ciblesActives) {
 		if (cible) {
 			cible->update(tempsMs);
@@ -143,6 +142,7 @@ void Jeu::update(qint64 tempsMs)
 
 
 	nettoyerCiblesInactives();
+	nettoyerIndicateurs(tempsMs);
 }
 
 void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
@@ -162,6 +162,8 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 			cible->dessiner(painter, tempsMs);
 		}
 	}
+
+	dessinerIndicateurs(painter, tempsMs);
 }
 bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
@@ -180,6 +182,12 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			int incrementScores = cible->getPointsScore();
 			score += incrementScores;
 
+			IndicateurScore indic;
+			indic.position = cible->getBounds().center();
+			indic.points = incrementScores;
+			indic.tempsDebut = tempsMs;
+			indicateurs.append(indic);
+
 			if (score <= 0) {
 				score = 0;
 			}
@@ -188,7 +196,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 				vies->setDemiVies(vies->getDemiVies() - 1);
 			}
 
-			// Comportements spéciaux par type
+			// Comportements spÃ©ciaux par type
 			if (cible->getType() == TypeTarget::POISON) {
 				vies->setDemiVies(vies->getDemiVies() - 2);
 			}
@@ -207,11 +215,17 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 	}
 
-	if (bushLoucheActif && bushLoucheActif->estActif() && bushLoucheActif->intersecte(cercleReticule)) {
+	if (bushLoucheActif && bushLoucheActif->estTirable() && bushLoucheActif->intersecte(cercleReticule)) {
 		bushLoucheActif->detruire();
 
 		int pointsLouche = bushLoucheActif->getPointsScore();
 		score += pointsLouche;
+
+		IndicateurScore indicBush;
+		indicBush.position = bushLoucheActif->getBounds().center();
+		indicBush.points = pointsLouche;
+		indicBush.tempsDebut = tempsMs;
+		indicateurs.append(indicBush);
 
 		if (score <= 0) {
 			score = 0;
@@ -267,14 +281,19 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+}
 
-	return verifierCollisions(armes->choixArme(x,y), tempsMs);
+bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+}
+
+bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
 }
 
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
-	cout << "Création de la hitbox de l'explosion avec un cercle centré sur la cannette" << endl;
-	return verifierCollisions(armes->Hitbox(explo,x,y), tempsMs);
+	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()
@@ -282,9 +301,9 @@ void Jeu::nettoyerCiblesInactives()
 	auto it = ciblesActives.begin();
 	while (it != ciblesActives.end()) {
 		if ((*it)->estInactif()) {
-			delete *it;
+			delete* it;
 			it = ciblesActives.erase(it);
-		} 
+		}
 		else {
 			++it;
 		}
@@ -403,4 +422,57 @@ void Jeu::initialiserCiblesParDefaut()
 	gator.vitesseMax = 900.0;
 	gator.frequenceSpawn = 6.0;
 	ajouterTypeCible(gator);
+}
+
+void Jeu::nettoyerIndicateurs(qint64 tempsMs)
+{
+	auto it = indicateurs.begin();
+	while (it != indicateurs.end()) {
+		if (tempsMs - it->tempsDebut >= IndicateurScore::DUREE_MS) {
+			it = indicateurs.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
+void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
+{
+	if (indicateurs.isEmpty()) return;
+
+	static QFont font = []() {
+		QFont f;
+		f.setFamily("Press Start 2P");
+		f.setPixelSize(26);
+		f.setBold(true);
+		f.setStyleStrategy(QFont::NoAntialias);
+		return f;
+	}();
+	painter.setFont(font);
+
+	for (const IndicateurScore& indic : indicateurs) {
+		qint64 tempsEcoule = tempsMs - indic.tempsDebut;
+		if (tempsEcoule < 0 || tempsEcoule >= IndicateurScore::DUREE_MS) continue;
+
+		double t = double(tempsEcoule) / double(IndicateurScore::DUREE_MS);
+
+		double decalageY = -60.0 * t;
+
+		int alpha = (t < 0.6) ? 255 : int(255.0 * (1.0 - (t - 0.6) / 0.4));
+		alpha = qBound(0, alpha, 255);
+
+		QColor couleurTexte = (indic.points >= 0) ? QColor(80, 255, 80, alpha) : QColor(255, 80, 80, alpha);
+
+		QString texte = (indic.points >= 0) ? QString("+%1").arg(indic.points) : QString("%1").arg(indic.points);
+
+		QPointF pos = indic.position + QPointF(0, decalageY);
+
+		QColor ombre(0, 0, 0, alpha / 2);
+		painter.setPen(ombre);
+		painter.drawText(QRectF(pos.x() - 60 + 2, pos.y() - 20 + 2, 120, 40), Qt::AlignCenter, texte);
+
+		painter.setPen(couleurTexte);
+		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40), Qt::AlignCenter, texte);
+	}
 }

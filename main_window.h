@@ -25,10 +25,10 @@ public:
     void afficherEcranFinPartie(int score);
 
 private:
-    MenuPrincipal* menuPrincipal   = nullptr;
+    MenuPrincipal* menuPrincipal = nullptr;
     EcranParametres* ecranParametres = nullptr;
-    EcranJeu* ecranJeu        = nullptr;
-    EcranFinPartie* ecranFinPartie  = nullptr;
+    EcranJeu* ecranJeu = nullptr;
+    EcranFinPartie* ecranFinPartie = nullptr;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 

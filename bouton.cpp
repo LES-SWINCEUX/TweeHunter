@@ -8,7 +8,7 @@ Bouton::Bouton(const QString& cheminSprite, int nombreImages, QWidget* parent)
     setMouseTracking(true);
     setAttribute(Qt::WA_Hover, true);
     if ((!sprite || sprite->isNull())) {
-        std::cout << "BOUTON::impossible de charger: " << QDir::currentPath().toStdString() << cheminSprite.toStdString() << std::endl;
+        qWarning() << "BOUTON: impossible de charger:" << QDir::currentPath() + cheminSprite;
     }
 
     updateTailleImage();

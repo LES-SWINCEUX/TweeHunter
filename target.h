@@ -54,36 +54,36 @@ public:
 		return etat == EtatTarget::INACTIVE;
 	}
 	bool estEnDestruction() const {
-				return etat == EtatTarget::EN_DESTRUCTION;
+		return etat == EtatTarget::EN_DESTRUCTION;
 	}
 	EtatTarget getEtat() const {
-				return etat;
+		return etat;
 	}
 	TypeTarget getType() const {
-				return type;
+		return type;
 	}
 	QPointF getPosition() const {
-				return position;
+		return position;
 	}
 	QRectF getBounds() const;
 
 	int getPointsScore() const {
-				return pointsScore;
+		return pointsScore;
 	}
 	bool dejaComptee() const {
-				return m_dejaComptee;
+		return m_dejaComptee;
 	}
 
 	void setPointsScore(int points) {
-				pointsScore = points;
+		pointsScore = points;
 	}
 
 	void marquerComptee() {
-				m_dejaComptee = true;
+		m_dejaComptee = true;
 	}
 
 	void setMiroir(bool miroir) {
-				estMiroir = miroir;
+		estMiroir = miroir;
 	}
 
 	bool aEteDetruite() const { 

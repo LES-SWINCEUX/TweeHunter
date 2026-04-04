@@ -1,8 +1,9 @@
 #include "ecran_fin_partie.h"
 
-EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* parent)
+EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches)
     : QWidget(parent)
     , gestionnaireAudio(gestionnaireAudio)
+    , touches(touches)
     , arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/fin_partie/background.png"))
     , panneauImg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/fin_partie/panneau.png"))
     , titreImg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/fin_partie/titre.png"))
@@ -77,6 +78,9 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
     });
 
     placerElements();
+
+    connect(&timerManette, &QTimer::timeout, this, &EcranFinPartie::tickManette);
+    timerManette.setInterval(16);
 }
 
 void EcranFinPartie::setScore(int s)
@@ -102,6 +106,20 @@ void EcranFinPartie::showEvent(QShowEvent* e)
     }
     placerElements();
     lancerFadeIn();
+
+    transitionEnCours = false;
+    boutonOkPrecedent = false;
+    customOkPrecedent = false;
+
+    const bool manetteConnectee = (touches && touches->isJoystickConnected()) || (touches && touches->isJoystickPersoConnected());
+
+    if (manetteConnectee) {
+        initialiserManette();
+        timerManette.start();
+        if (boutonValider) {
+            boutonValider->setSelectionneManette(true);
+        }
+    }
 }
 
 void EcranFinPartie::resizeEvent(QResizeEvent* e)
@@ -110,6 +128,20 @@ void EcranFinPartie::resizeEvent(QResizeEvent* e)
 
     arrierePlanCache = buildCache(arrierePlan);
     panneauCache = buildCache(panneauImg);
+
+    titreCache = QPixmap();
+    titreCacheRect = QRect();
+    if (titreImg && !titreImg->isNull()) {
+        QRect pan = srcRectToScreen(width(), height(), PAN_SRC_X, PAN_SRC_Y, PAN_SRC_W, PAN_SRC_H);
+        int titreH = int(pan.height() * 0.22f);
+        titreCache = titreImg->scaledToHeight(titreH, Qt::SmoothTransformation);
+        int titreW = titreCache.width();
+        float offsetRatio = 0.001f;
+        int offsetGauche = int(pan.width() * offsetRatio);
+        int titreX = pan.x() + (pan.width() - titreW) / 2 - offsetGauche;
+        int titreY = pan.top() - int(titreH * 0.75f);
+        titreCacheRect = QRect(titreX, titreY, titreW, titreH);
+    }
 
     if (overlay) {
         overlay->setGeometry(rect());
@@ -247,24 +279,52 @@ void EcranFinPartie::paintEvent(QPaintEvent*)
         painter.drawPixmap(0, 40, panneauCache);
     }
 
-    if (titreImg && !titreImg->isNull()) {
-
-        QRect pan = srcRectToScreen(width(), height(), PAN_SRC_X, PAN_SRC_Y, PAN_SRC_W, PAN_SRC_H);
-
-        int titreH = int(pan.height() * 0.22f);
-
-        QPixmap titreScaled = titreImg->scaledToHeight(titreH, Qt::SmoothTransformation);
-
-        int titreW = titreScaled.width();
-
-        float offsetRatio = 0.001f;
-        int offsetGauche = int(pan.width() * offsetRatio);
-
-        int titreX = pan.x() + (pan.width() - titreW) / 2 - offsetGauche;
-
-        int titreY = pan.top() - int(titreH * 0.75f);
-
+    if (!titreCache.isNull()) {
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.drawPixmap(titreX, titreY, titreScaled);
+        painter.drawPixmap(titreCacheRect, titreCache);
+    }
+}
+
+void EcranFinPartie::initialiserManette()
+{
+    if (!SDL_WasInit(SDL_INIT_GAMEPAD)) {
+        SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+    }
+
+    gamepad = nullptr;
+    if (touches && touches->isJoystickConnected()) {
+        gamepad = touches->getGamepad();
+    }
+}
+
+void EcranFinPartie::tickManette()
+{
+    if (transitionEnCours) {
+        return;
+    }
+
+    SDL_PumpEvents();
+
+    bool ok = false;
+    if (gamepad && SDL_GamepadConnected(gamepad)) {
+        ok = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) || SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START) || SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
+    }
+
+    if (ok && !boutonOkPrecedent) {
+        transitionEnCours = true;
+        timerManette.stop();
+        boutonValider->simulerClic();
+    }
+    boutonOkPrecedent = ok;
+
+    if (touches && touches->isJoystickPersoConnected()) {
+        touches->lirePerso();
+        const bool customOk = touches->getGachette();
+        if (customOk && !customOkPrecedent) {
+            transitionEnCours = true;
+            timerManette.stop();
+            boutonValider->simulerClic();
+        }
+        customOkPrecedent = customOk;
     }
 }

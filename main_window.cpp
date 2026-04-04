@@ -11,7 +11,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     afficherMenuPrincipal();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    delete touches;
+}
 
 void MainWindow::afficherMenuPrincipal() {
     if (this->menuPrincipal == nullptr) {
@@ -82,7 +84,7 @@ void MainWindow::afficherEcranJeu(const ConfigurationPartie& configuration) {
 
 void MainWindow::afficherEcranFinPartie(int score) {
     if (!this->ecranFinPartie) {
-        this->ecranFinPartie = new EcranFinPartie(this->gestionnaireAudio, this);
+        this->ecranFinPartie = new EcranFinPartie(this->gestionnaireAudio, this, touches);
 
         connect(this->ecranFinPartie, &EcranFinPartie::retourMenuDemande,
                 this, [this](const QString& nomJoueur, int scoreJoueur) {
