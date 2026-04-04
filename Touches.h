@@ -41,6 +41,7 @@ public:
 	int UseLastEncodeur();
 
     void envoyerNbBalles(int nbBalles);
+	void envoyerMoteur();
     void envoyerRaw(const QByteArray& data);
 	
 
