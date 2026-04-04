@@ -1,4 +1,4 @@
-﻿#include "compteur_points.h"
+#include "compteur_points.h"
 
 CompteurPoints::CompteurPoints(QWidget* parent) : QWidget(parent)
 {
@@ -135,19 +135,17 @@ void CompteurPoints::paintEvent(QPaintEvent*)
 
     p.drawPixmap(rect(), *spriteSheet);
 
-    QFont f = styleEcriture;
-
-    int fontSize = int(height() * 0.55);
-
-    f.setPixelSize(fontSize);
-    f.setStyleStrategy(QFont::NoAntialias);
-
-    p.setFont(f);
+    const int fontSize = int(height() * 0.55);
+    if (styleEcriture.pixelSize() != fontSize) {
+        styleEcriture.setPixelSize(fontSize);
+    }
+    p.setFont(styleEcriture);
 
     QRect textRect = rect();
     int leftPadding = int(rect().width() * 0.20);
     int rightPadding = int(rect().width() * 0.08);
     textRect.adjust(leftPadding, 0, -rightPadding, 0);
 
+    p.setPen(Qt::white);
     p.drawText(textRect, Qt::AlignVCenter | Qt::AlignRight, formatterPoints(points));
 }

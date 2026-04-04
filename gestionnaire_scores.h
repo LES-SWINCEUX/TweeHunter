@@ -11,7 +11,7 @@
 
 struct EntreeScore {
     QString nom;
-    int     score;
+    int score;
 };
 
 class GestionnaireScores : public QObject

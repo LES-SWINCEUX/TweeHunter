@@ -39,6 +39,10 @@ public:
 	bool estActif() const {
 		return etat == EtatLouche::ACTIF && !touchee;
 	}
+
+	bool estTirable() const {
+		return (etat == EtatLouche::ACTIF || etat == EtatLouche::DISPARITION) && !touchee;
+	}
 	bool estInnactif() const {
 		return etat == EtatLouche::INACTIF;
 	}
@@ -57,7 +61,7 @@ public:
 	QRectF getBounds() const;
 
 	bool intersecte(const QPainterPath& cercleReticule) const;
-		
+
 
 private:
 	QPointF position;

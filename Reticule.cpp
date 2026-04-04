@@ -12,14 +12,10 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 	setAttribute(Qt::WA_TransparentForMouseEvents);
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AlwaysStackOnTop);
-	setAttribute(Qt::WA_StaticContents); // evite les repaints du parent quand le reticule bouge
+	setAttribute(Qt::WA_StaticContents);
 
 	ChangeReticule(parent, choixTir);
 
-
-	cout << touches->isJoystickConnected() << ": Reticule" << endl;
-
-	// Timer pour la manette SDL officielle seulement
 	if (manetteActive == TypeManette::STANDARD && touches && touches->isJoystickConnected()) {
 		QTimer* timer = new QTimer(this);
 		timer->start(16);
@@ -47,9 +43,6 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 			}
 		});
 	}
-
-	// Pas de timer ici pour la manette perso :
-	// EcranJeu::tick() appelle lirePerso() + applyJoystickPerso() a chaque frame.
 }
 
 Reticule::~Reticule() {
@@ -60,13 +53,7 @@ void Reticule::ChangeReticule(QWidget* parent,int choix) {
 
 	choixTir = choix;
 	image = QPixmap(QString::fromStdString(getPath(choix)));
-	if (image.isNull()) {
-		cout << "RETICULE::impossible de charger: " << endl;
-		cout << getPath(1) << endl;
-	}
-	else {
-		cout << "RETICULE::chargement réussi: " << endl;
-	}
+
 	setFixedSize(image.size());
 	resize(parent->size());
 
@@ -101,10 +88,21 @@ void Reticule::moveJoystick(int x, int y, QWidget* parent)
 	posX += (x / facteurRedu);
 	posY += (y / facteurRedu);
 
-	if (posX > (parent->width() - image.width() / 2)) posX = parent->width() - image.width() / 2;
-	if (posX < -image.width() / 2) posX = -image.width() / 2;
-	if (posY > parent->height() - image.height() / 2) posY = parent->height() - image.height() / 2;
-	if (posY < -image.height() / 2) posY = -image.height() / 2;
+	if (posX > (parent->width() - image.width() / 2)) {
+		posX = parent->width() - image.width() / 2;
+	}
+
+	if (posX < -image.width() / 2) {
+		posX = -image.width() / 2;
+	}
+
+	if (posY > parent->height() - image.height() / 2) {
+		posY = parent->height() - image.height() / 2;
+	}
+
+	if (posY < -image.height() / 2) {
+		posY = -image.height() / 2;
+	}
 
 	move(posX, posY);
 	update();
@@ -114,33 +112,40 @@ void Reticule::moveJoystickPerso(int x, int y, QWidget* parent)
 {
 	int facteurRedu = 20;
 
-	posX += ((x - 512) / facteurRedu);  // centre corrige: 512 au lieu de 500
+	posX += ((x - 512) / facteurRedu);
 	posY += ((y - 512) / facteurRedu);
 
-	if (posX > (parent->width() - image.width() / 2)) posX = parent->width() - image.width() / 2;
-	if (posX < -image.width() / 2) posX = -image.width() / 2;
-	if (posY > parent->height() - image.height() / 2) posY = parent->height() - image.height() / 2;
-	if (posY < -image.height() / 2) posY = -image.height() / 2;
+	if (posX > (parent->width() - image.width() / 2)) {
+		posX = parent->width() - image.width() / 2;
+	}
+
+	if (posX < -image.width() / 2) {
+		posX = -image.width() / 2;
+	}
+
+	if (posY > parent->height() - image.height() / 2) {
+		posY = parent->height() - image.height() / 2;
+	}
+
+	if (posY < -image.height() / 2) {
+		posY = -image.height() / 2;
+	}
 
 	move(posX, posY);
-	// Pas de update() ici — EcranJeu::tick() s'en charge
 }
 
-// Appelé par EcranJeu::tick() à chaque frame.
-// Utilise le delta-time pour une vitesse constante peu importe le framerate.
 void Reticule::applyJoystickPerso(QWidget* parent, float deltaMs)
 {
 	int x = touches->getxPerso();
 	int y = touches->getyPerso();
 
-	float dx = (x - 512) / 512.0f; // -1.0 a 1.0
+	float dx = (x - 512) / 512.0f;
 	float dy = (y - 512) / 512.0f;
 
-	// Deadzone
 	if (sqrt(dx * dx + dy * dy) < 0.06f) return;
 
-	float vitesse = 1.0f; // pixels par ms — ajuste selon ton gout
-	// Accumule les fractions de pixels pour eviter les skips
+	float vitesse = 1.0f;
+
 	accumX += dx * vitesse * deltaMs;
 	accumY += dy * vitesse * deltaMs;
 
@@ -162,7 +167,6 @@ void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
 	painter.drawPixmap(0, 0, image);
-	// lirePerso() retiré — appelé dans EcranJeu::tick() uniquement
 }
 
 int Reticule::getX() const

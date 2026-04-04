@@ -7,36 +7,40 @@
 
 using namespace std;
 
+#include "configuration_partie.h"
+
 class Armes
 {
 public:
-	Armes(int Arme = 1, int PowerUp = 1, QWidget* parent=nullptr );
+	Armes(int Arme = 1, PowerUpType PowerUp = PowerUpType::GRENADE);
 
-	QPainterPath choixArme(int x, int y) ;
-	QPainterPath choixPowerUp(int x, int y, int specification = 0);
+	QPainterPath choixArme(int x, int y);
+	QPainterPath choixPowerUp(int x, int y);
 
 	QPainterPath Hitbox(int choix, int x, int y);
+	QPainterPath Hitbox(PowerUpType choix, int x, int y);
 	QPainterPath CreerContourTarte(int x, int y);
 	int nbMunitions() const;
 	int nbPowerUp() const;
+	int getMult() { return mult; }
+	void setMult(int value) { mult = value; }
 
 	int getArmeActuelle() const {
 		return ArmeActuelle;
 	}
-	int getPowerActuelle() const {
+	PowerUpType getPowerActuelle() const {
 		return PowerActuelle;
 	}
 
+	void setFenetre(QWidget* fenetre) {
+		p = fenetre;
+	}
 
 private:
 	int ArmeActuelle;
-	int PowerActuelle;
-	QWidget* p;
-
+	PowerUpType PowerActuelle = PowerUpType::GRENADE;
+	QWidget* p = nullptr;
 	int mult = 1;
-
 };
-
-
 
 #endif

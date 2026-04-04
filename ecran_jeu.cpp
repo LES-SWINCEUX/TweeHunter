@@ -1,44 +1,70 @@
 #include "ecran_jeu.h"
+#include <iostream>
+using namespace std;
 
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
-    : QWidget(parent), configurationPartie(configuration)
+    : QWidget(parent)
+    , configurationPartie(configuration)
+    , gestionnaireAudio(gestionnaireAudio)
+    , touches(touches)
 {
-    int ChoixPowerUp = 4;
+    initReticuleEtArmes();
+    initHUD();
+    initAudio();
+    initAnimations();
+    initMinuterie();
 
-    //ajout à enlever apres test
-    QPoint pos = QCursor::pos();
-    pos = mapFromGlobal(pos);
+    setFocusPolicy(Qt::StrongFocus);
+    setFocus();
+}
 
-    // Stocker la référence aux touches pour l'envoi série
-    this->touches = touches;
+EcranJeu::~EcranJeu()
+{
+    delete jeu;
+    delete armes;
+}
 
+void EcranJeu::initReticuleEtArmes()
+{
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
-    const int armeReticule = (configurationPartie.arme == 6) ? 1 : configurationPartie.arme; // À changer lorsqu'on va avoir le réticule des Swinceux
-    reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, this->touches); // création du réticule sur la souris + choix du réticule
+
+    QPoint pos = mapFromGlobal(QCursor::pos());
+    reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, touches);
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme, ChoixPowerUp, this);
+    armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
+    armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
-    power_up = armes->nbPowerUp();
 
-    //compteur de balle, points et vies
+    gamepad = reticule->getGamepad();
 
+    if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
+        qDebug() << "Erreur SDL:" << SDL_GetError();
+    }
+
+    gestionnaireEntrees = new GestionnaireEntrees(configurationPartie, reticule, gamepad, this);
+
+    connect(gestionnaireEntrees, &GestionnaireEntrees::tireDemande, this, &EcranJeu::tire);
+    connect(gestionnaireEntrees, &GestionnaireEntrees::reloadDemande, this, &EcranJeu::rechargerArme);
+    connect(gestionnaireEntrees, &GestionnaireEntrees::pauseDemande, this, &EcranJeu::mettreEnPause);
+    connect(gestionnaireEntrees, &GestionnaireEntrees::powerUpDemande, this, &EcranJeu::Power);
+    connect(gestionnaireEntrees, &GestionnaireEntrees::joystickDeplace, this, [this](float delta) {
+        reticule->applyJoystickPerso(this, delta);
+    });
+}
+
+void EcranJeu::initHUD()
+{
     compteurBalles = new CompteurBalles(this, armes->nbMunitions());
     vies = new Vies(this);
     compteurPoints = new CompteurPoints(this);
+    compteurPowerUp = new CompteurPowerUp(this, configurationPartie.powerUp, armes->nbPowerUp());
 
-    // Connecter le signal de changement de balles à l'envoi JSON série
-    if (this->touches) {
-        connect(compteurBalles, &CompteurBalles::ballesChanged, this->touches, &Touches::envoyerNbBalles);
-    }
-
-    compteurBalles->move(20, height() - compteurBalles->height() + 120);
     compteurBalles->setBalles(armes->nbMunitions());
     compteurBalles->show();
 
     vies->setVies(3);
-    vies->move(20, 20);
     vies->show();
 
     compteurPoints->setNombresNumeros(6);
@@ -47,38 +73,41 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPart
     compteurPoints->setVitesseAnimation(2, 1);
     compteurPoints->show();
 
-    this->gestionnaireAudio = gestionnaireAudio;
-    if (gestionnaireAudio != nullptr) {
-        gestionnaireAudio->stopAndClearMusic();
-        gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
-        gestionnaireAudio->playMusic();
-        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume");
+    compteurPowerUp->show();
 
-        estompeMusique->setDuration(1000);
-        estompeMusique->setStartValue(0.0);
-        estompeMusique->setEndValue(this->gestionnaireAudio->getMusicVolumeSetting());
-
-        estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
-
-        gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.wav", this->maxBalles);
-        gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.wav", this->maxBalles);
-        gestionnaireAudio->addSfx("gun_empty", QDir::currentPath() + "/sounds/sfx/gun_empty.wav", this->maxBalles);
-        gestionnaireAudio->addSfx("reload", QDir::currentPath() + "/sounds/sfx/reload.wav", this->maxBalles);
+    if (touches) {
+        connect(compteurBalles, &CompteurBalles::ballesChanged, touches, &Touches::envoyerNbBalles);
     }
+}
 
+void EcranJeu::initAudio()
+{
+    if (!gestionnaireAudio) return;
+
+    gestionnaireAudio->stopAndClearMusic();
+    gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
+    gestionnaireAudio->playMusic();
+
+    estompeMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
+    estompeMusique->setDuration(1000);
+    estompeMusique->setStartValue(0.0);
+    estompeMusique->setEndValue(gestionnaireAudio->getMusicVolumeSetting());
+    estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
+
+    gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.wav", maxBalles);
+    gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.wav", maxBalles);
+    gestionnaireAudio->addSfx("gun_empty", QDir::currentPath() + "/sounds/sfx/gun_empty.wav", maxBalles);
+    gestionnaireAudio->addSfx("reload", QDir::currentPath() + "/sounds/sfx/reload.wav", maxBalles);
+    gestionnaireAudio->addSfx("explosion", QDir::currentPath() + "/sounds/sfx/explosion.wav", maxBalles);
+    gestionnaireAudio->addSfx("zap", QDir::currentPath() + "/sounds/sfx/zap.wav", maxBalles);
+    gestionnaireAudio->addSfx("machine_gun", QDir::currentPath() + "/sounds/sfx/machine_gun.wav", maxBalles);
+    gestionnaireAudio->addSfx("nuke", QDir::currentPath() + "/sounds/sfx/nuke.wav", maxBalles);
+}
+
+void EcranJeu::initAnimations()
+{
     arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
     setAttribute(Qt::WA_OpaquePaintEvent);
-    elapsed.start();
-    frameTimer.start();
-    tempsJeuMs = 0;
-
-    timer.setInterval(1000 / 60);
-
-    connect(&timer, &QTimer::timeout, this, [this]() {
-        tick();
-    });
-
-    timer.start();
 
     overlay = new FadeOverlay(this);
     overlay->setGeometry(rect());
@@ -91,67 +120,33 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPart
     fadeInAnim->setDuration(1000);
     fadeInAnim->setStartValue(255);
     fadeInAnim->setEndValue(0);
-
-    //activation de sdl pour les manettes
-    cout << "Initialisation de SDL3" << endl;
-
-    if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
-        qDebug() << "Erreur SDL:" << SDL_GetError();
-    }
-
-    connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
-        overlay->hide();
-        });
-
-
-    gamepad = reticule->getGamepad(); //récupération du controle de lamanette pour le tir
-
-    /*
-    QTimer* timer = new QTimer(this);
-    this->timerManette = timer;
-    timer->start(16); // ~60 Hz
-
-    connect(timer, &QTimer::timeout, this, [=]() {// prise des données du joystick
-        if (enPause || transitionVersMenu) {
-            return;
-        }
-        if (reticule->tirer()) {
-
-            if (!gachettePrecedente) {
-                gachettePrecedente = true;
-                tire();
-
-            }
-        }
-        else{
-            gachettePrecedente = false;
-        }
-    });*/
-
-    setFocusPolicy(Qt::StrongFocus);
-    setFocus();
-
+    connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() { overlay->hide(); });
 }
 
-EcranJeu::~EcranJeu()
+void EcranJeu::initMinuterie()
 {
-    delete jeu;
+    elapsed.start();
+    frameTimer.start();
+    tempsJeuMs = 0;
+
+    timer.setInterval(1000 / 60);
+    connect(&timer, &QTimer::timeout, this, &EcranJeu::tick);
+    timer.start();
 }
 
 void EcranJeu::showEvent(QShowEvent* e)
 {
     QWidget::showEvent(e);
 
-    if (overlay && fadeInAnim)
-    {
+    if (overlay && fadeInAnim) {
         overlay->setGeometry(rect());
         overlay->setAlpha(255);
         overlay->show();
         overlay->raise();
-
         fadeInAnim->stop();
         fadeInAnim->start();
     }
+
     if (!jeu) {
         jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes);
 
@@ -162,76 +157,25 @@ void EcranJeu::showEvent(QShowEvent* e)
                 jeu->setVariationFrequence(200);
                 break;
             case DifficultePartie::RNG:
-                // Placeholder: la difficulté RNG est bien mémorisée par l'écran de paramètres,
-                // mais l'effet de gameplay reste à définir.
+                // Effet de gameplay Ã  dÃ©finir
                 break;
             case DifficultePartie::NORMAL:
             default:
                 break;
-            }
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, ModeJeu::PLUS_18, armes);
+        }
+
         jeu->setOnMoteurDemande([this]() {
             if (touches) touches->envoyerMoteur();
         });
     }
 
-    // Envoyer le nombre de balles initial à l'Arduino au démarrage de la partie
     if (touches) {
         touches->envoyerRaw("\n");
         touches->envoyerNbBalles(maxBalles);
     }
-    // Réinitialise le temps de jeu (utile si on revient sur l'écran)
+
     tempsJeuMs = 0;
     frameTimer.restart();
-}
-
-void EcranJeu::keyPressEvent(QKeyEvent* e)
-{
-    if (e->isAutoRepeat()) {
-        e->ignore();
-        return;
-    }
-
-    if (transitionVersMenu) {
-        e->ignore();
-        return;
-    }
-
-    if (e->key() == Qt::Key_Escape)
-    {
-        if (enPause) {
-            reprendreJeu();
-        }
-        else {
-            mettreEnPause();
-        }
-        e->accept();
-        return;
-    }
-
-    if (e->key() == Qt::Key_R)
-    {
-        rechargerArme();
-
-        e->accept();
-        return;
-    }
-
-    QWidget::keyPressEvent(e);
-}
-
-void EcranJeu::mouseMoveEvent(QMouseEvent* event)
-{
-    if (!event || !reticule) {
-        return;
-    }
-
-    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
-        event->ignore();
-        return;
-    }
-
-    reticule->setPosition(event->pos());
 }
 
 void EcranJeu::resizeEvent(QResizeEvent* e)
@@ -240,40 +184,20 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
 
     arrierePlanCache = QPixmap();
     if (arrierePlan && !arrierePlan->isNull() && width() > 0 && height() > 0) {
-        QPixmap scaled = arrierePlan->scaled(
-            size(),
-            Qt::KeepAspectRatioByExpanding,
-            Qt::SmoothTransformation
-        );
-
-        int x = (scaled.width() - width()) / 2;
-        int y = (scaled.height() - height());
-
-        x = std::max(0, x);
-        y = std::max(0, y);
-
-        QRect crop(x, y, width(), height());
-        arrierePlanCache = scaled.copy(crop);
+        QPixmap scaled = arrierePlan->scaled(size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        int x = std::max(0, (scaled.width()  - width())  / 2);
+        int y = std::max(0, (scaled.height() - height()));
+        arrierePlanCache = scaled.copy(QRect(x, y, width(), height()));
     }
 
-    if (overlay)
-    {
-        overlay->setGeometry(rect());
-        overlay->raise();
-    }
-    if (overlayFadeOut)
-    {
-        overlayFadeOut->setGeometry(rect());
-        overlayFadeOut->raise();
-    }
-    if (menuPause)
-    {
-        menuPause->setGeometry(rect());
-        menuPause->raise();
-    }
-    if (jeu) {
-        jeu->setTailleEcran(size());
-    }
+    auto redimensionnerOverlay = [this](QWidget* w) {
+        if (w) { w->setGeometry(rect()); w->raise(); }
+    };
+    redimensionnerOverlay(overlay);
+    redimensionnerOverlay(overlayFadeOut);
+    redimensionnerOverlay(menuPause);
+
+    if (jeu) jeu->setTailleEcran(size());
 
     placerElementsGUI();
 }
@@ -286,282 +210,174 @@ void EcranJeu::tick()
     }
 
     qint64 deltaMs = frameTimer.restart();
+    tempsJeuMs += deltaMs;
 
-    if (jeu) {
-        tempsJeuMs += deltaMs;
-        jeu->update(tempsJeuMs);
-    }
+    if (jeu) jeu->update(tempsJeuMs);
 
-    if (configurationPartie.manette == TypeManette::STANDARD && gamepad) {
-        SDL_UpdateGamepads();
+    declencherFinPartie();
 
-        const bool tirerMaintenu =
-            SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
-
-        if (tirerMaintenu) {
-            if (!gachettePrecedente) {
-                gachettePrecedente = true;
-                tire();
-
-            }
-        }
-        else {
-            gachettePrecedente = false;
-        }
-
-        // Choisis ici le bouton que tu veux pour reload
-        const bool reloadMaintenu =
-            SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
-
-        if (reloadMaintenu && !reloadPrecedent) {
-            rechargerArme();
-        }
-        reloadPrecedent = reloadMaintenu;
-
-        const bool startMaintenu =
-            SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
-
-        if (startMaintenu && !startPrecedent) {
-            mettreEnPause();
-        }
-        startPrecedent = startMaintenu;
-    }
-
-    if (configurationPartie.manette == TypeManette::CUSTOM &&
-        reticule->getTouches() &&
-        reticule->getTouches()->isJoystickPersoConnected()) {
-
-        reticule->getTouches()->lirePerso();
-
-        if (reticule->getTouches()->getGachette() &&
-            !reticule->getTouches()->getReload()) {
-            if (!gachettePrecedente) {
-                gachettePrecedente = true;
-                tire();
-
-            }
-        }
-        else if (!reticule->getTouches()->getGachette()) {
-            gachettePrecedente = false;
-        }
-
-        if (reticule->getTouches()->getReload() &&
-            reticule->getTouches()->getAccelerometre()) {
-            rechargerArme();
-        }
-
-        if (reticule->getTouches()->getReload() &&
-            (reticule->getTouches()->getEncodeur() != 0)) {
-            mettreEnPause();
-        }
-
-        if (reticule->getTouches()->getGachette() &&
-            reticule->getTouches()->getReload()) {
-            if (!powerUp) {
-                powerUp = true;
-				Power();
-            }
-        }
-        else {
-            powerUp = false;
-        }
-
-        reticule->applyJoystickPerso(this, float(deltaMs));
-    }
+    if (gestionnaireEntrees)
+        gestionnaireEntrees->lire(deltaMs);
 
     update();
 }
 
-void EcranJeu::mettreEnPause()
+void EcranJeu::keyPressEvent(QKeyEvent* e)
 {
-    if (enPause) return;
-    enPause = true;
-
-    // Stop la logique de jeu (sans arrêter la boucle de tick).
-    if (jeu) {
-        jeu->setPause(true);
-    }
-
-    // Cache le réticule et remet un curseur normal pour cliquer sur les boutons.
-    if (reticule) {
-        reticule->hide();
-    }
-
-    unsetCursor();
-
-    menuPause = new MenuPauseOverlay(this->gestionnaireAudio, this, touches);
-    menuPause->setGeometry(rect());
-    menuPause->show();
-    menuPause->raise();
-
-    connect(menuPause, &MenuPauseOverlay::reprendreDemande, this, &EcranJeu::reprendreJeu);
-    connect(menuPause, &MenuPauseOverlay::retourMenuDemande, this, [this]() {
-        demarrerFadeOutVersMenu();
-        });
-}
-
-void EcranJeu::reprendreJeu()
-{
-    if (!enPause) return;
-    enPause = false;
-    if (jeu) jeu->setPause(false);
-
-    if (menuPause) {
-        menuPause->hide();
-        menuPause->deleteLater();
-        menuPause = nullptr;
-    }
-
-    frameTimer.restart();
-
-    setCursor(Qt::BlankCursor);
-    if (reticule) reticule->show();
-    setFocus();
-}
-
-void EcranJeu::demarrerFadeOutVersMenu()
-{
-    if (transitionVersMenu) {
+    if (e->isAutoRepeat() || transitionVersMenu) { 
+        e->ignore();
         return;
     }
-    transitionVersMenu = true;
 
-    if (menuPause) {
-        menuPause->hide();
-        menuPause->deleteLater();
-        menuPause = nullptr;
+    if (e->key() == Qt::Key_Escape) {
+        enPause ? reprendreJeu() : mettreEnPause();
+        e->accept();
+        return;
+    }
+    if (e->key() == Qt::Key_R) {
+        rechargerArme();
+        e->accept();
+        return;
     }
 
-    enPause = true;
-    if (jeu) {
-        jeu->setPause(true);
+    QWidget::keyPressEvent(e);
+}
+
+void EcranJeu::mouseMoveEvent(QMouseEvent* event)
+{
+    if (!event || !reticule) {
+        return;
+    }
+    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
+        event->ignore();
+        return;
+    }
+    reticule->setPosition(event->pos());
+}
+
+void EcranJeu::mousePressEvent(QMouseEvent* event)
+{
+    if (enPause || transitionVersMenu) { 
+        event->ignore();
+        return;
     }
 
-    if (!overlayFadeOut) {
-        overlayFadeOut = new FadeOverlay(this);
+    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
+        event->ignore();
+        return;
     }
-    overlayFadeOut->setGeometry(rect());
-    overlayFadeOut->setAlpha(0);
-    overlayFadeOut->show();
-    overlayFadeOut->raise();
 
-    if (!fadeOutAnim) {
-        fadeOutAnim = new QPropertyAnimation(overlayFadeOut, "alpha", this);
-        fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    if (event->button() == Qt::LeftButton) {
+        tire();
     }
-    fadeOutAnim->stop();
-    fadeOutAnim->setDuration(800);
-    fadeOutAnim->setStartValue(0);
-    fadeOutAnim->setEndValue(255);
+    else if (event->button() == Qt::RightButton) {
+        Power();
+    }
+}
 
-    if (gestionnaireAudio != nullptr) {
-        if (!fadeOutMusique) {
-            fadeOutMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
-            fadeOutMusique->setEasingCurve(QEasingCurve::InOutQuad);
+void EcranJeu::tire()
+{
+    if (!compteurBalles) {
+        return;
+    }
+
+    int balles = compteurBalles->getBalles();
+
+    if (balles <= 0) {
+        if (gestionnaireAudio) {
+            gestionnaireAudio->playSfx("gun_empty");
         }
-        fadeOutMusique->stop();
-        fadeOutMusique->setDuration(800);
-        fadeOutMusique->setStartValue(gestionnaireAudio->getMusicVolume());
-        fadeOutMusique->setEndValue(0.0f);
-        fadeOutMusique->start();
+        return;
     }
 
-    QObject::disconnect(fadeOutAnim, nullptr, this, nullptr);
-    connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() {
-        emit retourMenuDemande();
-        });
+    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
 
-    fadeOutAnim->start();
+    compteurBalles->setBalles(balles - 1);
+    emit ballesChanged(balles - 1);
+
+    if (gestionnaireAudio) {
+        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
+
+    declencherFinPartie();
+}
+
+void EcranJeu::rechargerArme()
+{
+    if (!compteurBalles) {
+        return;
+    }
+
+    if (gestionnaireAudio && compteurBalles->getBalles() != maxBalles) {
+        gestionnaireAudio->playSfx("reload");
+    }
+
+    compteurBalles->setBalles(maxBalles);
+    emit ballesChanged(maxBalles);
 }
 
 void EcranJeu::placerElementsGUI()
 {
-    int largeurEcran = width();
-    int hauteurEcran = height();
-
-    float ratioMarges = 0.01f;
-
-    int marge = int(largeurEcran * ratioMarges);
+    const int largeurEcran = width();
+    const int hauteurEcran = height();
+    const int marge = int(largeurEcran * 0.01f);
 
     if (compteurBalles) {
-        float ratioLargeur = 0.12f;
-
-        int largeurCible = int(largeurEcran * ratioLargeur);
-
-        largeurCible = std::clamp(largeurCible, largeurMinBalles, largeurMaxBalles);
-
+        int largeurCible = std::clamp(int(largeurEcran * 0.12f), LARGEUR_MIN_BALLES, LARGEUR_MAX_BALLES);
         int largeurOriginale = compteurBalles->frameSize().width();
 
         if (largeurOriginale == 0) {
             return;
         }
 
-        float echelle = float(largeurCible) / float(largeurOriginale);
-        compteurBalles->setEchelle(echelle);
+        compteurBalles->setEchelle(float(largeurCible) / float(largeurOriginale));
+        compteurBalles->move(marge, hauteurEcran - compteurBalles->height() - marge);
+    }
 
-        int x = marge;
-        int y = hauteurEcran - compteurBalles->height() - marge;
+    if (compteurPowerUp && compteurBalles) {
+        QSize iconBase = compteurPowerUp->tailleIconBase();
+        if (!iconBase.isEmpty()) {
+            float s = float(compteurBalles->height()) / float(iconBase.height());
+            compteurPowerUp->setEchelle(s);
+        }
 
-        compteurBalles->move(x, y);
+        int x = compteurBalles->x();
+        int y = compteurBalles->y() - compteurPowerUp->height() - marge;
+        compteurPowerUp->move(x, y);
+        compteurPowerUp->raise();
     }
 
     if (compteurPoints && compteurBalles) {
-        int hauteurBalles = compteurBalles->height();
         int hauteurPoints = compteurPoints->basePanelSize().height();
-
-        if (hauteurPoints > 0)
-        {
-            float echellePoints = float(hauteurBalles) / float(hauteurPoints);
-            compteurPoints->setEchelle(echellePoints);
+        if (hauteurPoints > 0) {
+            compteurPoints->setEchelle(float(compteurBalles->height()) / float(hauteurPoints));
         }
 
-        int x = largeurEcran - compteurPoints->width() - marge;
-        int y = hauteurEcran - compteurPoints->height() - marge;
-
-        compteurPoints->move(x, y);
+        compteurPoints->move(largeurEcran - compteurPoints->width() - marge, hauteurEcran - compteurPoints->height() - marge);
     }
-    if (vies && compteurBalles && compteurPoints)
-    {
-        int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
-        int borneDroite = compteurPoints->x() - marge;
 
-        int largeurDisponible = borneDroite - borneGauche;
+    if (vies && compteurBalles && compteurPoints) {
+        const int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
+        const int borneDroite = compteurPoints->x() - marge;
+        const int largeurDisponible = borneDroite - borneGauche;
 
-        if (largeurDisponible <= 0)
-        {
-            int y = hauteurEcran - vies->height() - marge;
-            vies->move(marge, y);
+        if (largeurDisponible <= 0) {
+            vies->move(marge, hauteurEcran - vies->height() - marge);
             vies->raise();
             return;
         }
 
-        int hauteurCible = int(compteurBalles->height() * 0.80f);
         int hauteurCoeurs = vies->getTailleFrame().height();
-        if (hauteurCoeurs > 0)
-        {
-            float s = float(hauteurCible) / float(hauteurCoeurs);
+        if (hauteurCoeurs > 0) {
+            float s = float(int(compteurBalles->height() * 0.80f)) / float(hauteurCoeurs);
             vies->setEchelle(s);
         }
-
-        if (vies->width() > largeurDisponible)
-        {
-            float fit = float(largeurDisponible) / float(vies->width());
-            vies->setEchelle(vies->getEchelle() * fit);
+        if (vies->width() > largeurDisponible) {
+            vies->setEchelle(vies->getEchelle() * float(largeurDisponible) / float(vies->width()));
         }
 
         int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
-
-        int x = (largeurEcran - vies->width()) / 2;
-
-        int minX = borneGauche;
-        int maxX = borneDroite - vies->width();
-        if (maxX < minX) {
-            x = minX;
-        }
-        else {
-            x = std::clamp(x, minX, maxX);
-        }
-
+        int x = std::clamp((largeurEcran - vies->width()) / 2, borneGauche, borneDroite - vies->width());
         vies->move(x, y);
     }
 }
@@ -579,196 +395,238 @@ void EcranJeu::paintEvent(QPaintEvent*)
     else {
         painter.fillRect(rect(), Qt::black);
     }
+
     if (jeu) {
         jeu->dessiner(painter, tempsJeuMs);
     }
 
-    //TestHitbox(painter);
+    // TestHitbox(painter);
 }
 
-void EcranJeu::TestHitbox(QPainter& painter){
-
-   //Test de dessin du cercle de collision du tir
-
-   painter.setRenderHint(QPainter::Antialiasing);
-   painter.setPen(QPen(Qt::blue, 2));
-   painter.setBrush(Qt::NoBrush);
-
-   //painter.drawPath(armes->choixArme( 622, 300));
-   //painter.drawPath(armes->Hitbox(33, 622, 300));
-   painter.drawPath(armes->Hitbox(33, reticule->getX(), reticule->getY()));
-}
-
-
-void EcranJeu::mousePressEvent(QMouseEvent* event)
+void EcranJeu::TestHitbox(QPainter& painter)
 {
-    if (enPause || transitionVersMenu) {
-        event->ignore();
-        return;
-    }
-
-    if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
-        event->ignore();
-        return;
-    }
-
-    if (event->button() == Qt::LeftButton) {
-        cout << "Tire avec la souris" << endl;
-        tire();
-    }
-    else if (event->button() == Qt::RightButton) {
-        Power();
-    }
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(Qt::blue, 2));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawPath(armes->choixArme(622, 300));
 }
 
-void EcranJeu::tire() {
-    //cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-    int nombreVies = vies->getDemiVies();
-
-    if (!compteurBalles) return;
-
-    int nombreBalles = compteurBalles->getBalles();
-    if (nombreBalles <= 0) {
-        if (gestionnaireAudio != nullptr)
-            gestionnaireAudio->playSfx("gun_empty");
+void EcranJeu::mettreEnPause()
+{
+    if (enPause) {
         return;
     }
 
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
+    enPause = true;
 
-    compteurBalles->setBalles(nombreBalles - 1);
-    emit ballesChanged(nombreBalles - 1);
-    qDebug() << "ballesChanged emis, nouvelle valeur:" << (nombreBalles - 1);
-
-    cout << "Tire détecté à la position x:" << reticule->getX() << " y:" << reticule->getY() << endl;
-
-    if (gestionnaireAudio != nullptr) {
-        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    if (jeu) {
+        jeu->setPause(true);
     }
 
-    if (nombreVies <= 0) {
-        timer.stop();
-
-        overlay = new FadeOverlay(this);
-        overlay->setGeometry(rect());
-        overlay->setAlpha(0);
-        overlay->show();
-        overlay->raise();
-
-        fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
-        fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
-        fadeInAnim->setDuration(1000);
-        fadeInAnim->setStartValue(0);
-        fadeInAnim->setEndValue(255);
-
-        connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
-            int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
-            emit finPartie(scoreFinal);
-            });
-
-        fadeInAnim->start();
+    if (reticule) {
+        reticule->hide();
     }
+
+    unsetCursor();
+
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
+    menuPause = new MenuPauseOverlay(gestionnaireAudio, this, touches);
+    menuPause->setGeometry(rect());
+    menuPause->show();
+    menuPause->raise();
+
+    connect(menuPause, &MenuPauseOverlay::reprendreDemande, this, &EcranJeu::reprendreJeu);
+    connect(menuPause, &MenuPauseOverlay::retourMenuDemande, this, &EcranJeu::demarrerFadeOutVersMenu);
 }
 
 void EcranJeu::Power() {
-
     int incr = 0;
-    bool cibleTouchee = 0;
+    int nbPowerUps = compteurPowerUp->getPowerUp();
+    bool cibleTouchee = false;
 
-    if (power_up > 0) {
+    if (nbPowerUps > 0) {
+        compteurPowerUp->setPowerUp(nbPowerUps - 1);
         rechargerArme();
         switch (armes->getPowerActuelle()) {
-        case 1:
-            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+        case PowerUpType::GRENADE:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("explosion");
+            }
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
             break;
-        case 2:
-            timer2 = new QTimer(this);
-            compteur = 0;
-
-            connect(timer2, &QTimer::timeout, this, [this]() {
-                // Ton code qui s'exécute chaque 0.1 seconde
-                jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
-
-                compteur++;
-                if (compteur >= 100) {  // 100 x 0.1s = 10 secondes
-                    timer2->stop();
-                }
-                });
-
-            timer2->start(100);  // 100ms = 0.1 seconde
-            break;
-
-        case 3:
+        case PowerUpType::ZAP:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("zap");
+            }
             jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
-            incr = this->width();
-            if(incr<this->height()){
-                incr = this->height();
-			}
-
-            for(int i=1;i<= int(incr/9);i++){
-                cout << i << endl;
-                if (jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs,i)) {
+            incr = qMax(this->width(), this->height());
+            for (int i = 1; i <= int(incr / 9); i++) {
+                jeu->getArmes()->setMult(i);
+                if (jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs)) {
                     break;
                 }
-			}
+            }
             break;
-
-        case 4:
-            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+        case PowerUpType::MITRAILLETTE:
+            timer2 = new QTimer(this);
+            compteur = 0;
+            connect(timer2, &QTimer::timeout, this, [this]() {
+                if (gestionnaireAudio != nullptr) {
+                    gestionnaireAudio->playSfx("machine_gun");
+                }
+                jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+                compteur++;
+                if (compteur >= 100) {
+                    timer2->stop();
+                }
+            });
+            timer2->start(100);
             break;
-
+        case PowerUpType::TACTICAL_NUKE:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("nuke");
+            }
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
         default:
-            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
             break;
         }
     }
-	
 
-    if (gestionnaireAudio != nullptr && power_up > 0) {
-        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
-    }
-
-    if (gestionnaireAudio != nullptr && power_up <= 0) {
+    if (gestionnaireAudio != nullptr && nbPowerUps <= 0) {
         gestionnaireAudio->playSfx("gun_empty");
     }
 
-    power_up--;
+    declencherFinPartie();
+}
+
+void EcranJeu::reprendreJeu()
+{
+    if (!enPause) {
+        return;
+    }
+
+    enPause = false;
+
+    if (jeu) {
+        jeu->setPause(false);
+    }
+
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
+    frameTimer.restart();
+    setCursor(Qt::BlankCursor);
+    if (reticule) reticule->show();
+    setFocus();
+}
+
+void EcranJeu::demarrerFadeOutVersMenu()
+{
+    if (transitionVersMenu) {
+        return;
+    }
+
+    transitionVersMenu = true;
+    enPause = true;
+
+    if (jeu) {
+        jeu->setPause(true);
+    }
+
+    if (menuPause) {
+        menuPause->hide();
+        menuPause->deleteLater();
+        menuPause = nullptr;
+    }
+
+    if (!overlayFadeOut) {
+        overlayFadeOut = new FadeOverlay(this);
+    }
+
+    overlayFadeOut->setGeometry(rect());
+    overlayFadeOut->setAlpha(0);
+    overlayFadeOut->show();
+    overlayFadeOut->raise();
+
+    // Animation du fondu Ã©cran
+    if (!fadeOutAnim) {
+        fadeOutAnim = new QPropertyAnimation(overlayFadeOut, "alpha", this);
+        fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    }
+    fadeOutAnim->stop();
+    fadeOutAnim->setDuration(800);
+    fadeOutAnim->setStartValue(0);
+    fadeOutAnim->setEndValue(255);
+
+    // Animation du fondu musique
+    if (gestionnaireAudio) {
+        if (!fadeOutMusique) {
+            fadeOutMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
+            fadeOutMusique->setEasingCurve(QEasingCurve::InOutQuad);
+        }
+        fadeOutMusique->stop();
+        fadeOutMusique->setDuration(800);
+        fadeOutMusique->setStartValue(gestionnaireAudio->getMusicVolume());
+        fadeOutMusique->setEndValue(0.0f);
+        fadeOutMusique->start();
+    }
+
+    QObject::disconnect(fadeOutAnim, nullptr, this, nullptr);
+    connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() { emit retourMenuDemande(); });
+    fadeOutAnim->start();
+}
+
+void EcranJeu::declencherFinPartie()
+{
+    if (!vies || transitionVersMenu || enPause) {
+        return;
+    }
 
     if (vies->getDemiVies() > 0) {
         return;
     }
 
+    transitionVersMenu = true;
     timer.stop();
 
-    overlay = new FadeOverlay(this);
+    if (jeu) {
+        jeu->setPause(true);
+    }
+
+    if (reticule) {
+        reticule->hide();
+    }
+
+    if (!overlay) {
+        overlay = new FadeOverlay(this);
+    }
     overlay->setGeometry(rect());
     overlay->setAlpha(0);
     overlay->show();
     overlay->raise();
 
-    fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
-    fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    if (!fadeInAnim) {
+        fadeInAnim = new QPropertyAnimation(overlay, "alpha", this);
+        fadeInAnim->setEasingCurve(QEasingCurve::InOutQuad);
+    }
+    fadeInAnim->stop();
+    QObject::disconnect(fadeInAnim, nullptr, this, nullptr);
     fadeInAnim->setDuration(1000);
     fadeInAnim->setStartValue(0);
     fadeInAnim->setEndValue(255);
-
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
         emit finPartie(scoreFinal);
-        });
-
+    });
     fadeInAnim->start();
-}
-
-void EcranJeu::rechargerArme() {
-    if (!compteurBalles) {
-        return;
-    }
-
-    if (gestionnaireAudio) {
-        gestionnaireAudio->playSfx("reload");
-    }
-
-    compteurBalles->setBalles(this->maxBalles);
-    emit ballesChanged(maxBalles);
 }

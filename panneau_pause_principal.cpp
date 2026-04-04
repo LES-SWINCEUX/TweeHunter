@@ -10,10 +10,7 @@ PanneauPausePrincipal::PanneauPausePrincipal(QWidget* parent)
     naviguerBas();
 }
 
-PanneauPausePrincipal::~PanneauPausePrincipal()
-{
-    std::cout << "PanneauPausePrincipal détruit" << std::endl;
-}
+PanneauPausePrincipal::~PanneauPausePrincipal() {}
 
 void PanneauPausePrincipal::creer()
 {

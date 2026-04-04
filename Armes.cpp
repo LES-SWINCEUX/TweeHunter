@@ -1,30 +1,38 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, int PowerUp, QWidget* parent)
+Armes::Armes(int Arme, PowerUpType PowerUp)
 {
 	ArmeActuelle = Arme;
 	PowerActuelle = PowerUp;
-	p = parent;
 }
 
 QPainterPath Armes::choixArme(int x, int y) {
 	return Hitbox(ArmeActuelle, x, y);
 }
 
-QPainterPath Armes::choixPowerUp(int x, int y,int specification) {
-	switch (PowerActuelle) {
-	case 1:
-		return Hitbox(PowerActuelle + 30, x, y);
-	case 2:
-		return Hitbox(ArmeActuelle, x, y);
-	case 3:
-		mult = specification;
-		return Hitbox(PowerActuelle + 30, x, y);
-	case 4:
-		return Hitbox(PowerActuelle + 30, x, y);
-	default:
-		return Hitbox(PowerActuelle + 30, x, y);
+QPainterPath Armes::choixPowerUp(int x, int y) {
+	return Hitbox(PowerActuelle, x, y);
+}
+
+QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
+	QPainterPath Hitbox;
+	switch (choix) {
+		case PowerUpType::GRENADE:
+			Hitbox.addEllipse(QPointF(x, y), 300, 300);
+			return Hitbox;
+		case PowerUpType::ZAP:
+			Hitbox.addEllipse(QPointF(x, y), 10 * mult, 10 * mult);
+			return Hitbox;
+		case PowerUpType::MITRAILLETTE:
+			return this->Hitbox(ArmeActuelle, x, y);
+		case PowerUpType::TACTICAL_NUKE:
+			if (p) {
+				Hitbox.addRect(0, 0, p->width(), p->height());
+			}
+			return Hitbox;
+		default:
+			return Hitbox;
 	}
 }
 
@@ -34,19 +42,19 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 
 	switch (choix) {
 	case 1:
-		//cout << "Pistolet sélectionné" << endl;
+		//cout << "Pistolet sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 30, 30);
 		return Hitbox;
 	case 2:
-		//cout << "Fusil à pompe sélectionné" << endl;
+		//cout << "Fusil Ã  pompe sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 60, 60);
 		return Hitbox;
 	case 3:
-		//cout << "Gros fusil petit tir sélectionné" << endl;
+		//cout << "Gros fusil petit tir sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 10, 10);
 		return Hitbox;
 	case 4:
-		//cout << "Bombardement sélectionné" << endl;
+		//cout << "Bombardement sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 30, 30);
 		Hitbox.addEllipse(QPointF(x, y+ 90), 30, 30);
 		Hitbox.addEllipse(QPointF(x, y - 90), 30, 30);
@@ -54,26 +62,12 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		Hitbox.addEllipse(QPointF(x + 90, y), 30, 30);
 		return Hitbox;
 	case 5:
-		//cout << "Bombardement sélectionné" << endl;
+		//cout << "Bombardement sÃ©lectionnÃ©" << endl;
 		Hitbox = CreerContourTarte(x-150,y-176/2);
 		return Hitbox;
 	case 6:
-		// Swince : comportement temporaire en attendant un réticule dédié
+		// Swince : comportement temporaire en attendant un rÃ©ticule dÃ©diÃ©
 		Hitbox.addEllipse(QPointF(x, y), 45, 45);
-		return Hitbox;
-	case 31:
-		//cout << "Bombe utilisé"<<endl;
-		Hitbox.addEllipse(QPointF(x, y), 300, 300);
-		return Hitbox;
-	case 33:
-		//cout << "Bombe nucléaire utilisé" <<endl;
-		Hitbox.addEllipse(QPointF(x, y), 10*mult, 10*mult);
-
-		//cout<<mult << endl;
-		return Hitbox;
-	case 34:
-		//cout << "Bombe atomique" <<endl;
-		Hitbox.addRect(0 ,0, p->width(), p->height());
 		return Hitbox;
 	default:
 		return Hitbox;
@@ -102,13 +96,13 @@ int Armes::nbMunitions() const
 
 int Armes::nbPowerUp() const {
 	switch (PowerActuelle) {
-	case 1:
-		return 5;
-	case 2:
+	case PowerUpType::GRENADE:
+		return 3;
+	case PowerUpType::ZAP:
+		return 1;
+	case PowerUpType::MITRAILLETTE:
 		return 2;
-	case 3:
-		return 9;
-	case 4:
+	case PowerUpType::TACTICAL_NUKE:
 		return 1;
 	default:
 		return 0;

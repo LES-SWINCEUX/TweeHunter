@@ -68,18 +68,16 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
-    // Debounce manette SDL
-    bool dpadHautPrecedent  = false;
-    bool dpadBasPrecedent   = false;
-    bool boutonOkPrecedent  = false;
+    bool dpadHautPrecedent = false;
+    bool dpadBasPrecedent = false;
+    bool boutonOkPrecedent = false;
 
     SDL_Gamepad* gamepad = nullptr;
 
-    // Manette custom
-    Touches* touchesPerso    = nullptr;
+    Touches* touchesPerso = nullptr;
     bool customHautPrecedent = false;
-    bool customBasPrecedent  = false;
-    bool customOkPrecedent   = false;
+    bool customBasPrecedent = false;
+    bool customOkPrecedent = false;
 };
 
 #endif

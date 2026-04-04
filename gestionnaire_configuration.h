@@ -14,6 +14,7 @@ public:
     }
 
     void sauvegarder(const ConfigurationPartie& config);
+    void sauvegarderManette(TypeManette manette);
     ConfigurationPartie charger() const;
     void reset();
 

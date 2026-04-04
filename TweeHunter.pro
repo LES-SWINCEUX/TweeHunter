@@ -4,13 +4,37 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17 console
 
-INCLUDEPATH += $$PWD/SDL3/SDL3-3.4.0/include
+# SDL3 - Téléchargement automatique si absent
+win32:!exists($$PWD/SDL3/SDL3-3.4.0/include/SDL3/SDL.h) {
+    message("SDL3 introuvable, téléchargement en cours...")
+    system(powershell -Command \"Invoke-WebRequest -Uri 'https://github.com/libsdl-org/SDL/releases/download/release-3.4.0/SDL3-devel-3.4.0-VC.zip' -OutFile '$$PWD/SDL3.zip'\")
+    system(powershell -Command \"Expand-Archive -Path '$$PWD/SDL3.zip' -DestinationPath '$$PWD/SDL3' -Force\")
+    system(powershell -Command \"Remove-Item '$$PWD/SDL3.zip'\")
+}
 
-LIBS += -L$$PWD/SDL3/SDL3-3.4.0/lib/x64 \
-        -lSDL3
+SDL3_DIR = $$PWD/SDL3/SDL3-3.4.0
 
-win32: LIBS += -lsetupapi
+INCLUDEPATH += $$SDL3_DIR/include
 
+win32 {
+    contains(QT_ARCH, x86_64) {
+        SDL3_LIB_DIR = $$SDL3_DIR/lib/x64
+    } else {
+        SDL3_LIB_DIR = $$SDL3_DIR/lib/x86
+    }
+
+    LIBS += -L$$SDL3_LIB_DIR -lSDL3 -lsetupapi
+
+    SDL3_DLL = $$shell_path($$SDL3_LIB_DIR/SDL3.dll)
+    CONFIG(debug, debug|release): OUT = $$shell_path($$OUT_PWD/debug/)
+    else:                          OUT = $$shell_path($$OUT_PWD/release/)
+    QMAKE_POST_LINK += copy /Y \"$$SDL3_DLL\" \"$$OUT\"
+}
+
+unix:!mac {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += sdl3
+}
 
 SOURCES += \
     main.cpp \
@@ -37,6 +61,7 @@ SOURCES += \
     Reticule.cpp \
     Variete.cpp \
     compteur_balles.cpp \
+    compteur_powerup.cpp \
     compteur_points.cpp \
     vie.cpp \
     Touches.cpp \
@@ -54,9 +79,9 @@ SOURCES += \
     NativeSerialPort.cpp \
     bouton_options.cpp \
     gestionnaire_configuration.cpp \
-    menu_pause_overlay.cpp \
     bush_louche.cpp \
-    bush.cpp
+    bush.cpp \
+    gestionnaire_entrees.cpp
 
 HEADERS += \
     main_window.h \
@@ -82,6 +107,7 @@ HEADERS += \
     Reticule.h \
     Variete.h \
     compteur_balles.h \
+    compteur_powerup.h \
     compteur_points.h \
     vie.h \
     Touches.h \
@@ -98,54 +124,14 @@ HEADERS += \
     modejeu.h \
     bush_louche.h \
     bush.h \
-    modejeu.h \
     Armes.h \
     NativeSerialPort.h \
     configuration_partie.h \
     bouton_options.h \
-    gestionnaire_configuration.h
+    gestionnaire_configuration.h \
+    gestionnaire_entrees.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-!exists($$PWD/SDL3) {
-    win32 {
-        system(powershell -Command \"Invoke-WebRequest -Uri 'https://github.com/libsdl-org/SDL/releases/download/release-3.4.0/SDL3-devel-3.4.0-VC.zip' -OutFile '$$PWD/SDL3.zip'\")
-        system(powershell -Command \"Expand-Archive -Path '$$PWD/SDL3.zip' -DestinationPath '$$PWD/SDL3' -Force\")
-        system(del $$shell_path($$PWD/SDL3.zip))
-    }
-    unix:!mac {
-        system(wget -q https://github.com/libsdl-org/SDL/releases/download/release-3.4.0/SDL3-3.4.0.tar.gz -O $$PWD/SDL3.tar.gz)
-        system(mkdir -p $$PWD/SDL3 && tar -xzf $$PWD/SDL3.tar.gz -C $$PWD/SDL3 --strip-components=1)
-        system(rm $$PWD/SDL3.tar.gz)
-    }
-}
-
-win32 {
-    SDL3_DLL = $$shell_path($$PWD/SDL3/SDL3-3.4.0/lib/x64/SDL3.dll)
-
-    CONFIG(debug, debug|release) {
-        QMAKE_POST_LINK += copy /Y \"$$SDL3_DLL\" \"$$shell_path($$OUT_PWD/debug/)\"
-    } else {
-        QMAKE_POST_LINK += copy /Y \"$$SDL3_DLL\" \"$$shell_path($$OUT_PWD/release/)\"
-    }
-}
-
-unix:!mac {
-    SDL3_SO = $$PWD/SDL3/SDL3-3.4.0/lib/linux/libSDL3.so
-
-    CONFIG(debug, debug|release) {
-        DESTDIR = $$OUT_PWD/debug
-    } else {
-        DESTDIR = $$OUT_PWD/release
-    }
-
-    copysdl3.commands = cp -P \"$$SDL3_SO\"* \"$$DESTDIR/\"
-    copysdl3.depends = FORCE
-    QMAKE_EXTRA_TARGETS += copysdl3
-    POST_TARGETDEPS += copysdl3
-
-    QMAKE_LFLAGS += -Wl,-rpath,\'$$ORIGIN\'
-}
