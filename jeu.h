@@ -14,16 +14,14 @@
 #include "modejeu.h"
 #include <QPainterPath>
 #include "Armes.h"
-#include "Reticule.h"
 
 using namespace std;
 
-class Jeu :	public QWidget
+class Jeu
 {
-	Q_OBJECT
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1), Reticule* R);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1));
 
 	~Jeu();
 
@@ -59,7 +57,8 @@ public:
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
 	bool Tirer(const int x, const int y, qint64 tempsMs);
-	bool PowerUp(const int x, const int y, qint64 tempsMs);
+	bool TireGratuit(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, qint64 tempsMs , int special = 0);
 
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
@@ -97,12 +96,6 @@ private:
 	ModeJeu modeActuel;
 	bool enPause;
 	Armes* armes;
-	QTimer* timer;
-	int compteur;
-	Reticule* reticule;
-
-
-	qint64 TempsMs;
 
 };
 

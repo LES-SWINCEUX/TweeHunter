@@ -7,11 +7,10 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A, Reticule* R)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
 {
 	armes = A;
-	reticule = R;
 
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
@@ -135,34 +134,14 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	return verifierCollisions(armes->choixArme(x,y), tempsMs);
 }
 
-bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
+bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+}
+
+bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs, int special) {
 
 	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
-	TempsMs = tempsMs;
-
-	switch (armes->getPowerActuelle()) {
-	case 1:
-		return verifierCollisions(armes->choixPowerUp(x,y),tempsMs);
-	case 2:
-		timer = new QTimer(this);
-		compteur = 0;
-
-		connect(timer, &QTimer::timeout, this, [this]() {
-			// Ton code qui s'exécute chaque 0.1 seconde
-			verifierCollisions(armes->choixArme(reticule->getX(), reticule->getY()), TempsMs);
-			TempsMs += 100;  // Incrémente le temps de 0.1 seconde
-			compteur++;
-			if (compteur >= 100) {  // 100 x 0.1s = 10 secondes
-				timer->stop();
-			}
-			});
-		timer->start(100);  // 100ms = 0.1 seconde
-
-	case 4:
-		return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
-	default:
-		return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
-	}
+	return verifierCollisions(armes->choixPowerUp(x, y,special), tempsMs);
 
 }
 

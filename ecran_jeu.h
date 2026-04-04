@@ -107,6 +107,9 @@ private:
 
     int power_up = 0;
     ConfigurationPartie configurationPartie;
+
+    QTimer* timer2;
+    int compteur;  // pour compter les intervals
 };
 
 #endif
