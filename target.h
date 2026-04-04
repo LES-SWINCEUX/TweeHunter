@@ -11,7 +11,7 @@
 #include <QSharedPointer>
 #include <iostream>
 #include <QPainterPath>
-
+#include "modejeu.h"
 
 enum class TypeTarget
 {
@@ -19,7 +19,10 @@ enum class TypeTarget
 	DEBUFF,
 	MIXTE,
 	LEGENDAIRE,
-	BONUS
+	BONUS,
+	POISON,
+	WATER,
+	GATOR
 };
 
 enum class EtatTarget
@@ -83,6 +86,10 @@ public:
 				estMiroir = miroir;
 	}
 
+	bool aEteDetruite() const { 
+		return m_aEteDetruite; 
+	}
+
 protected:
 	void chargerSprite(Sprite& sprite, const QString& cheminSprite, int colonnes, int lignes, int cycle);
 
@@ -98,6 +105,7 @@ protected:
 	bool m_dejaComptee;
 
 	bool estMiroir = false;
+	bool m_aEteDetruite = false;
 	qint64 tempsDebutDestruction;
 
 	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;

@@ -90,6 +90,9 @@ void Jeu::update(qint64 tempsMs)
 			if (cible->estInactif() && !cible->dejaComptee()) {
 				ciblesManquees++;
 				cible->marquerComptee();
+				if (cible->getType() == TypeTarget::WATER && !cible->aEteDetruite()) {
+					vies->setDemiVies(vies->getDemiVies() - 2);
+				}
 			}
 		}
 
@@ -160,7 +163,6 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 		}
 	}
 }
-
 bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
 	if (enPause) {
@@ -184,6 +186,14 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 
 			if (incrementScores < 0) {
 				vies->setDemiVies(vies->getDemiVies() - 1);
+			}
+
+			// Comportements spéciaux par type
+			if (cible->getType() == TypeTarget::POISON) {
+				vies->setDemiVies(vies->getDemiVies() - 2);
+			}
+			if (cible->getType() == TypeTarget::GATOR) {
+				vies->setDemiVies(vies->getDemiVies() + 2);
 			}
 
 			compteurPoints->setPoints(score);
@@ -212,6 +222,8 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 
 		compteurPoints->setPoints(score);
+	}
+	return aTouche;
 
 		//if (gestionnaireAudio) {
 		//	switch (bushLoucheActif->getType()) {
@@ -226,8 +238,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		//		break;
 		//	}
 		//}
-	}
-	return aTouche;
+
 }
 
 
@@ -365,4 +376,31 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.vitesseMax = 1250.0;
 	bonus.frequenceSpawn = 5.0;
 	ajouterTypeCible(bonus);
+
+	DefinitionTarget poison;
+	poison.type = TypeTarget::POISON;
+	poison.tailleRelative = 0.15;
+	poison.pointsScore = 0;
+	poison.vitesseMin = 500.0;
+	poison.vitesseMax = 1250.0;
+	poison.frequenceSpawn = 3.0;
+	ajouterTypeCible(poison);
+
+	DefinitionTarget water;
+	water.type = TypeTarget::WATER;
+	water.tailleRelative = 0.15;
+	water.pointsScore = 0;
+	water.vitesseMin = 500.0;
+	water.vitesseMax = 1000.0;
+	water.frequenceSpawn = 3.0;
+	ajouterTypeCible(water);
+
+	DefinitionTarget gator;
+	gator.type = TypeTarget::GATOR;
+	gator.tailleRelative = 0.15;
+	gator.pointsScore = 0;
+	gator.vitesseMin = 400.0;
+	gator.vitesseMax = 900.0;
+	gator.frequenceSpawn = 6.0;
+	ajouterTypeCible(gator);
 }
