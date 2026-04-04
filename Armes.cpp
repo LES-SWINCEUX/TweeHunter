@@ -1,18 +1,31 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, int PowerUp)
+Armes::Armes(int Arme, int PowerUp, QWidget* parent)
 {
 	ArmeActuelle = Arme;
 	PowerActuelle = PowerUp;
+	p = parent;
 }
 
 QPainterPath Armes::choixArme(int x, int y) {
 	return Hitbox(ArmeActuelle, x, y);
 }
 
-QPainterPath Armes::choixPowerUp(int x, int y) {
-	return Hitbox(PowerActuelle+30, x, y);
+QPainterPath Armes::choixPowerUp(int x, int y,int specification) {
+	switch (PowerActuelle) {
+	case 1:
+		return Hitbox(PowerActuelle + 30, x, y);
+	case 2:
+		return Hitbox(ArmeActuelle, x, y);
+	case 3:
+		mult = specification;
+		return Hitbox(PowerActuelle + 30, x, y);
+	case 4:
+		return Hitbox(PowerActuelle + 30, x, y);
+	default:
+		return Hitbox(PowerActuelle + 30, x, y);
+	}
 }
 
 QPainterPath Armes::Hitbox(int choix, int x, int y)
@@ -49,8 +62,18 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		Hitbox.addEllipse(QPointF(x, y), 45, 45);
 		return Hitbox;
 	case 31:
-		//cout << "Bombe utilisé<<endl;
+		//cout << "Bombe utilisé"<<endl;
 		Hitbox.addEllipse(QPointF(x, y), 300, 300);
+		return Hitbox;
+	case 33:
+		//cout << "Bombe nucléaire utilisé" <<endl;
+		Hitbox.addEllipse(QPointF(x, y), 10*mult, 10*mult);
+
+		//cout<<mult << endl;
+		return Hitbox;
+	case 34:
+		//cout << "Bombe atomique" <<endl;
+		Hitbox.addRect(0 ,0, p->width(), p->height());
 		return Hitbox;
 	default:
 		return Hitbox;
@@ -80,11 +103,11 @@ int Armes::nbMunitions() const
 int Armes::nbPowerUp() const {
 	switch (PowerActuelle) {
 	case 1:
-		return 3;
+		return 5;
 	case 2:
-		return 1;
-	case 3:
 		return 2;
+	case 3:
+		return 9;
 	case 4:
 		return 1;
 	default:

@@ -54,6 +54,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 
 	initialiserCiblesParDefaut();
 	qDebug() << QDir::currentPath();
+
 }
 
 Jeu::~Jeu()
@@ -259,6 +260,17 @@ bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
 
 	return verifierCollisions(armes->choixArme(x,y), tempsMs);
+}
+
+bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+}
+
+bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs, int special) {
+
+	cout << "Création de la hitbox du tir avec un cercle centré sur le réticule dans la classe Arme" << endl;
+	return verifierCollisions(armes->choixPowerUp(x, y,special), tempsMs);
+
 }
 
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {

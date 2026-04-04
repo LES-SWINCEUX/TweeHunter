@@ -8,6 +8,7 @@
 #include "vie.h"
 #include <QList>
 #include <QSizeF>
+#include <QTimer>
 #include <QPainter>
 #include <iostream>
 #include "modejeu.h"
@@ -21,7 +22,7 @@
 
 using namespace std;
 
-class Jeu 
+class Jeu
 {
 
 public:
@@ -61,6 +62,9 @@ public:
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
 	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool TireGratuit(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, qint64 tempsMs , int special = 0);
+
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
 

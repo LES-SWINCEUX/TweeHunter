@@ -3,7 +3,7 @@
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
     : QWidget(parent), configurationPartie(configuration)
 {
-    int ChoixPowerUp = 1;
+    int ChoixPowerUp = 4;
 
     //ajout à enlever apres test
     QPoint pos = QCursor::pos();
@@ -18,7 +18,7 @@ EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPart
     reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, this->touches); // création du réticule sur la souris + choix du réticule
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme,ChoixPowerUp);
+    armes = new Armes(configurationPartie.arme, ChoixPowerUp, this);
     maxBalles = armes->nbMunitions();
     power_up = armes->nbPowerUp();
 
@@ -594,9 +594,9 @@ void EcranJeu::TestHitbox(QPainter& painter){
    painter.setPen(QPen(Qt::blue, 2));
    painter.setBrush(Qt::NoBrush);
 
-   painter.drawPath(armes->choixArme( 622, 300));
-   //painter.drawPath(armes->Hitbox(30, 622, 300));
-   //painter.drawPath(armes->Hitbox(4, reticule->getX(), reticule->getY()));
+   //painter.drawPath(armes->choixArme( 622, 300));
+   //painter.drawPath(armes->Hitbox(33, 622, 300));
+   painter.drawPath(armes->Hitbox(33, reticule->getX(), reticule->getY()));
 }
 
 
@@ -672,13 +672,57 @@ void EcranJeu::tire() {
 
 void EcranJeu::Power() {
 
-
+    int incr = 0;
     bool cibleTouchee = 0;
 
     if (power_up > 0) {
         rechargerArme();
-        bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
-	}
+        switch (armes->getPowerActuelle()) {
+        case 1:
+            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+        case 2:
+            timer2 = new QTimer(this);
+            compteur = 0;
+
+            connect(timer2, &QTimer::timeout, this, [this]() {
+                // Ton code qui s'exécute chaque 0.1 seconde
+                jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+
+                compteur++;
+                if (compteur >= 100) {  // 100 x 0.1s = 10 secondes
+                    timer2->stop();
+                }
+                });
+
+            timer2->start(100);  // 100ms = 0.1 seconde
+            break;
+
+        case 3:
+            jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
+            incr = this->width();
+            if(incr<this->height()){
+                incr = this->height();
+			}
+
+            for(int i=1;i<= int(incr/9);i++){
+                cout << i << endl;
+                if (jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs,i)) {
+                    break;
+                }
+			}
+            break;
+
+        case 4:
+            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+
+        default:
+            jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+        }
+    }
+	
 
     if (gestionnaireAudio != nullptr && power_up > 0) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
