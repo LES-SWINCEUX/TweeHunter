@@ -34,6 +34,7 @@ void EcranJeu::initReticuleEtArmes()
     reticule->show();
 
     armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
+    armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
     power_up  = armes->nbPowerUp();
 
@@ -153,7 +154,7 @@ void EcranJeu::showEvent(QShowEvent* e)
                 jeu->setVariationFrequence(200);
                 break;
             case DifficultePartie::RNG:
-                // Effet de gameplay à définir
+                // Effet de gameplay Ã  dÃ©finir
                 break;
             case DifficultePartie::NORMAL:
             default:
@@ -290,27 +291,6 @@ void EcranJeu::tire()
 
     compteurBalles->setBalles(balles - 1);
     emit ballesChanged(balles - 1);
-
-    if (gestionnaireAudio) {
-        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
-    }
-
-    declencherFinPartie();
-}
-
-void EcranJeu::Power()
-{
-    if (power_up <= 0) {
-        if (gestionnaireAudio) {
-            gestionnaireAudio->playSfx("gun_empty");
-        }
-        return;
-    }
-
-    rechargerArme();
-    bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs, true);
-    power_up--;
-    if (compteurPowerUp) compteurPowerUp->setPowerUp(power_up);
 
     if (gestionnaireAudio) {
         gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
@@ -461,6 +441,54 @@ void EcranJeu::mettreEnPause()
     connect(menuPause, &MenuPauseOverlay::retourMenuDemande, this, &EcranJeu::demarrerFadeOutVersMenu);
 }
 
+void EcranJeu::Power() {
+    int incr = 0;
+    bool cibleTouchee = false;
+
+    if (power_up > 0) {
+        rechargerArme();
+        switch (armes->getPowerActuelle()) {
+        case PowerUpType::GRENADE:
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+        case PowerUpType::ZAP:
+            jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
+            incr = qMax(this->width(), this->height());
+            for (int i = 1; i <= int(incr / 9); i++) {
+                jeu->getArmes()->setMult(i);
+                if (jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs)) {
+                    break;
+                }
+            }
+            break;
+        case PowerUpType::MITRAILLETTE:
+            timer2 = new QTimer(this);
+            compteur = 0;
+            connect(timer2, &QTimer::timeout, this, [this]() {
+                jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+                compteur++;
+                if (compteur >= 100) {
+                    timer2->stop();
+                }
+                });
+            timer2->start(100);
+            break;
+        case PowerUpType::TACTICAL_NUKE:
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+        default:
+            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
+            break;
+        }
+    }
+
+    if (gestionnaireAudio != nullptr && power_up > 0) {
+        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    }
+
+    declencherFinPartie();
+}
+
 void EcranJeu::reprendreJeu()
 {
     if (!enPause) {
@@ -513,7 +541,7 @@ void EcranJeu::demarrerFadeOutVersMenu()
     overlayFadeOut->show();
     overlayFadeOut->raise();
 
-    // Animation du fondu écran
+    // Animation du fondu Ã©cran
     if (!fadeOutAnim) {
         fadeOutAnim = new QPropertyAnimation(overlayFadeOut, "alpha", this);
         fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);

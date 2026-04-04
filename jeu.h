@@ -8,6 +8,7 @@
 #include "vie.h"
 #include <QList>
 #include <QSizeF>
+#include <QTimer>
 #include <QPainter>
 #include <iostream>
 #include "modejeu.h"
@@ -68,9 +69,13 @@ public:
 	}
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
-	bool Tirer(const int x, const int y, qint64 tempsMs, bool powerUp = false);
+	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool TireGratuit(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, qint64 tempsMs);
+
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
+	Armes* getArmes() const { return this->armes; }
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {

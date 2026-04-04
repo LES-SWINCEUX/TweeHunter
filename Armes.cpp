@@ -21,6 +21,16 @@ QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
 		case PowerUpType::GRENADE:
 			Hitbox.addEllipse(QPointF(x, y), 300, 300);
 			return Hitbox;
+		case PowerUpType::ZAP:
+			Hitbox.addEllipse(QPointF(x, y), 10 * mult, 10 * mult);
+			return Hitbox;
+		case PowerUpType::MITRAILLETTE:
+			return this->Hitbox(ArmeActuelle, x, y);
+		case PowerUpType::TACTICAL_NUKE:
+			if (p) {
+				Hitbox.addRect(0, 0, p->width(), p->height());
+			}
+			return Hitbox;
 		default:
 			return Hitbox;
 	}
@@ -32,19 +42,19 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 
 	switch (choix) {
 	case 1:
-		//cout << "Pistolet sélectionné" << endl;
+		//cout << "Pistolet sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 30, 30);
 		return Hitbox;
 	case 2:
-		//cout << "Fusil à pompe sélectionné" << endl;
+		//cout << "Fusil Ã  pompe sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 60, 60);
 		return Hitbox;
 	case 3:
-		//cout << "Gros fusil petit tir sélectionné" << endl;
+		//cout << "Gros fusil petit tir sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 10, 10);
 		return Hitbox;
 	case 4:
-		//cout << "Bombardement sélectionné" << endl;
+		//cout << "Bombardement sÃ©lectionnÃ©" << endl;
 		Hitbox.addEllipse(QPointF(x, y), 30, 30);
 		Hitbox.addEllipse(QPointF(x, y+ 90), 30, 30);
 		Hitbox.addEllipse(QPointF(x, y - 90), 30, 30);
@@ -52,11 +62,11 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		Hitbox.addEllipse(QPointF(x + 90, y), 30, 30);
 		return Hitbox;
 	case 5:
-		//cout << "Bombardement sélectionné" << endl;
+		//cout << "Bombardement sÃ©lectionnÃ©" << endl;
 		Hitbox = CreerContourTarte(x-150,y-176/2);
 		return Hitbox;
 	case 6:
-		// Swince : comportement temporaire en attendant un réticule dédié
+		// Swince : comportement temporaire en attendant un rÃ©ticule dÃ©diÃ©
 		Hitbox.addEllipse(QPointF(x, y), 45, 45);
 		return Hitbox;
 	default:

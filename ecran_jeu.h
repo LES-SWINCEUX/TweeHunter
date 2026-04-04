@@ -111,6 +111,13 @@ private:
     QPropertyAnimation* fadeInAnim = nullptr;
     QPropertyAnimation* fadeOutAnim = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
+    // Membres pour la gestion des power-ups (manette)
+    bool gachettePrecedente = false;
+    bool reloadPrecedent = false;
+    bool startPrecedent = false;
+
+    QTimer* timer2 = nullptr;
+    int compteur = 0;
 };
 
 #endif

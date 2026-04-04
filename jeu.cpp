@@ -52,6 +52,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	this->vies = vies;
 
 	initialiserCiblesParDefaut();
+	qDebug() << QDir::currentPath();
 }
 
 Jeu::~Jeu()
@@ -247,18 +248,27 @@ void Jeu::reinitialiser()
 	}
 }
 
-bool Jeu::Tirer(const int x, const int y, qint64 tempsMs, bool powerUp) {
+bool Jeu::Tirer(const int x, const int y, qint64 tempsMs) {
 
 	if (compteurBalles && compteurBalles->getBalles() <= 0) {
 		return false;
 	}
-	if (compteurBalles && !powerUp) {
+	if (compteurBalles) {
 		compteurBalles->setBalles(compteurBalles->getBalles() - 1);
 	}
-	return verifierCollisions(powerUp ? armes->choixPowerUp(x, y) : armes->choixArme(x, y), tempsMs);
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
 }
 
-bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
+bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixArme(x, y), tempsMs);
+}
+
+bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
+}
+
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
+	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()
