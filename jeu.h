@@ -8,6 +8,7 @@
 #include "vie.h"
 #include <QList>
 #include <QSizeF>
+#include <QTimer>
 #include <QPainter>
 #include <iostream>
 #include "modejeu.h"
@@ -17,15 +18,23 @@
 #include "gestionnaire_audio.h"
 #include "Armes.h"
 #include <functional>
+#include <QFont>
+#include <QColor>
 
+struct IndicateurScore {
+	QPointF position;
+	int points;
+	qint64  tempsDebut;
+	static constexpr qint64 DUREE_MS = 1200;
+};
 
 using namespace std;
 
-class Jeu 
+class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = new Armes(1));
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr);
 
 	~Jeu();
 
@@ -61,8 +70,12 @@ public:
 	void ajouterTypeCible(const DefinitionTarget& definition);
 
 	bool Tirer(const int x, const int y, qint64 tempsMs);
+	bool TireGratuit(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, qint64 tempsMs);
+
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
+	Armes* getArmes() const { return this->armes; }
 
 	void setModeJeu(ModeJeu mode);
 	ModeJeu getModeJeu() const {
@@ -80,7 +93,7 @@ public:
 	}
 
 private:
-	
+
 	static QSharedPointer<QPixmap> spriteDestruction;
 	void nettoyerCiblesInactives();
 
@@ -106,6 +119,10 @@ private:
 	Armes* armes = nullptr;
 
 	std::function<void()> onMoteurDemande;
+
+	QList<IndicateurScore> indicateurs;
+	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
+	void nettoyerIndicateurs(qint64 tempsMs);
 };
 
 #endif
