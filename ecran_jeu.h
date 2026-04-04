@@ -84,7 +84,6 @@ private:
     Jeu* jeu = nullptr;
     Armes* armes = nullptr;
     int maxBalles = 0;
-    int power_up = 0;
 
     GestionnaireEntrees* gestionnaireEntrees = nullptr;
     Reticule* reticule = nullptr;

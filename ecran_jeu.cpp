@@ -36,7 +36,6 @@ void EcranJeu::initReticuleEtArmes()
     armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
     armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
-    power_up  = armes->nbPowerUp();
 
     gamepad = reticule->getGamepad();
 
@@ -95,10 +94,14 @@ void EcranJeu::initAudio()
     estompeMusique->setEndValue(gestionnaireAudio->getMusicVolumeSetting());
     estompeMusique->start(QAbstractAnimation::DeleteWhenStopped);
 
-    gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.wav",        maxBalles);
+    gestionnaireAudio->addSfx("gunshot", QDir::currentPath() + "/sounds/sfx/gunshot.wav", maxBalles);
     gestionnaireAudio->addSfx("gunshot_target", QDir::currentPath() + "/sounds/sfx/gunshot_target.wav", maxBalles);
-    gestionnaireAudio->addSfx("gun_empty", QDir::currentPath() + "/sounds/sfx/gun_empty.wav",      maxBalles);
-    gestionnaireAudio->addSfx("reload", QDir::currentPath() + "/sounds/sfx/reload.wav",         maxBalles);
+    gestionnaireAudio->addSfx("gun_empty", QDir::currentPath() + "/sounds/sfx/gun_empty.wav", maxBalles);
+    gestionnaireAudio->addSfx("reload", QDir::currentPath() + "/sounds/sfx/reload.wav", maxBalles);
+    gestionnaireAudio->addSfx("explosion", QDir::currentPath() + "/sounds/sfx/explosion.wav", maxBalles);
+    gestionnaireAudio->addSfx("zap", QDir::currentPath() + "/sounds/sfx/zap.wav", maxBalles);
+    gestionnaireAudio->addSfx("machine_gun", QDir::currentPath() + "/sounds/sfx/machine_gun.wav", maxBalles);
+    gestionnaireAudio->addSfx("nuke", QDir::currentPath() + "/sounds/sfx/nuke.wav", maxBalles);
 }
 
 void EcranJeu::initAnimations()
@@ -305,7 +308,7 @@ void EcranJeu::rechargerArme()
         return;
     }
 
-    if (gestionnaireAudio) {
+    if (gestionnaireAudio && compteurBalles->getBalles() != maxBalles) {
         gestionnaireAudio->playSfx("reload");
     }
 
@@ -443,15 +446,23 @@ void EcranJeu::mettreEnPause()
 
 void EcranJeu::Power() {
     int incr = 0;
+    int nbPowerUps = compteurPowerUp->getPowerUp();
     bool cibleTouchee = false;
 
-    if (power_up > 0) {
+    if (nbPowerUps > 0) {
+        compteurPowerUp->setPowerUp(nbPowerUps - 1);
         rechargerArme();
         switch (armes->getPowerActuelle()) {
         case PowerUpType::GRENADE:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("explosion");
+            }
             cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
             break;
         case PowerUpType::ZAP:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("zap");
+            }
             jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
             incr = qMax(this->width(), this->height());
             for (int i = 1; i <= int(incr / 9); i++) {
@@ -465,15 +476,21 @@ void EcranJeu::Power() {
             timer2 = new QTimer(this);
             compteur = 0;
             connect(timer2, &QTimer::timeout, this, [this]() {
+                if (gestionnaireAudio != nullptr) {
+                    gestionnaireAudio->playSfx("machine_gun");
+                }
                 jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
                 compteur++;
                 if (compteur >= 100) {
                     timer2->stop();
                 }
-                });
+            });
             timer2->start(100);
             break;
         case PowerUpType::TACTICAL_NUKE:
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("nuke");
+            }
             cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
             break;
         default:
@@ -482,8 +499,8 @@ void EcranJeu::Power() {
         }
     }
 
-    if (gestionnaireAudio != nullptr && power_up > 0) {
-        gestionnaireAudio->playSfx(cibleTouchee ? "gunshot_target" : "gunshot");
+    if (gestionnaireAudio != nullptr && nbPowerUps <= 0) {
+        gestionnaireAudio->playSfx("gun_empty");
     }
 
     declencherFinPartie();
