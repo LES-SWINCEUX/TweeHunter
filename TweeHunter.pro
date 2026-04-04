@@ -56,7 +56,10 @@ SOURCES += \
     gestionnaire_configuration.cpp \
     menu_pause_overlay.cpp \
     bush_louche.cpp \
-    bush.cpp
+    bush.cpp \
+    gator.cpp \
+    water.cpp \
+    poison.cpp
 
 HEADERS += \
     main_window.h \
@@ -103,7 +106,10 @@ HEADERS += \
     NativeSerialPort.h \
     configuration_partie.h \
     bouton_options.h \
-    gestionnaire_configuration.h
+    gestionnaire_configuration.h \
+    gator.h \
+    water.h \
+    poison.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
