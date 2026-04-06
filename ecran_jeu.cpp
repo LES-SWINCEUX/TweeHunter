@@ -212,12 +212,15 @@ void EcranJeu::tick()
     qint64 deltaMs = frameTimer.restart();
     tempsJeuMs += deltaMs;
 
-    if (jeu) jeu->update(tempsJeuMs);
+    if (jeu) {
+        jeu->update(tempsJeuMs);
+    }
 
     declencherFinPartie();
 
-    if (gestionnaireEntrees)
+    if (gestionnaireEntrees) {
         gestionnaireEntrees->lire(deltaMs);
+    }
 
     update();
 }
@@ -626,6 +629,7 @@ void EcranJeu::declencherFinPartie()
     fadeInAnim->setEndValue(255);
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
+        touches->envoyerFinPartie();
         emit finPartie(scoreFinal);
     });
     fadeInAnim->start();

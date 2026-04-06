@@ -62,43 +62,44 @@ void Touches::lirePerso() {
     {
         QJsonDocument doc = QJsonDocument::fromJson(serial.readLine());
 
-        if (!doc.isNull())
-        {
-            QJsonObject obj = doc.object();
+        if (doc.isNull()) {
+            continue;
+        }
 
-            if (obj["type"] == "joystick") {
-                pendingX = obj["x"].toInt();
-                pendingY = 1023 - obj["y"].toInt();
-                hasNewJoystick = true;
+        QJsonObject obj = doc.object();
+
+        if (obj["type"] == "joystick") {
+            pendingX = obj["x"].toInt();
+            pendingY = 1023 - obj["y"].toInt();
+            hasNewJoystick = true;
+        }
+        else if (obj["type"] == "event") {
+            if (obj["btn"].toInt() == 1) {
+                gachette = true;
             }
-            else if (obj["type"] == "event") {
-                if (obj["btn"].toInt() == 1) {
-                    gachette = true;
-                }
-                else {
-                    gachette = false;
-                }
+            else {
+                gachette = false;
+            }
 
-                if (obj["btn1"].toInt() == 1) {
-                    reload = true;
-                }
-                else {
-                    reload = false;
-                }
+            if (obj["btn1"].toInt() == 1) {
+                reload = true;
+            }
+            else {
+                reload = false;
+            }
 
-                if (obj["btn2"].toInt() == 1) {
-                    accelerometre = true;
-                }
-                else {
-                    accelerometre = false;
-                }
-                encodeur = obj["encodeur"].toInt();
-                if (encodeur != 0) {                    
-                    lastEncodeur = encodeur;
-                }
-			}
-            
+            if (obj["btn2"].toInt() == 1) {
+                accelerometre = true;
+            }
+            else {
+                accelerometre = false;
+            }
 
+            encodeur = obj["encodeur"].toInt();
+
+            if (encodeur != 0) {
+                lastEncodeur = encodeur;
+            }
         }
     }
 
@@ -150,10 +151,18 @@ void Touches::envoyerRaw(const QByteArray& data)
 
 void Touches::envoyerMoteur()
 {
-	if (!serial.isOpen()) return;
+    if (!serial.isOpen()) {
+        return;
+    }
+
     QJsonObject obj;
     obj["type"] = "config";
     obj["moteur"] = 1;
 	QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
+}
+
+void Touches::envoyerFinPartie() {
+    // TODO: envoyer signal de fin de partie pour activer le swinceur
+    qDebug("Fin de la partie");
 }
