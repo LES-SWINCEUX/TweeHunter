@@ -5,14 +5,12 @@
 #include <QPainterPath>
 #include <QWidget>
 
-using namespace std;
-
 #include "configuration_partie.h"
 
 class Armes
 {
 public:
-	Armes(int Arme = 1, PowerUpType PowerUp = PowerUpType::GRENADE);
+	Armes(ConfigurationPartie configuration);
 
 	QPainterPath choixArme(int x, int y);
 	QPainterPath choixPowerUp(int x, int y);

@@ -33,7 +33,7 @@ void EcranJeu::initReticuleEtArmes()
     reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, touches);
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
+    armes = new Armes(configurationPartie);
     armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
 
@@ -57,15 +57,15 @@ void EcranJeu::initReticuleEtArmes()
 void EcranJeu::initHUD()
 {
     compteurBalles = new CompteurBalles(this, armes->nbMunitions());
-    vies = new Vies(this);
+    compteurVies = new CompteurVies(this);
     compteurPoints = new CompteurPoints(this);
     compteurPowerUp = new CompteurPowerUp(this, configurationPartie.powerUp, armes->nbPowerUp());
 
     compteurBalles->setBalles(armes->nbMunitions());
     compteurBalles->show();
 
-    vies->setVies(3);
-    vies->show();
+    compteurVies->setVies(3);
+    compteurVies->show();
 
     compteurPoints->setNombresNumeros(6);
     compteurPoints->setPoints(0);
@@ -82,7 +82,9 @@ void EcranJeu::initHUD()
 
 void EcranJeu::initAudio()
 {
-    if (!gestionnaireAudio) return;
+    if (!gestionnaireAudio) {
+        return;
+    }
 
     gestionnaireAudio->stopAndClearMusic();
     gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
@@ -148,7 +150,7 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
 
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes);
 
         switch (configurationPartie.difficulte) {
             case DifficultePartie::CHAOS:
@@ -359,29 +361,29 @@ void EcranJeu::placerElementsGUI()
         compteurPoints->move(largeurEcran - compteurPoints->width() - marge, hauteurEcran - compteurPoints->height() - marge);
     }
 
-    if (vies && compteurBalles && compteurPoints) {
+    if (compteurVies && compteurBalles && compteurPoints) {
         const int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
         const int borneDroite = compteurPoints->x() - marge;
         const int largeurDisponible = borneDroite - borneGauche;
 
         if (largeurDisponible <= 0) {
-            vies->move(marge, hauteurEcran - vies->height() - marge);
-            vies->raise();
+            compteurVies->move(marge, hauteurEcran - compteurVies->height() - marge);
+            compteurVies->raise();
             return;
         }
 
-        int hauteurCoeurs = vies->getTailleFrame().height();
+        int hauteurCoeurs = compteurVies->getTailleFrame().height();
         if (hauteurCoeurs > 0) {
             float s = float(int(compteurBalles->height() * 0.80f)) / float(hauteurCoeurs);
-            vies->setEchelle(s);
+            compteurVies->setEchelle(s);
         }
-        if (vies->width() > largeurDisponible) {
-            vies->setEchelle(vies->getEchelle() * float(largeurDisponible) / float(vies->width()));
+        if (compteurVies->width() > largeurDisponible) {
+            compteurVies->setEchelle(compteurVies->getEchelle() * float(largeurDisponible) / float(compteurVies->width()));
         }
 
-        int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
-        int x = std::clamp((largeurEcran - vies->width()) / 2, borneGauche, borneDroite - vies->width());
-        vies->move(x, y);
+        int y = compteurBalles->y() + (compteurBalles->height() - compteurVies->height()) / 2;
+        int x = std::clamp((largeurEcran - compteurVies->width()) / 2, borneGauche, borneDroite - compteurVies->width());
+        compteurVies->move(x, y);
     }
 }
 
@@ -591,11 +593,11 @@ void EcranJeu::demarrerFadeOutVersMenu()
 
 void EcranJeu::declencherFinPartie()
 {
-    if (!vies || transitionVersMenu || enPause) {
+    if (!compteurVies || transitionVersMenu || enPause) {
         return;
     }
 
-    if (vies->getDemiVies() > 0) {
+    if (compteurVies->getDemiVies() > 0) {
         return;
     }
 

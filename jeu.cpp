@@ -7,7 +7,7 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
 {
 	armes = A;
@@ -49,7 +49,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 
 	this->compteurPoints = compteurPoints;
 	this->compteurBalles = compteurBalles;
-	this->vies = vies;
+	this->compteurVies = compteurVies;
 
 	initialiserCiblesParDefaut();
 	qDebug() << QDir::currentPath();
@@ -191,7 +191,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 
 			if (incrementScores < 0) {
-				vies->setDemiVies(vies->getDemiVies() - 1);
+				compteurVies->setDemiVies(compteurVies->getDemiVies() - 1);
 			}
 
 			compteurPoints->setPoints(score);
@@ -222,7 +222,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 
 		if (pointsLouche < 0) {
-			vies->setDemiVies(vies->getDemiVies() - 2);
+			compteurVies->setDemiVies(compteurVies->getDemiVies() - 2);
 		}
 
 		compteurPoints->setPoints(score);

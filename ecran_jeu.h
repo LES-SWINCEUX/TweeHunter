@@ -22,7 +22,7 @@
 #include "gestionnaire_entrees.h"
 #include "jeu.h"
 #include "Reticule.h"
-#include "vie.h"
+#include "compteur_vies.h"
 #include "Armes.h"
 #include "menu_pause_overlay.h"
 #include "Touches.h"
@@ -91,7 +91,7 @@ private:
     Touches* touches = nullptr;
 
     CompteurBalles* compteurBalles = nullptr;
-    Vies* vies = nullptr;
+    CompteurVies* compteurVies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     CompteurPowerUp* compteurPowerUp = nullptr;
     static constexpr int LARGEUR_MIN_BALLES = 120;

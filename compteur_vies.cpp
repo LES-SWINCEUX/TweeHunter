@@ -1,13 +1,13 @@
-#include "vie.h"
+#include "compteur_vies.h"
 
-Vies::Vies(QWidget* parent) : QWidget(parent)
+CompteurVies::CompteurVies(QWidget* parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_OpaquePaintEvent, false);
     setSpriteSheet();
 }
 
-void Vies::setSpriteSheet()
+void CompteurVies::setSpriteSheet()
 {
     QSharedPointer<QPixmap> px = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/indicateur_vie.png");
     if (px.isNull()) {
@@ -22,7 +22,7 @@ void Vies::setSpriteSheet()
     update();
 }
 
-void Vies::setVies(int vies)
+void CompteurVies::setVies(int vies)
 {
     maxVies = std::max(1, vies);
     demiVies = std::clamp(demiVies, 0, maxVies * 2);
@@ -30,7 +30,7 @@ void Vies::setVies(int vies)
     update();
 }
 
-void Vies::setDemiVies(int demiVies)
+void CompteurVies::setDemiVies(int demiVies)
 {
     int clamped = std::clamp(demiVies, 0, maxVies * 2);
     if (clamped == this->demiVies) {
@@ -40,7 +40,7 @@ void Vies::setDemiVies(int demiVies)
     update();
 }
 
-void Vies::setEchelle(float s)
+void CompteurVies::setEchelle(float s)
 {
     if (s < 0.1) s = 0.1;
     if (qFuzzyCompare(s, echelle)) {
@@ -51,7 +51,7 @@ void Vies::setEchelle(float s)
     update();
 }
 
-void Vies::recalculerSprite()
+void CompteurVies::recalculerSprite()
 {
     if (tailleFrame.isEmpty()) {
         return;
@@ -64,7 +64,7 @@ void Vies::recalculerSprite()
     setFixedSize(largeur, hauteur);
 }
 
-void Vies::paintEvent(QPaintEvent*)
+void CompteurVies::paintEvent(QPaintEvent*)
 {
     if (spriteSheet.isNull() || tailleFrame.isEmpty()) {
         return;
