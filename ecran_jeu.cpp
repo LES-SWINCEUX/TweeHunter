@@ -241,7 +241,7 @@ void EcranJeu::timeoutReticuleAleatoire() {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(1, 5);
+    std::uniform_int_distribution<> dist(1, 6);
     int nouvelleArme = dist(gen);
 
     reticule->ChangeReticule(this, nouvelleArme);
@@ -437,7 +437,7 @@ void EcranJeu::paintEvent(QPaintEvent*)
         jeu->dessiner(painter, tempsJeuMs);
     }
 
-    // TestHitbox(painter);
+    //TestHitbox(painter);
 }
 
 void EcranJeu::TestHitbox(QPainter& painter)
@@ -445,7 +445,11 @@ void EcranJeu::TestHitbox(QPainter& painter)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QPen(Qt::blue, 2));
     painter.setBrush(Qt::NoBrush);
-    painter.drawPath(armes->choixArme(622, 300));
+
+    //painter.drawPath(armes->choixArme(622, 300));
+    painter.drawPath(armes->choixArme(reticule->getX(), reticule->getY()));
+    //painter.drawPath(armes->Hitbox(6,622, 300));
+
 }
 
 void EcranJeu::mettreEnPause()

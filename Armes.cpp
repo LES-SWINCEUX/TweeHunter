@@ -39,6 +39,8 @@ QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
 QPainterPath Armes::Hitbox(int choix, int x, int y)
 {
 	QPainterPath Hitbox;
+	int largeur = 120;
+	int hauteur = 195;
 
 	switch (choix) {
 	case 1:
@@ -67,7 +69,7 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		return Hitbox;
 	case 6:
 		// Swince : comportement temporaire en attendant un réticule dédié
-		Hitbox.addEllipse(QPointF(x, y), 45, 45);
+		Hitbox.addRect(x-(largeur/2), y-(hauteur/2), largeur, hauteur);
 		return Hitbox;
 	default:
 		return Hitbox;
