@@ -117,7 +117,7 @@ void Jeu::update(qint64 tempsMs)
 				ciblesManquees++;
 				cible->marquerComptee();
 				if (cible->getType() == TypeTarget::WATER && !cible->aEteDetruite()) {
-					vies->setDemiVies(vies->getDemiVies() - 2);
+					compteurVies->setDemiVies(compteurVies->getDemiVies() - 2);
 				}
 			}
 		}
@@ -231,10 +231,10 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 
 			// Comportements spéciaux par type
 			if (cible->getType() == TypeTarget::POISON) {
-				vies->setDemiVies(vies->getDemiVies() - 1);
+				compteurVies->setDemiVies(compteurVies->getDemiVies() - 1);
 			}
 			if (cible->getType() == TypeTarget::GATOR) {
-				vies->setDemiVies(vies->getDemiVies() + 1);
+				compteurVies->setDemiVies(compteurVies->getDemiVies() + 1);
 			}
 
 			compteurPoints->setPoints(score);
