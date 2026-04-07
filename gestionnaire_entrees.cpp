@@ -29,13 +29,19 @@ void GestionnaireEntrees::lireManetteStandard()
 
     SDL_UpdateGamepads();
 
-    const bool gachette = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
+    const bool gachetteTir = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
+    const bool gachettePowerUp = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 10000;
 
-    if (gachette && !gachettePrecedente) {
+    if (gachetteTir && !gachetteTirPrecedente) {
         emit tireDemande();
     }
 
-    gachettePrecedente = gachette;
+    if (gachettePowerUp && !gachettePowerUpPrecedente) {
+        emit powerUpDemande();
+    }
+
+    gachetteTirPrecedente = gachetteTir;
+    gachettePowerUpPrecedente = gachettePowerUp;
 
     const bool reload = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
 
@@ -68,13 +74,13 @@ void GestionnaireEntrees::lireManetteCustom(qint64 deltaMs)
     const bool reload = t->getReload();
 
     if (gachette && !reload) {
-        if (!gachettePrecedente) {
+        if (!gachetteTirPrecedente) {
             emit tireDemande();
         }
 
-        gachettePrecedente = true;
+        gachetteTirPrecedente = true;
     } else if (!gachette) {
-        gachettePrecedente = false;
+        gachetteTirPrecedente = false;
     }
 
     if (reload && t->getAccelerometre()) {

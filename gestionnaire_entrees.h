@@ -31,7 +31,8 @@ private:
     Reticule* reticule = nullptr;
     SDL_Gamepad* gamepad = nullptr;
 
-    bool gachettePrecedente = false;
+    bool gachetteTirPrecedente = false;
+    bool gachettePowerUpPrecedente = false;
     bool reloadPrecedent = false;
     bool startPrecedent = false;
     bool powerUpActif = false;
