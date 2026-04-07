@@ -252,6 +252,7 @@ void EcranJeu::timeoutReticuleAleatoire() {
     }
 
     this->maxBalles = armes->nbMunitions();
+	compteurBalles->setMaxBalles(maxBalles);
 
     if (this->gestionnaireAudio != nullptr) {
         gestionnaireAudio->playSfx("reticule_swap");
