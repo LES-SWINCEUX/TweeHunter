@@ -10,6 +10,7 @@
 #include "gestionnaire_audio.h"
 #include "Touches.h"
 #include "configuration_partie.h"
+#include "gestionnaire_scores.h"
 
 class MainWindow : public QMainWindow
 {
@@ -19,7 +20,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void afficherMenuPrincipal();
+    void afficherMenuPrincipal(bool restartMusique);
     void afficherEcranParametres();
     void afficherEcranJeu(const ConfigurationPartie& configuration);
     void afficherEcranFinPartie(int score);

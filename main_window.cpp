@@ -1,5 +1,4 @@
 #include "main_window.h"
-#include "gestionnaire_scores.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -8,16 +7,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     gestionnaireAudio = new GestionnaireAudio(this);
     touches = new Touches();
 
-    afficherMenuPrincipal();
+    afficherMenuPrincipal(true);
 }
 
 MainWindow::~MainWindow() {
     delete touches;
 }
 
-void MainWindow::afficherMenuPrincipal() {
+void MainWindow::afficherMenuPrincipal(bool restartMusique) {
     if (this->menuPrincipal == nullptr) {
-        this->menuPrincipal = new MenuPrincipal(gestionnaireAudio, this, touches);
+        this->menuPrincipal = new MenuPrincipal(gestionnaireAudio, restartMusique, this, touches);
         connect(this->menuPrincipal, &MenuPrincipal::jouerDemande, this, &MainWindow::afficherEcranParametres);
     }
 
@@ -44,7 +43,7 @@ void MainWindow::afficherEcranParametres()
         {
             derniereConfigurationPartie = config;
             aDerniereConfigurationPartie = true;
-            afficherMenuPrincipal();
+            afficherMenuPrincipal(false);
         });
     }
 
@@ -70,7 +69,7 @@ void MainWindow::afficherEcranJeu(const ConfigurationPartie& configuration) {
             });
 
         connect(this->ecranJeu, &EcranJeu::retourMenuDemande, this, [this]() {
-            afficherMenuPrincipal();
+            afficherMenuPrincipal(true);
         });
     }
 
@@ -90,7 +89,7 @@ void MainWindow::afficherEcranFinPartie(int score) {
             if (!nomJoueur.trimmed().isEmpty()) {
                 GestionnaireScores::instance().ajouterScore(nomJoueur.toUpper(), scoreJoueur);
             }
-            afficherMenuPrincipal();
+            afficherMenuPrincipal(true);
         });
     }
 

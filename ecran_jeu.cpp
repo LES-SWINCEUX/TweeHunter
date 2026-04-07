@@ -199,7 +199,9 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
     redimensionnerOverlay(overlayFadeOut);
     redimensionnerOverlay(menuPause);
 
-    if (jeu) jeu->setTailleEcran(size());
+    if (jeu) {
+        jeu->setTailleEcran(size());
+    }
 
     placerElementsGUI();
 }

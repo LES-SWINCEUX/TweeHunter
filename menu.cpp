@@ -1,7 +1,7 @@
 #include "menu.h"
 #include "panneau_scores.h"
 
-MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches) :
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartMusique, QWidget* parent, Touches* touches) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
@@ -10,6 +10,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     this->gestionnaireAudio = gestionnaireAudio;
+    this->restartMusique = restartMusique;
 
     configuerAnimationTitre();
 
@@ -28,7 +29,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     overlay->raise();
     overlay->hide();
 
-    if (this->gestionnaireAudio != nullptr) {
+    if (this->gestionnaireAudio != nullptr && restartMusique) {
         this->gestionnaireAudio->setPlaylist({
             QDir::currentPath() + "/sounds/menu/track_2.mp3",
             QDir::currentPath() + "/sounds/menu/track_1.mp3",
@@ -98,6 +99,10 @@ void MenuPrincipal::lancerFadeIn()
             overlay->hide();
             });
         fadeInAnimation->start();
+    }
+    
+    if (!restartMusique) {
+        return;
     }
 
     GestionnaireAudio* audio = this->gestionnaireAudio;
