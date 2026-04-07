@@ -145,7 +145,6 @@ private:
     FadeOverlay* overlay = nullptr;
     QPropertyAnimation* fadeInAnim = nullptr;
     QPropertyAnimation* fadeOutAnim = nullptr;
-    QPropertyAnimation* fadeOutMusique = nullptr;
 
     QTimer timerManette;
     bool hautPrecedent = false;

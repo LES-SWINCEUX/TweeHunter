@@ -63,12 +63,6 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio,
     fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
     fadeOutAnim->setDuration(600);
 
-    if (gestionnaireAudio) {
-        fadeOutMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
-        fadeOutMusique->setEasingCurve(QEasingCurve::InOutQuad);
-        fadeOutMusique->setDuration(600);
-    }
-
     connect(&timerManette, &QTimer::timeout, this, &EcranParametres::tickManette);
     timerManette.setInterval(16);
     timerManette.start();
@@ -1149,13 +1143,6 @@ void EcranParametres::lancerDemarrage()
         fadeOutAnim->stop();
         fadeOutAnim->setStartValue(0);
         fadeOutAnim->setEndValue(255);
-    }
-
-    if (fadeOutMusique && gestionnaireAudio) {
-        fadeOutMusique->stop();
-        fadeOutMusique->setStartValue(gestionnaireAudio->getMusicVolume());
-        fadeOutMusique->setEndValue(0.0f);
-        fadeOutMusique->start();
     }
 
     QObject::disconnect(fadeOutAnim, nullptr, this, nullptr);

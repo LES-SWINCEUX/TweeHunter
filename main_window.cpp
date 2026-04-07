@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include "ecran_regles.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -21,6 +22,7 @@ void MainWindow::afficherMenuPrincipal(bool restartMusique) {
     }
 
     this->ecranParametres = nullptr;
+    this->ecranRegles = nullptr;
     this->ecranJeu = nullptr;
     this->ecranFinPartie = nullptr;
 
@@ -36,7 +38,7 @@ void MainWindow::afficherEcranParametres()
         {
             derniereConfigurationPartie = config;
             aDerniereConfigurationPartie = true;
-            afficherEcranJeu(config);
+            afficherEcranRegles(config);
         });
 
         connect(ecranParametres, &EcranParametres::retourMenuDemande, this, [this](ConfigurationPartie config)
@@ -48,6 +50,7 @@ void MainWindow::afficherEcranParametres()
     }
 
     this->menuPrincipal = nullptr;
+    this->ecranRegles = nullptr;
     this->ecranJeu = nullptr;
     this->ecranFinPartie = nullptr;
 
@@ -56,6 +59,32 @@ void MainWindow::afficherEcranParametres()
     if (aDerniereConfigurationPartie && ecranParametres) {
         ecranParametres->chargerConfiguration(derniereConfigurationPartie);
     }
+}
+
+void MainWindow::afficherEcranRegles(const ConfigurationPartie& configuration)
+{
+    if (!this->ecranRegles) {
+        this->ecranRegles = new EcranRegles(this->gestionnaireAudio, this->touches, this);
+
+        connect(ecranRegles, &EcranRegles::demarrerPartieDemande, this, [this](ConfigurationPartie config)
+        {
+            afficherEcranJeu(config);
+        });
+
+        connect(ecranRegles, &EcranRegles::retourParametresDemande, this, [this]()
+        {
+            afficherEcranParametres();
+        });
+    }
+
+    ecranRegles->setConfiguration(configuration);
+
+    this->menuPrincipal = nullptr;
+    this->ecranParametres = nullptr;
+    this->ecranJeu = nullptr;
+    this->ecranFinPartie = nullptr;
+
+    this->setCentralWidget(this->ecranRegles);
 }
 
 void MainWindow::afficherEcranJeu(const ConfigurationPartie& configuration) {
@@ -75,6 +104,7 @@ void MainWindow::afficherEcranJeu(const ConfigurationPartie& configuration) {
 
     this->menuPrincipal = nullptr;
     this->ecranParametres = nullptr;
+    this->ecranRegles = nullptr;
     this->ecranFinPartie = nullptr;
 
     this->setCentralWidget(this->ecranJeu);
@@ -96,6 +126,7 @@ void MainWindow::afficherEcranFinPartie(int score) {
     this->ecranFinPartie->setNomParDefaut(this->derniereConfigurationPartie.nomJoueur);
     this->ecranFinPartie->setScore(score);
     this->ecranJeu = nullptr;
+    this->ecranRegles = nullptr;
     this->ecranParametres = nullptr;
     this->menuPrincipal = nullptr;
 
