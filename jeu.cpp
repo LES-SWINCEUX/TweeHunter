@@ -211,7 +211,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 				enpleineface.clear();
 				niveauDebuff = 0;
 			}
-
+			
 			int incrementScores = cible->getPointsScore();
 			score += incrementScores;
 
@@ -235,6 +235,10 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 			if (cible->getType() == TypeTarget::GATOR) {
 				compteurVies->setDemiVies(compteurVies->getDemiVies() + 1);
+			}
+			if (cible->getType() ==TypeTarget::BONUS) {
+				Explosion(cible->getPosition().x(), cible->getPosition().y(), tempsMs);
+
 			}
 
 			compteurPoints->setPoints(score);
@@ -325,8 +329,8 @@ bool Jeu::PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs) {
 	return verifierCollisions(armes->Hitbox(choix, x, y), tempsMs);
 }
 
-bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
-	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->Hitbox(PowerUpType::GRENADE, x, y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()

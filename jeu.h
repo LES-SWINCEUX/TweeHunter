@@ -89,7 +89,7 @@ public:
 	bool TireGratuit(const int x, const int y, qint64 tempsMs);
 	bool PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs);
 
-	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
+	bool Explosion(const int x, const int y, qint64 tempsMs);
 
 	Armes* getArmes() const { return this->armes; }
 
