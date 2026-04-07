@@ -8,11 +8,11 @@
 
 #include "sprite_manager.h"
 
-class Vies : public QWidget
+class CompteurVies : public QWidget
 {
     Q_OBJECT
 public:
-    Vies(QWidget* parent = nullptr);
+    CompteurVies(QWidget* parent = nullptr);
 
     void setVies(int vies);
     void setDemiVies(int demiVies);

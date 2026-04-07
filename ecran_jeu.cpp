@@ -33,7 +33,7 @@ void EcranJeu::initReticuleEtArmes()
     reticule = new Reticule(this, pos, configurationPartie.arme, configurationPartie.manette, touches);
     reticule->show();
 
-    armes = new Armes(configurationPartie.arme, configurationPartie.powerUp);
+    armes = new Armes(configurationPartie);
     armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
 
@@ -57,15 +57,15 @@ void EcranJeu::initReticuleEtArmes()
 void EcranJeu::initHUD()
 {
     compteurBalles = new CompteurBalles(this, armes->nbMunitions());
-    vies = new Vies(this);
+    compteurVies = new CompteurVies(this);
     compteurPoints = new CompteurPoints(this);
     compteurPowerUp = new CompteurPowerUp(this, configurationPartie.powerUp, armes->nbPowerUp());
 
     compteurBalles->setBalles(armes->nbMunitions());
     compteurBalles->show();
 
-    vies->setVies(3);
-    vies->show();
+    compteurVies->setVies(3);
+    compteurVies->show();
 
     compteurPoints->setNombresNumeros(6);
     compteurPoints->setPoints(0);
@@ -82,7 +82,9 @@ void EcranJeu::initHUD()
 
 void EcranJeu::initAudio()
 {
-    if (!gestionnaireAudio) return;
+    if (!gestionnaireAudio) {
+        return;
+    }
 
     gestionnaireAudio->stopAndClearMusic();
     gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
@@ -102,6 +104,7 @@ void EcranJeu::initAudio()
     gestionnaireAudio->addSfx("zap", QDir::currentPath() + "/sounds/sfx/zap.wav", maxBalles);
     gestionnaireAudio->addSfx("machine_gun", QDir::currentPath() + "/sounds/sfx/machine_gun.wav", maxBalles);
     gestionnaireAudio->addSfx("nuke", QDir::currentPath() + "/sounds/sfx/nuke.wav", maxBalles);
+    gestionnaireAudio->addSfx("reticule_swap", QDir::currentPath() + "/sounds/sfx/reticule_swap.wav", maxBalles);
 }
 
 void EcranJeu::initAnimations()
@@ -132,6 +135,12 @@ void EcranJeu::initMinuterie()
     timer.setInterval(1000 / 60);
     connect(&timer, &QTimer::timeout, this, &EcranJeu::tick);
     timer.start();
+
+    if (this->configurationPartie.difficulte == DifficultePartie::RNG) {
+        timerReticulesAleatoire.setInterval(10000);
+        connect(&timerReticulesAleatoire, &QTimer::timeout, this, &EcranJeu::timeoutReticuleAleatoire);
+        timerReticulesAleatoire.start();
+    }
 }
 
 void EcranJeu::showEvent(QShowEvent* e)
@@ -148,7 +157,7 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
 
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, vies, configurationPartie.modeJeu, armes);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes);
 
         switch (configurationPartie.difficulte) {
             case DifficultePartie::CHAOS:
@@ -197,7 +206,9 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
     redimensionnerOverlay(overlayFadeOut);
     redimensionnerOverlay(menuPause);
 
-    if (jeu) jeu->setTailleEcran(size());
+    if (jeu) {
+        jeu->setTailleEcran(size());
+    }
 
     placerElementsGUI();
 }
@@ -212,14 +223,39 @@ void EcranJeu::tick()
     qint64 deltaMs = frameTimer.restart();
     tempsJeuMs += deltaMs;
 
-    if (jeu) jeu->update(tempsJeuMs);
+    if (jeu) {
+        jeu->update(tempsJeuMs);
+    }
 
     declencherFinPartie();
 
-    if (gestionnaireEntrees)
+    if (gestionnaireEntrees) {
         gestionnaireEntrees->lire(deltaMs);
+    }
 
     update();
+}
+
+void EcranJeu::timeoutReticuleAleatoire() {
+    timerReticulesAleatoire.setInterval(10000);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(1, 5);
+    int nouvelleArme = dist(gen);
+
+    reticule->ChangeReticule(this, nouvelleArme);
+    armes->setArmes(nouvelleArme);
+
+    if (compteurBalles->getBalles() > armes->nbMunitions()) {
+        compteurBalles->setBalles(armes->nbMunitions());
+    }
+
+    this->maxBalles = armes->nbMunitions();
+
+    if (this->gestionnaireAudio != nullptr) {
+        gestionnaireAudio->playSfx("reticule_swap");
+    }
 }
 
 void EcranJeu::keyPressEvent(QKeyEvent* e)
@@ -356,29 +392,29 @@ void EcranJeu::placerElementsGUI()
         compteurPoints->move(largeurEcran - compteurPoints->width() - marge, hauteurEcran - compteurPoints->height() - marge);
     }
 
-    if (vies && compteurBalles && compteurPoints) {
+    if (compteurVies && compteurBalles && compteurPoints) {
         const int borneGauche = compteurBalles->x() + compteurBalles->width() + marge;
         const int borneDroite = compteurPoints->x() - marge;
         const int largeurDisponible = borneDroite - borneGauche;
 
         if (largeurDisponible <= 0) {
-            vies->move(marge, hauteurEcran - vies->height() - marge);
-            vies->raise();
+            compteurVies->move(marge, hauteurEcran - compteurVies->height() - marge);
+            compteurVies->raise();
             return;
         }
 
-        int hauteurCoeurs = vies->getTailleFrame().height();
+        int hauteurCoeurs = compteurVies->getTailleFrame().height();
         if (hauteurCoeurs > 0) {
             float s = float(int(compteurBalles->height() * 0.80f)) / float(hauteurCoeurs);
-            vies->setEchelle(s);
+            compteurVies->setEchelle(s);
         }
-        if (vies->width() > largeurDisponible) {
-            vies->setEchelle(vies->getEchelle() * float(largeurDisponible) / float(vies->width()));
+        if (compteurVies->width() > largeurDisponible) {
+            compteurVies->setEchelle(compteurVies->getEchelle() * float(largeurDisponible) / float(compteurVies->width()));
         }
 
-        int y = compteurBalles->y() + (compteurBalles->height() - vies->height()) / 2;
-        int x = std::clamp((largeurEcran - vies->width()) / 2, borneGauche, borneDroite - vies->width());
-        vies->move(x, y);
+        int y = compteurBalles->y() + (compteurBalles->height() - compteurVies->height()) / 2;
+        int x = std::clamp((largeurEcran - compteurVies->width()) / 2, borneGauche, borneDroite - compteurVies->width());
+        compteurVies->move(x, y);
     }
 }
 
@@ -419,6 +455,12 @@ void EcranJeu::mettreEnPause()
 
     enPause = true;
 
+    if (configurationPartie.difficulte == DifficultePartie::RNG) {
+        int leftOver = timerReticulesAleatoire.remainingTime();
+        timerReticulesAleatoire.stop();
+        timerReticulesAleatoire.setInterval(leftOver);
+    }
+
     if (jeu) {
         jeu->setPause(true);
     }
@@ -450,6 +492,11 @@ void EcranJeu::Power() {
     bool cibleTouchee = false;
 
     if (nbPowerUps > 0) {
+        if (armes->getPowerActuelle() == PowerUpType::MITRAILLETTE && timer2 != nullptr && timer2->isActive()) {
+            declencherFinPartie();
+            return;
+        }
+
         compteurPowerUp->setPowerUp(nbPowerUps - 1);
         rechargerArme();
         switch (armes->getPowerActuelle()) {
@@ -473,7 +520,10 @@ void EcranJeu::Power() {
             }
             break;
         case PowerUpType::MITRAILLETTE:
-            timer2 = new QTimer(this);
+            if (timer2 == nullptr) {
+                timer2 = new QTimer(this);
+            }
+
             compteur = 0;
             connect(timer2, &QTimer::timeout, this, [this]() {
                 if (gestionnaireAudio != nullptr) {
@@ -483,6 +533,8 @@ void EcranJeu::Power() {
                 compteur++;
                 if (compteur >= 100) {
                     timer2->stop();
+                    timer2->deleteLater();
+                    timer2 = nullptr;
                 }
             });
             timer2->start(100);
@@ -513,6 +565,9 @@ void EcranJeu::reprendreJeu()
     }
 
     enPause = false;
+    if (configurationPartie.difficulte == DifficultePartie::RNG) {
+        timerReticulesAleatoire.start();
+    }
 
     if (jeu) {
         jeu->setPause(false);
@@ -588,16 +643,17 @@ void EcranJeu::demarrerFadeOutVersMenu()
 
 void EcranJeu::declencherFinPartie()
 {
-    if (!vies || transitionVersMenu || enPause) {
+    if (!compteurVies || transitionVersMenu || enPause) {
         return;
     }
 
-    if (vies->getDemiVies() > 0) {
+    if (compteurVies->getDemiVies() > 0) {
         return;
     }
 
     transitionVersMenu = true;
     timer.stop();
+    timerReticulesAleatoire.stop();
 
     if (jeu) {
         jeu->setPause(true);
@@ -626,6 +682,7 @@ void EcranJeu::declencherFinPartie()
     fadeInAnim->setEndValue(255);
     connect(fadeInAnim, &QPropertyAnimation::finished, this, [this]() {
         int scoreFinal = compteurPoints ? compteurPoints->getPointsCible() : 0;
+        touches->envoyerFinPartie();
         emit finPartie(scoreFinal);
     });
     fadeInAnim->start();

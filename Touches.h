@@ -42,6 +42,7 @@ public:
     void envoyerNbBalles(int nbBalles);
 	void envoyerMoteur();
     void envoyerRaw(const QByteArray& data);
+	void envoyerFinPartie();
 	
 
 private:

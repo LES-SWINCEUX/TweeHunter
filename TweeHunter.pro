@@ -63,7 +63,7 @@ SOURCES += \
     compteur_balles.cpp \
     compteur_powerup.cpp \
     compteur_points.cpp \
-    vie.cpp \
+    compteur_vies.cpp \
     Touches.cpp \
     panneau_scores.cpp \
     gestionnaire_scores.cpp \
@@ -109,7 +109,7 @@ HEADERS += \
     compteur_balles.h \
     compteur_powerup.h \
     compteur_points.h \
-    vie.h \
+    compteur_vies.h \
     Touches.h \
     panneau_scores.h \
     gestionnaire_scores.h \
