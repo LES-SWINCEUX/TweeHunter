@@ -12,6 +12,9 @@ class Armes
 public:
 	Armes(ConfigurationPartie configuration);
 
+
+	void setArmes(int arme) { ArmeActuelle = arme; }
+
 	QPainterPath choixArme(int x, int y);
 	QPainterPath choixPowerUp(int x, int y);
 

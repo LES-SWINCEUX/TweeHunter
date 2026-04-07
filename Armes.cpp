@@ -97,9 +97,9 @@ int Armes::nbMunitions() const
 int Armes::nbPowerUp() const {
 	switch (PowerActuelle) {
 	case PowerUpType::GRENADE:
-		return 3;
+		return 5;
 	case PowerUpType::ZAP:
-		return 1;
+		return 9;
 	case PowerUpType::MITRAILLETTE:
 		return 2;
 	case PowerUpType::TACTICAL_NUKE:

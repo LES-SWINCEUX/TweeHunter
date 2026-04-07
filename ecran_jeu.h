@@ -13,6 +13,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 #include <cmath>
+#include <random>
 
 #include "compteur_balles.h"
 #include "compteur_points.h"
@@ -59,6 +60,7 @@ private:
     void initMinuterie();
 
     void tick();
+    void timeoutReticuleAleatoire();
 
     void Power();
     void rechargerArme();
@@ -77,6 +79,7 @@ private:
     bool transitionVersMenu = false;
 
     QTimer timer;
+    QTimer timerReticulesAleatoire;
     QElapsedTimer frameTimer;
     QElapsedTimer elapsed;
     qint64 tempsJeuMs = 0;
@@ -94,8 +97,8 @@ private:
     CompteurVies* compteurVies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     CompteurPowerUp* compteurPowerUp = nullptr;
-    static constexpr int LARGEUR_MIN_BALLES = 120;
-    static constexpr int LARGEUR_MAX_BALLES = 275;
+    int LARGEUR_MIN_BALLES = 120;
+    int LARGEUR_MAX_BALLES = 275;
 
     QSharedPointer<QPixmap> arrierePlan;
     QPixmap arrierePlanCache;

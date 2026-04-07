@@ -104,6 +104,7 @@ void EcranJeu::initAudio()
     gestionnaireAudio->addSfx("zap", QDir::currentPath() + "/sounds/sfx/zap.wav", maxBalles);
     gestionnaireAudio->addSfx("machine_gun", QDir::currentPath() + "/sounds/sfx/machine_gun.wav", maxBalles);
     gestionnaireAudio->addSfx("nuke", QDir::currentPath() + "/sounds/sfx/nuke.wav", maxBalles);
+    gestionnaireAudio->addSfx("reticule_swap", QDir::currentPath() + "/sounds/sfx/reticule_swap.wav", maxBalles);
 }
 
 void EcranJeu::initAnimations()
@@ -134,6 +135,12 @@ void EcranJeu::initMinuterie()
     timer.setInterval(1000 / 60);
     connect(&timer, &QTimer::timeout, this, &EcranJeu::tick);
     timer.start();
+
+    if (this->configurationPartie.difficulte == DifficultePartie::RNG) {
+        timerReticulesAleatoire.setInterval(10000);
+        connect(&timerReticulesAleatoire, &QTimer::timeout, this, &EcranJeu::timeoutReticuleAleatoire);
+        timerReticulesAleatoire.start();
+    }
 }
 
 void EcranJeu::showEvent(QShowEvent* e)
@@ -227,6 +234,28 @@ void EcranJeu::tick()
     }
 
     update();
+}
+
+void EcranJeu::timeoutReticuleAleatoire() {
+    timerReticulesAleatoire.setInterval(10000);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(1, 5);
+    int nouvelleArme = dist(gen);
+
+    reticule->ChangeReticule(this, nouvelleArme);
+    armes->setArmes(nouvelleArme);
+
+    if (compteurBalles->getBalles() > armes->nbMunitions()) {
+        compteurBalles->setBalles(armes->nbMunitions());
+    }
+
+    this->maxBalles = armes->nbMunitions();
+
+    if (this->gestionnaireAudio != nullptr) {
+        gestionnaireAudio->playSfx("reticule_swap");
+    }
 }
 
 void EcranJeu::keyPressEvent(QKeyEvent* e)
@@ -426,6 +455,12 @@ void EcranJeu::mettreEnPause()
 
     enPause = true;
 
+    if (configurationPartie.difficulte == DifficultePartie::RNG) {
+        int leftOver = timerReticulesAleatoire.remainingTime();
+        timerReticulesAleatoire.stop();
+        timerReticulesAleatoire.setInterval(leftOver);
+    }
+
     if (jeu) {
         jeu->setPause(true);
     }
@@ -530,6 +565,9 @@ void EcranJeu::reprendreJeu()
     }
 
     enPause = false;
+    if (configurationPartie.difficulte == DifficultePartie::RNG) {
+        timerReticulesAleatoire.start();
+    }
 
     if (jeu) {
         jeu->setPause(false);
@@ -615,6 +653,7 @@ void EcranJeu::declencherFinPartie()
 
     transitionVersMenu = true;
     timer.stop();
+    timerReticulesAleatoire.stop();
 
     if (jeu) {
         jeu->setPause(true);
