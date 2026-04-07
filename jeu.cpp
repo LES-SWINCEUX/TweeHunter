@@ -7,8 +7,8 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
 	armes = A;
 
@@ -49,7 +49,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 
 	this->compteurPoints = compteurPoints;
 	this->compteurBalles = compteurBalles;
-	this->vies = vies;
+	this->compteurVies = compteurVies;
 
 	initialiserCiblesParDefaut();
 	qDebug() << QDir::currentPath();
@@ -72,12 +72,39 @@ void Jeu::update(qint64 tempsMs)
 {
 	if (enPause) {
 		return;
+
 	}
 
+	UpdateWave(tempsMs);
+
+	for (auto& epf : enpleineface) {
+		if (!epf.initialise) {
+			epf.tempsDebut = tempsMs;
+			epf.initialise = true;
+		}
+	}
+
+	nettoyerEnpleinefaces(tempsMs);
+
 	if (randomiser && randomiser->doitGenererTarget(tempsMs)) {
-		if (ciblesActives.size() < maxCiblesSimultanees) {
+		if ((int)ciblesActives.size() < maxCiblesSimultanees) {
 			Target* nouvelleCible = randomiser->genererTarget(modeActuel);
 			if (nouvelleCible) {
+
+				if (nouvelleCible->getType() == TypeTarget::DEBUFF) {
+					nouvelleCible->setCallbackQuandTouchee([this](QPointF) {
+						niveauDebuff++;
+						enpleineface.clear();
+
+						Enpleineface epf;
+						epf.position = QPointF(tailleEcran.width() / 2, tailleEcran.height() / 2);
+						epf.cheminSprite = "/images/sprites/splash.png";
+						epf.niveau = niveauDebuff;
+						epf.initialise = false;
+						enpleineface.append(epf);
+						});
+				}
+
 				ciblesActives.append(nouvelleCible);
 			}
 		}
@@ -89,6 +116,9 @@ void Jeu::update(qint64 tempsMs)
 			if (cible->estInactif() && !cible->dejaComptee()) {
 				ciblesManquees++;
 				cible->marquerComptee();
+				if (cible->getType() == TypeTarget::WATER && !cible->aEteDetruite()) {
+					compteurVies->setDemiVies(compteurVies->getDemiVies() - 2);
+				}
 			}
 		}
 
@@ -161,8 +191,8 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 	}
 
 	dessinerIndicateurs(painter, tempsMs);
+	dessinerEnpleinefaces(painter, tempsMs);
 }
-
 bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 {
 	if (enPause) {
@@ -176,6 +206,11 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			aTouche = true;
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
+
+			if (cible->getType() != TypeTarget::DEBUFF) {
+				enpleineface.clear();
+				niveauDebuff = 0;
+			}
 
 			int incrementScores = cible->getPointsScore();
 			score += incrementScores;
@@ -191,7 +226,15 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 
 			if (incrementScores < 0) {
-				vies->setDemiVies(vies->getDemiVies() - 1);
+				compteurVies->setDemiVies(compteurVies->getDemiVies() - 1);
+			}
+
+			// Comportements spéciaux par type
+			if (cible->getType() == TypeTarget::POISON) {
+				compteurVies->setDemiVies(compteurVies->getDemiVies() - 1);
+			}
+			if (cible->getType() == TypeTarget::GATOR) {
+				compteurVies->setDemiVies(compteurVies->getDemiVies() + 1);
 			}
 
 			compteurPoints->setPoints(score);
@@ -222,12 +265,27 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 
 		if (pointsLouche < 0) {
-			vies->setDemiVies(vies->getDemiVies() - 2);
+			compteurVies->setDemiVies(compteurVies->getDemiVies() - 2);
 		}
 
 		compteurPoints->setPoints(score);
 	}
 	return aTouche;
+
+		//if (gestionnaireAudio) {
+		//	switch (bushLoucheActif->getType()) {
+		//	case TypeLouche::LOUCHE_1:
+		//		gestionnaireAudio->playSfx("louche_1");
+		//		break;
+		//	case TypeLouche::LOUCHE_2:
+		//		gestionnaireAudio->playSfx("louche_2");
+		//		break;
+		//	case TypeLouche::BONUS_3:
+		//		gestionnaireAudio->playSfx("bonus_3");
+		//		break;
+		//	}
+		//}
+
 }
 
 
@@ -338,12 +396,12 @@ void Jeu::initialiserCiblesParDefaut()
 	DefinitionTarget debuff;
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.tailleRelative = 0.20;
-	debuff.pointsScore = -15;
+	debuff.pointsScore = 15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 2.0;
-
+	debuff.frequenceSpawn = 2;
 	ajouterTypeCible(debuff);
+
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.tailleRelative = 0.15;
@@ -359,7 +417,7 @@ void Jeu::initialiserCiblesParDefaut()
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
-	legendaire.frequenceSpawn = 4.0;
+	legendaire.frequenceSpawn = 5.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
@@ -368,8 +426,35 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.pointsScore = 30;
 	bonus.vitesseMin = 500.0;
 	bonus.vitesseMax = 1250.0;
-	bonus.frequenceSpawn = 5.0;
+	bonus.frequenceSpawn = 6.0;
 	ajouterTypeCible(bonus);
+
+	DefinitionTarget poison;
+	poison.type = TypeTarget::POISON;
+	poison.tailleRelative = 0.15;
+	poison.pointsScore = 0;
+	poison.vitesseMin = 500.0;
+	poison.vitesseMax = 1250.0;
+	poison.frequenceSpawn = 10.0;
+	ajouterTypeCible(poison);
+
+	DefinitionTarget water;
+	water.type = TypeTarget::WATER;
+	water.tailleRelative = 0.15;
+	water.pointsScore = 0;
+	water.vitesseMin = 500.0;
+	water.vitesseMax = 1000.0;
+	water.frequenceSpawn = 10.0;
+	ajouterTypeCible(water);
+
+	DefinitionTarget gator;
+	gator.type = TypeTarget::GATOR;
+	gator.tailleRelative = 0.15;
+	gator.pointsScore = 0;
+	gator.vitesseMin = 1000.0;
+	gator.vitesseMax = 1900.0;
+	gator.frequenceSpawn = 10.0;
+	ajouterTypeCible(gator);
 }
 
 void Jeu::nettoyerIndicateurs(qint64 tempsMs)
@@ -422,5 +507,76 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 
 		painter.setPen(couleurTexte);
 		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40), Qt::AlignCenter, texte);
+	}
+}
+
+void Jeu::UpdateWave(qint64 tempsMs)
+{
+	if (prochaineWave == 0) {
+		prochaineWave = tempsMs + INTERVALLE_WAVE;
+
+	}
+
+	if (enWave) {
+		if (tempsMs >= prochaineWave) {
+			enWave = false;
+			maxCiblesSimultanees = 5;
+			randomiser->setFrequenceSpawn(1000);
+			prochaineWave = tempsMs + INTERVALLE_WAVE;
+		}
+	}
+	else {
+		if (tempsMs >= prochaineWave) {
+			enWave = true;
+			maxCiblesSimultanees = 10;
+			randomiser->setFrequenceSpawn(100);
+			prochaineWave = tempsMs + DUREE_WAVE;
+		}
+	}
+}
+
+void Jeu::nettoyerEnpleinefaces(qint64 tempsMs)
+{
+	auto it = enpleineface.begin();
+	while (it != enpleineface.end()) {
+		if (it->initialise && tempsMs - it->tempsDebut >= it->getDuree()) {
+			it = enpleineface.erase(it);
+			niveauDebuff = 0;
+		}
+		else {
+			++it;
+		}
+	}
+}
+void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
+{
+	if (enpleineface.isEmpty()) return;
+
+	for (const Enpleineface& epf : enpleineface) {
+		if (!epf.initialise) continue;
+
+		qint64 tempsEcoule = tempsMs - epf.tempsDebut;
+		if (tempsEcoule < 0 || tempsEcoule >= epf.getDuree()) continue;
+
+		double t = double(tempsEcoule) / double(epf.getDuree());
+		int alpha = (t < 0.66) ? 255 : int(255.0 * (1.0 - (t - 0.66) / 0.34));
+		alpha = qBound(0, alpha, 255);
+
+		QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(
+			QDir::currentPath() + epf.cheminSprite
+		);
+		if (!pix || pix->isNull()) continue;
+
+		int largeur = epf.getLargeur();
+		QRect dest(
+			static_cast<int>(epf.position.x() - largeur / 2),
+			static_cast<int>(epf.position.y() - largeur / 2),
+			largeur, largeur
+		);
+
+		painter.save();
+		painter.setOpacity(alpha / 255.0);
+		painter.drawPixmap(dest, *pix);
+		painter.restore();
 	}
 }

@@ -57,7 +57,7 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio,
         if (overlay) {
             overlay->hide();
         }
-        });
+    });
 
     fadeOutAnim = new QPropertyAnimation(overlay, "alpha", this);
     fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
@@ -153,49 +153,49 @@ void EcranParametres::connecterSignaux()
         configuration.arme = 1;
         appliquerEtatVisuel();
         connecterFocus(boutonCarabine);
-        });
+    });
 
     connect(boutonShotgun, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 2;
         appliquerEtatVisuel();
         connecterFocus(boutonShotgun);
-        });
+    });
 
     connect(boutonBombardier, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 4;
         appliquerEtatVisuel();
         connecterFocus(boutonBombardier);
-        });
+    });
 
     connect(boutonGrpc, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 3;
         appliquerEtatVisuel();
         connecterFocus(boutonGrpc);
-        });
+    });
 
     connect(boutonTarte, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 5;
         appliquerEtatVisuel();
         connecterFocus(boutonTarte);
-        });
+    });
 
     connect(boutonSwince, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 6;
         appliquerEtatVisuel();
         connecterFocus(boutonSwince);
-        });
+    });
 
     connect(boutonMode18, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.modeJeu = ModeJeu::PLUS_18;
         appliquerEtatVisuel();
         connecterFocus(boutonMode18);
-        });
+    });
 
     connect(boutonModeNormal, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.modeJeu = ModeJeu::MOINS_18;
         appliquerEtatVisuel();
         connecterFocus(boutonModeNormal);
-        });
+    });
 
     auto selectionnerPowerUp = [this](PowerUpType powerUp, Bouton* bouton) {
         configuration.powerUp = powerUp;
@@ -205,60 +205,60 @@ void EcranParametres::connecterSignaux()
         if (it != widgetsNavigables.end()) {
             appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
         }
-        };
+    };
 
     connect(boutonGrenade, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::GRENADE, boutonGrenade);
-        });
+    });
     connect(boutonZap, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::ZAP, boutonZap);
-        });
+    });
     connect(boutonMitraillette, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::MITRAILLETTE, boutonMitraillette);
-        });
+    });
     connect(boutonTacticalNuke, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::TACTICAL_NUKE, boutonTacticalNuke);
-        });
+    });
 
     connect(boutonDifficulteNormal, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::NORMAL;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteNormal);
-        });
+    });
 
     connect(boutonDifficulteRng, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::RNG;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteRng);
-        });
+    });
 
     connect(boutonDifficulteChaos, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::CHAOS;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteChaos);
-        });
+    });
 
     connect(boutonManetteStandard, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::STANDARD;
         appliquerEtatVisuel();
         connecterFocus(boutonManetteStandard);
-        });
+    });
 
     connect(boutonManetteCustom, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::CUSTOM;
         appliquerEtatVisuel();
         connecterFocus(boutonManetteCustom);
-        });
+    });
 
     connect(boutonClavierSouris, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::CLAVIER_SOURIS;
         appliquerEtatVisuel();
         connecterFocus(boutonClavierSouris);
-        });
+    });
 
     connect(champNom, &QLineEdit::selectionChanged, this, [this, connecterFocus]() {
         connecterFocus(champNom);
-        });
+    });
 
     connect(champNom, &QLineEdit::textChanged, this, [this](const QString& texte) {
         const QString majuscule = texte.toUpper();
@@ -268,7 +268,7 @@ void EcranParametres::connecterSignaux()
 
         QSignalBlocker bloqueur(champNom);
         champNom->setText(majuscule);
-        });
+    });
 
     connect(champNom, &QLineEdit::returnPressed, this, &EcranParametres::lancerDemarrage);
     connect(boutonRetour, &Bouton::clicked, this, &EcranParametres::lancerRetourMenu);

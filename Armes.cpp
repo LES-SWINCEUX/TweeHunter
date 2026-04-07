@@ -1,10 +1,10 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, PowerUpType PowerUp)
+Armes::Armes(ConfigurationPartie configuration)
 {
-	ArmeActuelle = Arme;
-	PowerActuelle = PowerUp;
+	ArmeActuelle = configuration.arme;
+	PowerActuelle = configuration.powerUp;
 }
 
 QPainterPath Armes::choixArme(int x, int y) {

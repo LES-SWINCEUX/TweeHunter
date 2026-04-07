@@ -28,7 +28,7 @@ QString TargetBonus::choisirSpriteAleatoire(ModeJeu mode)
 }
 
 TargetBonus::TargetBonus(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
-	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::DEBUFF, taille)
+	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::BONUS, taille)
 {
 	setPointsScore(1000);
 }

@@ -11,7 +11,8 @@
 #include <QSharedPointer>
 #include <iostream>
 #include <QPainterPath>
-
+#include "modejeu.h"
+#include <functional>
 
 enum class TypeTarget
 {
@@ -19,7 +20,10 @@ enum class TypeTarget
 	DEBUFF,
 	MIXTE,
 	LEGENDAIRE,
-	BONUS
+	BONUS,
+	POISON,
+	WATER,
+	GATOR
 };
 
 enum class EtatTarget
@@ -83,6 +87,14 @@ public:
 		estMiroir = miroir;
 	}
 
+	bool aEteDetruite() const { 
+		return m_aEteDetruite; 
+	}
+
+	void setCallbackQuandTouchee(std::function<void(QPointF)> callback) {
+		callbackQuandTouchee = callback;
+	}
+
 protected:
 	void chargerSprite(Sprite& sprite, const QString& cheminSprite, int colonnes, int lignes, int cycle);
 
@@ -98,9 +110,12 @@ protected:
 	bool m_dejaComptee;
 
 	bool estMiroir = false;
+	bool m_aEteDetruite = false;
 	qint64 tempsDebutDestruction;
 
 	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;
+
+	std::function<void(QPointF)> callbackQuandTouchee = nullptr;
 };
 
 #endif

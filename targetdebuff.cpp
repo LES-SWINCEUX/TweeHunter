@@ -6,7 +6,8 @@ const QVector<QString> TargetDebuff::spritesPlus18 = {
 	"/images/sprites/grey_goose.png",
 	"/images/sprites/jimador.png",
 	"/images/sprites/guiness.png",
-	"/images/sprites/creme_menthe.png"
+	"/images/sprites/creme_menthe.png",
+	"/images/sprites/baileys.png"
 };
 
 const QVector<QString> TargetDebuff::spritesMoins18 = {
@@ -35,5 +36,5 @@ QString TargetDebuff::choisirSpriteAleatoire(ModeJeu mode)
 TargetDebuff::TargetDebuff(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
 	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::DEBUFF, taille)
 {
-	setPointsScore(-10);
+	setPointsScore(15);
 }

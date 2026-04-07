@@ -63,7 +63,7 @@ SOURCES += \
     compteur_balles.cpp \
     compteur_powerup.cpp \
     compteur_points.cpp \
-    vie.cpp \
+    compteur_vies.cpp \
     Touches.cpp \
     panneau_scores.cpp \
     gestionnaire_scores.cpp \
@@ -80,6 +80,10 @@ SOURCES += \
     bouton_options.cpp \
     gestionnaire_configuration.cpp \
     bush_louche.cpp \
+    bush.cpp \
+    gator.cpp \
+    water.cpp \
+    poison.cpp \
     bush.cpp \
     gestionnaire_entrees.cpp
 
@@ -109,7 +113,7 @@ HEADERS += \
     compteur_balles.h \
     compteur_powerup.h \
     compteur_points.h \
-    vie.h \
+    compteur_vies.h \
     Touches.h \
     panneau_scores.h \
     gestionnaire_scores.h \
@@ -128,6 +132,9 @@ HEADERS += \
     NativeSerialPort.h \
     configuration_partie.h \
     bouton_options.h \
+    gator.h \
+    water.h \
+    poison.h \
     gestionnaire_configuration.h \
     gestionnaire_entrees.h
 
