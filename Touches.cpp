@@ -37,6 +37,8 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
 
         if (serial.open(NativeSerialPort::ReadWrite)) {
             joystickPerso = true;
+            connect(serial.getReader(), &SerialReaderThread::donneesRecues,
+                this, &Touches::lirePerso, Qt::QueuedConnection);
         }
     }
 

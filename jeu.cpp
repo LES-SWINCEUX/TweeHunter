@@ -207,11 +207,6 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 
-			if (cible->getType() != TypeTarget::DEBUFF) {
-				enpleineface.clear();
-				niveauDebuff = 0;
-			}
-
 			int incrementScores = cible->getPointsScore();
 			score += incrementScores;
 
@@ -512,26 +507,13 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 
 void Jeu::UpdateWave(qint64 tempsMs)
 {
-	if (prochaineWave == 0) {
-		prochaineWave = tempsMs + INTERVALLE_WAVE;
-
+	if (randomiser->DemarrerWave(tempsMs)) {
+		maxCiblesSimultanees = 10;
+		randomiser->setFrequenceSpawn(100);
 	}
-
-	if (enWave) {
-		if (tempsMs >= prochaineWave) {
-			enWave = false;
-			maxCiblesSimultanees = 5;
-			randomiser->setFrequenceSpawn(1000);
-			prochaineWave = tempsMs + INTERVALLE_WAVE;
-		}
-	}
-	else {
-		if (tempsMs >= prochaineWave) {
-			enWave = true;
-			maxCiblesSimultanees = 10;
-			randomiser->setFrequenceSpawn(100);
-			prochaineWave = tempsMs + DUREE_WAVE;
-		}
+	else if (!randomiser->EnWave() && maxCiblesSimultanees == 10) {
+		maxCiblesSimultanees = 5;
+		randomiser->setFrequenceSpawn(1000);
 	}
 }
 
@@ -559,7 +541,7 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		if (tempsEcoule < 0 || tempsEcoule >= epf.getDuree()) continue;
 
 		double t = double(tempsEcoule) / double(epf.getDuree());
-		int alpha = (t < 0.66) ? 255 : int(255.0 * (1.0 - (t - 0.66) / 0.34));
+		int alpha = (t < 0.90) ? 255 : int(255.0 * (1.0 - (t - 0.90) / 0.10));
 		alpha = qBound(0, alpha, 255);
 
 		QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(
@@ -567,7 +549,7 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		);
 		if (!pix || pix->isNull()) continue;
 
-		int largeur = epf.getLargeur();
+		int largeur = epf.getLargeur(tailleEcran.width());
 		QRect dest(
 			static_cast<int>(epf.position.x() - largeur / 2),
 			static_cast<int>(epf.position.y() - largeur / 2),

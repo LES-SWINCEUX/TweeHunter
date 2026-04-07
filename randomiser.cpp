@@ -45,7 +45,7 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	QPointF pointArrivee = choisirPointArrivee(bordArrivee);
 	TypeTrajectoire traj = choisirTrajectoire();
 
-	double facteur = calculerFacteurVitesse(tempsCourant);
+	double facteur = calculerFacteurVitesse(tempsCourant) * facteurVitesse;
 	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin * facteur, def.vitesseMax * facteur), traj);
 
 	QSizeF taillePixels(tailleEcran.width() * def.tailleRelative, tailleEcran.height() * def.tailleRelative);
@@ -202,3 +202,28 @@ double Randomiser::calculerFacteurVitesse(qint64 tempsMs) const
 	return qMin(facteur, FACTEUR_MAX);
 }
 
+bool Randomiser::DemarrerWave(qint64 tempsMs)
+{
+	if (prochaineWave == 0) {
+		std::uniform_int_distribution<qint64> dist(-VARIATION_WAVE, VARIATION_WAVE);
+		prochaineWave = tempsMs + INTERVALLE_WAVE + dist(generateur);
+		return false;
+	}
+
+	if (enWave) {
+		if (tempsMs >= prochaineWave) {
+			enWave = false;
+			std::uniform_int_distribution<qint64> dist(-VARIATION_WAVE, VARIATION_WAVE);
+			prochaineWave = tempsMs + INTERVALLE_WAVE + dist(generateur);
+		}
+	}
+	else {
+		if (tempsMs >= prochaineWave) {
+			enWave = true;
+			std::uniform_int_distribution<qint64> dist(-VARIATION_DUREE_WAVE, VARIATION_DUREE_WAVE);
+			prochaineWave = tempsMs + DUREE_WAVE + dist(generateur);
+			return true;
+		}
+	}
+	return false;
+}

@@ -5,7 +5,33 @@ GestionnaireEntrees::GestionnaireEntrees(const ConfigurationPartie& config, Reti
     , config(config)
     , reticule(reticule)
     , gamepad(gamepad)
-{}
+{
+    if (config.manette == TypeManette::CUSTOM) {
+        Touches* t = reticule ? reticule->getTouches() : nullptr;
+        if (t && t->isJoystickPersoConnected()) {
+            threadSerie = new QThread(this);
+            lecteurSerie = new LecteurSerie(t);
+            lecteurSerie->moveToThread(threadSerie);
+
+            connect(threadSerie, &QThread::started, lecteurSerie, &LecteurSerie::demarrer);
+            connect(lecteurSerie, &LecteurSerie::gachetteChangee, this, [this](bool v) { etatGachette = v; });
+            connect(lecteurSerie, &LecteurSerie::reloadChange, this, [this](bool v) { etatReload = v; });
+            connect(lecteurSerie, &LecteurSerie::accelerometreChange, this, [this](bool v) { etatAccelerometre = v; });
+            connect(lecteurSerie, &LecteurSerie::encodeurChange, this, [this](int v) { etatEncodeur = v; });
+
+            threadSerie->start();
+        }
+    }
+}
+
+GestionnaireEntrees::~GestionnaireEntrees()
+{
+    if (lecteurSerie) lecteurSerie->arreter();
+    if (threadSerie) {
+        threadSerie->quit();
+        threadSerie->wait();
+    }
+}
 
 void GestionnaireEntrees::lire(qint64 deltaMs)
 {
@@ -62,41 +88,33 @@ void GestionnaireEntrees::lireManetteStandard()
 
 void GestionnaireEntrees::lireManetteCustom(qint64 deltaMs)
 {
-    Touches* t = reticule ? reticule->getTouches() : nullptr;
 
-    if (!t || !t->isJoystickPersoConnected()) {
-        return;
-    }
-
-    t->lirePerso();
-
-    const bool gachette = t->getGachette();
-    const bool reload = t->getReload();
-
-    if (gachette && !reload) {
+    if (etatGachette && !etatReload) {
         if (!gachetteTirPrecedente) {
             emit tireDemande();
         }
-
         gachetteTirPrecedente = true;
-    } else if (!gachette) {
+    }
+    else if (!etatGachette) {
         gachetteTirPrecedente = false;
     }
 
-    if (reload && t->getAccelerometre()) {
+    if (etatReload && etatAccelerometre) {
         emit reloadDemande();
     }
-        
-    if (reload && t->getEncodeur() != 0) {
+
+    if (etatReload && etatEncodeur != 0) {
+        etatEncodeur = 0;
         emit pauseDemande();
     }
 
-    if (gachette && reload) {
-        if (!powerUpActif) { 
+    if (etatGachette && etatReload) {
+        if (!powerUpActif) {
             powerUpActif = true;
-            emit powerUpDemande(); 
+            emit powerUpDemande();
         }
-    } else {
+    }
+    else {
         powerUpActif = false;
     }
 

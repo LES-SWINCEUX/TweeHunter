@@ -23,6 +23,8 @@
 
 class SerialReaderThread : public QThread
 {
+    Q_OBJECT
+
 public:
     explicit SerialReaderThread(QObject* parent = nullptr);
     void stop();
@@ -35,6 +37,9 @@ public:
 #else
     int fd = -1;
 #endif
+
+signals:
+    void donneesRecues();
 
 protected:
     void run() override;
@@ -61,10 +66,10 @@ public:
     bool isOpen() const;
 
     bool canReadLine();
-
     QByteArray readLine();
-
     bool write(const QByteArray& data);
+
+    SerialReaderThread* getReader() const { return m_reader; }
 
 private:
     void pullFromReader();
@@ -73,6 +78,7 @@ private:
     int m_baudRate = 115200;
     bool m_isOpen = false;
     QByteArray m_buffer;
+    mutable QMutex m_bufferMutex;
     SerialReaderThread* m_reader = nullptr;
 
 #ifdef _WIN32

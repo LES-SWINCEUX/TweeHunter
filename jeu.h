@@ -36,10 +36,10 @@ struct Enpleineface {
 	bool initialise = false;
 
 	qint64 getDuree() const {
-		return 2000 * niveau;
+		return (1000 * niveau);
 	}
-	int getLargeur() const {
-		return 200 * niveau;
+	int getLargeur(double largeurEcran) const {
+		return static_cast<int>(largeurEcran * 0.15 * niveau);
 	}
 
 };
@@ -108,6 +108,10 @@ public:
 		onMoteurDemande = callback;
 	}
 
+	void setFacteurVitesse(double facteur) {
+		if (randomiser) randomiser->setFacteurVitesse(facteur);
+	}
+
 private:
 
 	static QSharedPointer<QPixmap> spriteDestruction;
@@ -140,10 +144,6 @@ private:
 	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
 	void nettoyerIndicateurs(qint64 tempsMs);
 
-	bool enWave = false;
-	qint64 prochaineWave= 0;
-	static constexpr qint64 DUREE_WAVE = 10000;
-	static constexpr qint64 INTERVALLE_WAVE = 30000;
 	void UpdateWave(qint64 tempsMs);
 
 	QSizeF tailleEcran;

@@ -6,6 +6,7 @@
 #include "configuration_partie.h"
 #include "Reticule.h"
 #include "Touches.h"
+#include "lecteur_serie.h"
 
 class GestionnaireEntrees : public QObject
 {
@@ -13,7 +14,7 @@ class GestionnaireEntrees : public QObject
 
 public:
     GestionnaireEntrees(const ConfigurationPartie& config, Reticule* reticule, SDL_Gamepad* gamepad, QObject* parent = nullptr);
-
+    ~GestionnaireEntrees();
     void lire(qint64 deltaMs);
 
 signals:
@@ -36,6 +37,14 @@ private:
     bool reloadPrecedent = false;
     bool startPrecedent = false;
     bool powerUpActif = false;
+
+    QThread* threadSerie = nullptr;
+    LecteurSerie* lecteurSerie = nullptr;
+
+    bool etatGachette = false;
+    bool etatReload = false;
+    bool etatAccelerometre = false;
+    int  etatEncodeur = 0;
 };
 
 #endif
