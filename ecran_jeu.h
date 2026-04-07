@@ -13,6 +13,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 #include <cmath>
+#include <random>
 
 #include "compteur_balles.h"
 #include "compteur_points.h"
@@ -22,7 +23,7 @@
 #include "gestionnaire_entrees.h"
 #include "jeu.h"
 #include "Reticule.h"
-#include "vie.h"
+#include "compteur_vies.h"
 #include "Armes.h"
 #include "menu_pause_overlay.h"
 #include "Touches.h"
@@ -44,11 +45,11 @@ signals:
     void ballesChanged(int nbBalles);
 
 protected:
-    void paintEvent(QPaintEvent*)            override;
-    void resizeEvent(QResizeEvent* e)        override;
-    void showEvent(QShowEvent* e)            override;
-    void keyPressEvent(QKeyEvent* e)         override;
-    void mouseMoveEvent(QMouseEvent* event)  override;
+    void paintEvent(QPaintEvent*) override;
+    void resizeEvent(QResizeEvent* e) override;
+    void showEvent(QShowEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
 
 private:
@@ -59,6 +60,7 @@ private:
     void initMinuterie();
 
     void tick();
+    void timeoutReticuleAleatoire();
 
     void Power();
     void rechargerArme();
@@ -77,6 +79,7 @@ private:
     bool transitionVersMenu = false;
 
     QTimer timer;
+    QTimer timerReticulesAleatoire;
     QElapsedTimer frameTimer;
     QElapsedTimer elapsed;
     qint64 tempsJeuMs = 0;
@@ -91,11 +94,11 @@ private:
     Touches* touches = nullptr;
 
     CompteurBalles* compteurBalles = nullptr;
-    Vies* vies = nullptr;
+    CompteurVies* compteurVies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     CompteurPowerUp* compteurPowerUp = nullptr;
-    static constexpr int LARGEUR_MIN_BALLES = 120;
-    static constexpr int LARGEUR_MAX_BALLES = 275;
+    int LARGEUR_MIN_BALLES = 120;
+    int LARGEUR_MAX_BALLES = 275;
 
     QSharedPointer<QPixmap> arrierePlan;
     QPixmap arrierePlanCache;
@@ -110,7 +113,7 @@ private:
     QPropertyAnimation* fadeInAnim = nullptr;
     QPropertyAnimation* fadeOutAnim = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
-    // Membres pour la gestion des power-ups (manette)
+
     bool gachettePrecedente = false;
     bool reloadPrecedent = false;
     bool startPrecedent = false;

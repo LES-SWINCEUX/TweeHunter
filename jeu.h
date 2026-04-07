@@ -5,7 +5,7 @@
 #include "randomiser.h"
 #include "compteur_points.h"
 #include "compteur_balles.h"
-#include "vie.h"
+#include "compteur_vies.h"
 #include <QList>
 #include <QSizeF>
 #include <QTimer>
@@ -50,7 +50,7 @@ class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr);
 
 	~Jeu();
 
@@ -119,7 +119,7 @@ private:
 	Randomiser* randomiser;
 	CompteurPoints* compteurPoints = nullptr;
 	CompteurBalles* compteurBalles = nullptr;
-	Vies* vies = nullptr;
+	CompteurVies* compteurVies = nullptr;
 
 	int score;
 	int ciblesTouchees;

@@ -30,7 +30,7 @@ class MenuPrincipal : public QWidget
     Q_OBJECT
 
 public:
-    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr, Touches* touches = nullptr);
+    MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartMusique, QWidget* parent = nullptr, Touches* touches = nullptr);
     ~MenuPrincipal();
 
 signals:
@@ -55,7 +55,6 @@ private:
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
-    QPropertyAnimation* estompeMusique = nullptr;
     QPropertyAnimation* estompeAnimation = nullptr;
     QPropertyAnimation* fadeInMusique = nullptr;
     QPropertyAnimation* fadeInAnimation = nullptr;
@@ -87,6 +86,7 @@ private:
     bool customHautPrecedent = false;
     bool customBasPrecedent  = false;
     bool customOkPrecedent   = false;
+    bool restartMusique = false;
 
     QElapsedTimer timerPauseAnimation;
     QRect zonePanneauxBas() const;

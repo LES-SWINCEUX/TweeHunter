@@ -7,7 +7,7 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, Vies* vies, ModeJeu mode, Armes* A)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
 	armes = A;
@@ -49,7 +49,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 
 	this->compteurPoints = compteurPoints;
 	this->compteurBalles = compteurBalles;
-	this->vies = vies;
+	this->compteurVies = compteurVies;
 
 	initialiserCiblesParDefaut();
 	qDebug() << QDir::currentPath();
@@ -226,7 +226,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 
 			if (incrementScores < 0) {
-				vies->setDemiVies(vies->getDemiVies() - 1);
+				compteurVies->setDemiVies(compteurVies->getDemiVies() - 1);
 			}
 
 			// Comportements spéciaux par type
@@ -265,7 +265,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		}
 
 		if (pointsLouche < 0) {
-			vies->setDemiVies(vies->getDemiVies() - 2);
+			compteurVies->setDemiVies(compteurVies->getDemiVies() - 2);
 		}
 
 		compteurPoints->setPoints(score);
@@ -399,7 +399,7 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.pointsScore = 15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 1.5;
+	debuff.frequenceSpawn = 2;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
@@ -417,7 +417,7 @@ void Jeu::initialiserCiblesParDefaut()
 	legendaire.pointsScore = 50;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
-	legendaire.frequenceSpawn = 4.0;
+	legendaire.frequenceSpawn = 5.0;
 	ajouterTypeCible(legendaire);
 
 	DefinitionTarget bonus;
@@ -426,7 +426,7 @@ void Jeu::initialiserCiblesParDefaut()
 	bonus.pointsScore = 30;
 	bonus.vitesseMin = 500.0;
 	bonus.vitesseMax = 1250.0;
-	bonus.frequenceSpawn = 5.0;
+	bonus.frequenceSpawn = 6.0;
 	ajouterTypeCible(bonus);
 
 	DefinitionTarget poison;
@@ -451,8 +451,8 @@ void Jeu::initialiserCiblesParDefaut()
 	gator.type = TypeTarget::GATOR;
 	gator.tailleRelative = 0.15;
 	gator.pointsScore = 0;
-	gator.vitesseMin = 400.0;
-	gator.vitesseMax = 900.0;
+	gator.vitesseMin = 1000.0;
+	gator.vitesseMax = 1900.0;
 	gator.frequenceSpawn = 10.0;
 	ajouterTypeCible(gator);
 }

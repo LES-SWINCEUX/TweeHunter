@@ -1,10 +1,10 @@
 #include "Armes.h"
 
 
-Armes::Armes(int Arme, PowerUpType PowerUp)
+Armes::Armes(ConfigurationPartie configuration)
 {
-	ArmeActuelle = Arme;
-	PowerActuelle = PowerUp;
+	ArmeActuelle = configuration.arme;
+	PowerActuelle = configuration.powerUp;
 }
 
 QPainterPath Armes::choixArme(int x, int y) {
@@ -97,9 +97,9 @@ int Armes::nbMunitions() const
 int Armes::nbPowerUp() const {
 	switch (PowerActuelle) {
 	case PowerUpType::GRENADE:
-		return 3;
+		return 5;
 	case PowerUpType::ZAP:
-		return 1;
+		return 9;
 	case PowerUpType::MITRAILLETTE:
 		return 2;
 	case PowerUpType::TACTICAL_NUKE:

@@ -1,7 +1,7 @@
 #include "menu.h"
 #include "panneau_scores.h"
 
-MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches) :
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartMusique, QWidget* parent, Touches* touches) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
@@ -10,6 +10,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     this->gestionnaireAudio = gestionnaireAudio;
+    this->restartMusique = restartMusique;
 
     configuerAnimationTitre();
 
@@ -28,12 +29,12 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     overlay->raise();
     overlay->hide();
 
-    if (this->gestionnaireAudio != nullptr) {
+    if (this->gestionnaireAudio != nullptr && restartMusique) {
         this->gestionnaireAudio->setPlaylist({
             QDir::currentPath() + "/sounds/menu/track_2.mp3",
             QDir::currentPath() + "/sounds/menu/track_1.mp3",
             QDir::currentPath() + "/sounds/menu/track_3.mp3"
-            });
+        });
 
         this->gestionnaireAudio->setMusicVolumeAnimation(0.0f);
         this->gestionnaireAudio->playMusic();
@@ -41,10 +42,6 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
 
     estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
-
-    if (this->gestionnaireAudio != nullptr) {
-        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume", this);
-    }
 
     connect(estompeAnimation, &QPropertyAnimation::finished, this, &MenuPrincipal::jouerDemande);
 
@@ -102,6 +99,10 @@ void MenuPrincipal::lancerFadeIn()
             overlay->hide();
             });
         fadeInAnimation->start();
+    }
+    
+    if (!restartMusique) {
+        return;
     }
 
     GestionnaireAudio* audio = this->gestionnaireAudio;
@@ -320,14 +321,6 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         estompeAnimation->setStartValue(0);
         estompeAnimation->setEndValue(255);
 
-        if (this->gestionnaireAudio != nullptr) {
-            estompeMusique->stop();
-            estompeMusique->setDuration(1000);
-            estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
-            estompeMusique->setEndValue(0.0);
-            estompeMusique->start();
-        }
-
         estompeAnimation->start();
     });
 }
@@ -398,8 +391,8 @@ void MenuPrincipal::tickManette()
     }
 
     bool haut = false;
-    bool bas  = false;
-    bool ok   = false;
+    bool bas = false;
+    bool ok  = false;
 
     if (gamepad && SDL_GamepadConnected(gamepad)) {
         bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
