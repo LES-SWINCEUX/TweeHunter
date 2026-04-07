@@ -81,6 +81,10 @@ SOURCES += \
     gestionnaire_configuration.cpp \
     bush_louche.cpp \
     bush.cpp \
+    gator.cpp \
+    water.cpp \
+    poison.cpp \
+    bush.cpp \
     gestionnaire_entrees.cpp
 
 HEADERS += \
@@ -128,6 +132,9 @@ HEADERS += \
     NativeSerialPort.h \
     configuration_partie.h \
     bouton_options.h \
+    gator.h \
+    water.h \
+    poison.h \
     gestionnaire_configuration.h \
     gestionnaire_entrees.h
 

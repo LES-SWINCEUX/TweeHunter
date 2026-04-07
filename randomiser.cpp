@@ -67,6 +67,15 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 		case TypeTarget::BONUS:
 			cible = new TargetBonus(mouvement, taillePixels, mode);
 			break;
+		case TypeTarget::POISON:
+			cible = new Poison(mouvement, taillePixels, mode);
+			break;
+		case TypeTarget::WATER:
+			cible = new Water(mouvement, taillePixels, mode);
+			break;
+		case TypeTarget::GATOR:
+			cible = new Gator(mouvement, taillePixels, mode);
+			break;
 		default:
 			delete mouvement;
 			return nullptr;

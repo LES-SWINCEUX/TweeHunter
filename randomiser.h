@@ -13,6 +13,9 @@
 #include "targetlegendaire.h"
 #include "targetbonus.h"
 #include "bush_louche.h"
+#include "poison.h"
+#include "water.h"
+#include "gator.h"
 
 struct DefinitionTarget
 {
