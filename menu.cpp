@@ -34,7 +34,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
             QDir::currentPath() + "/sounds/menu/track_2.mp3",
             QDir::currentPath() + "/sounds/menu/track_1.mp3",
             QDir::currentPath() + "/sounds/menu/track_3.mp3"
-            });
+        });
 
         this->gestionnaireAudio->setMusicVolumeAnimation(0.0f);
         this->gestionnaireAudio->playMusic();
