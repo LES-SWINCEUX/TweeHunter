@@ -2,11 +2,13 @@
 #include "jeu.h"
 
 const QVector<QString> Poison::spritesPlus18 = {
-    "/images/sprites/poison.png",
+    "/images/sprites/poisonbrun.png",
+    "/images/sprites/poisonvert.png"
 };
 
 const QVector<QString> Poison::spritesMoins18 = {
-    "/images/sprites/poison.png",
+    "/images/sprites/poisonbrun.png",
+    "/images/sprites/poisonvert.png"
 };
 
 QString Poison::choisirSprite(ModeJeu mode)

@@ -28,7 +28,7 @@ QString TargetLegendaire::choisirSpriteAleatoire(ModeJeu mode)
 }
 
 TargetLegendaire::TargetLegendaire(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
-	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::DEBUFF, taille)
+	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::LEGENDAIRE, taille)
 {
 	setPointsScore(100);
 }

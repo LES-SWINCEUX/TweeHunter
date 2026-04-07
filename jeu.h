@@ -28,6 +28,22 @@ struct IndicateurScore {
 	static constexpr qint64 DUREE_MS = 1200;
 };
 
+struct Enpleineface {
+	QPointF position;
+	qint64 tempsDebut;
+	QString cheminSprite;
+	int niveau = 1;
+	bool initialise = false;
+
+	qint64 getDuree() const {
+		return 2000 * niveau;
+	}
+	int getLargeur() const {
+		return 200 * niveau;
+	}
+
+};
+
 using namespace std;
 
 class Jeu
@@ -123,6 +139,18 @@ private:
 	QList<IndicateurScore> indicateurs;
 	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
 	void nettoyerIndicateurs(qint64 tempsMs);
+
+	bool enWave = false;
+	qint64 prochaineWave= 0;
+	static constexpr qint64 DUREE_WAVE = 10000;
+	static constexpr qint64 INTERVALLE_WAVE = 30000;
+	void UpdateWave(qint64 tempsMs);
+
+	QSizeF tailleEcran;
+	int niveauDebuff = 0;
+	QList<Enpleineface> enpleineface;
+	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
+	void nettoyerEnpleinefaces(qint64 tempsMs);
 };
 
 #endif

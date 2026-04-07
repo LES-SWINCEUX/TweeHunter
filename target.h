@@ -12,6 +12,7 @@
 #include <iostream>
 #include <QPainterPath>
 #include "modejeu.h"
+#include <functional>
 
 enum class TypeTarget
 {
@@ -90,6 +91,10 @@ public:
 		return m_aEteDetruite; 
 	}
 
+	void setCallbackQuandTouchee(std::function<void(QPointF)> callback) {
+		callbackQuandTouchee = callback;
+	}
+
 protected:
 	void chargerSprite(Sprite& sprite, const QString& cheminSprite, int colonnes, int lignes, int cycle);
 
@@ -109,6 +114,8 @@ protected:
 	qint64 tempsDebutDestruction;
 
 	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;
+
+	std::function<void(QPointF)> callbackQuandTouchee = nullptr;
 };
 
 #endif

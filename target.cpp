@@ -90,6 +90,7 @@ void Target::detruire(qint64 tempsMs)
 		etat = EtatTarget::EN_DESTRUCTION;
 		tempsDebutDestruction = tempsMs;
 		m_aEteDetruite = true;
+		if (callbackQuandTouchee) callbackQuandTouchee(position);
 	}
 }
 

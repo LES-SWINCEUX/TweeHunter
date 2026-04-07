@@ -35,5 +35,5 @@ QString TargetDebuff::choisirSpriteAleatoire(ModeJeu mode)
 TargetDebuff::TargetDebuff(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
 	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::DEBUFF, taille)
 {
-	setPointsScore(-10);
+	setPointsScore(15);
 }
