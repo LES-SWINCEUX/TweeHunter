@@ -455,6 +455,11 @@ void EcranJeu::Power() {
     bool cibleTouchee = false;
 
     if (nbPowerUps > 0) {
+        if (armes->getPowerActuelle() == PowerUpType::MITRAILLETTE && timer2 != nullptr && timer2->isActive()) {
+            declencherFinPartie();
+            return;
+        }
+
         compteurPowerUp->setPowerUp(nbPowerUps - 1);
         rechargerArme();
         switch (armes->getPowerActuelle()) {
@@ -478,7 +483,10 @@ void EcranJeu::Power() {
             }
             break;
         case PowerUpType::MITRAILLETTE:
-            timer2 = new QTimer(this);
+            if (timer2 == nullptr) {
+                timer2 = new QTimer(this);
+            }
+
             compteur = 0;
             connect(timer2, &QTimer::timeout, this, [this]() {
                 if (gestionnaireAudio != nullptr) {
@@ -488,6 +496,8 @@ void EcranJeu::Power() {
                 compteur++;
                 if (compteur >= 100) {
                     timer2->stop();
+                    timer2->deleteLater();
+                    timer2 = nullptr;
                 }
             });
             timer2->start(100);

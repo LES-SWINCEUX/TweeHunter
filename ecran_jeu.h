@@ -44,11 +44,11 @@ signals:
     void ballesChanged(int nbBalles);
 
 protected:
-    void paintEvent(QPaintEvent*)            override;
-    void resizeEvent(QResizeEvent* e)        override;
-    void showEvent(QShowEvent* e)            override;
-    void keyPressEvent(QKeyEvent* e)         override;
-    void mouseMoveEvent(QMouseEvent* event)  override;
+    void paintEvent(QPaintEvent*) override;
+    void resizeEvent(QResizeEvent* e) override;
+    void showEvent(QShowEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
 
 private:
@@ -110,7 +110,7 @@ private:
     QPropertyAnimation* fadeInAnim = nullptr;
     QPropertyAnimation* fadeOutAnim = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
-    // Membres pour la gestion des power-ups (manette)
+
     bool gachettePrecedente = false;
     bool reloadPrecedent = false;
     bool startPrecedent = false;

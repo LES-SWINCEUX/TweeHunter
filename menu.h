@@ -55,7 +55,6 @@ private:
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
-    QPropertyAnimation* estompeMusique = nullptr;
     QPropertyAnimation* estompeAnimation = nullptr;
     QPropertyAnimation* fadeInMusique = nullptr;
     QPropertyAnimation* fadeInAnimation = nullptr;

@@ -42,10 +42,6 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, QWidget* pare
     estompeAnimation = new QPropertyAnimation(overlay, "alpha", this);
     estompeAnimation->setEasingCurve(QEasingCurve::InOutQuad);
 
-    if (this->gestionnaireAudio != nullptr) {
-        estompeMusique = new QPropertyAnimation(this->gestionnaireAudio, "musicVolume", this);
-    }
-
     connect(estompeAnimation, &QPropertyAnimation::finished, this, &MenuPrincipal::jouerDemande);
 
     connect(&timerManette, &QTimer::timeout, this, &MenuPrincipal::tickManette);
@@ -320,14 +316,6 @@ void MenuPrincipal::afficherPanneauPrincipal() {
         estompeAnimation->setStartValue(0);
         estompeAnimation->setEndValue(255);
 
-        if (this->gestionnaireAudio != nullptr) {
-            estompeMusique->stop();
-            estompeMusique->setDuration(1000);
-            estompeMusique->setStartValue(this->gestionnaireAudio->getMusicVolume());
-            estompeMusique->setEndValue(0.0);
-            estompeMusique->start();
-        }
-
         estompeAnimation->start();
     });
 }
@@ -398,8 +386,8 @@ void MenuPrincipal::tickManette()
     }
 
     bool haut = false;
-    bool bas  = false;
-    bool ok   = false;
+    bool bas = false;
+    bool ok  = false;
 
     if (gamepad && SDL_GamepadConnected(gamepad)) {
         bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
