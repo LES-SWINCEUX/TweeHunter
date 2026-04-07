@@ -26,6 +26,7 @@ public:
 	bool isJoystickPersoConnected() const { return joystickPerso; }
 	SDL_Gamepad* getGamepad()const { return gamepad; }
 	bool RTpressed() const;
+	bool LTpressed() const;
 
 	void lirePerso();
 	int getxPerso() const;

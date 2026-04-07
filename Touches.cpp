@@ -56,6 +56,17 @@ bool Touches::RTpressed() const {
     return false;
 }
 
+bool Touches::LTpressed() const {
+
+    Sint16 value = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+
+    if (value > 10000) {
+        return true;
+    }
+
+    return false;
+}
+
 void Touches::lirePerso() {
 
     while (serial.canReadLine())
