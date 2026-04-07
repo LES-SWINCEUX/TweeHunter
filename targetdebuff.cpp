@@ -6,7 +6,8 @@ const QVector<QString> TargetDebuff::spritesPlus18 = {
 	"/images/sprites/grey_goose.png",
 	"/images/sprites/jimador.png",
 	"/images/sprites/guiness.png",
-	"/images/sprites/creme_menthe.png"
+	"/images/sprites/creme_menthe.png",
+	"/images/sprites/baileys.png"
 };
 
 const QVector<QString> TargetDebuff::spritesMoins18 = {

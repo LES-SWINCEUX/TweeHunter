@@ -399,9 +399,9 @@ void Jeu::initialiserCiblesParDefaut()
 	debuff.pointsScore = 15;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 2.0;
-
+	debuff.frequenceSpawn = 1.5;
 	ajouterTypeCible(debuff);
+
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.tailleRelative = 0.15;
