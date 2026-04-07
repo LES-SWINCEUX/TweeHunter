@@ -257,6 +257,18 @@ void EcranJeu::timeoutReticuleAleatoire() {
     if (this->gestionnaireAudio != nullptr) {
         gestionnaireAudio->playSfx("reticule_swap");
     }
+    PowerUpCycle++;
+    if (PowerUpCycle == 2) {
+        PowerUpCycle = 0;
+        PowerChoose(RandomPowerUp());
+    }
+}
+
+PowerUpType EcranJeu::RandomPowerUp() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 3);
+    return static_cast<PowerUpType>(dist(gen));
 }
 
 void EcranJeu::keyPressEvent(QKeyEvent* e)
@@ -492,72 +504,78 @@ void EcranJeu::mettreEnPause()
 }
 
 void EcranJeu::Power() {
-    int incr = 0;
     int nbPowerUps = compteurPowerUp->getPowerUp();
-    bool cibleTouchee = false;
-
     if (nbPowerUps > 0) {
-        if (armes->getPowerActuelle() == PowerUpType::MITRAILLETTE && timer2 != nullptr && timer2->isActive()) {
-            declencherFinPartie();
-            return;
-        }
-
         compteurPowerUp->setPowerUp(nbPowerUps - 1);
         rechargerArme();
-        switch (armes->getPowerActuelle()) {
-        case PowerUpType::GRENADE:
-            if (gestionnaireAudio != nullptr) {
-                gestionnaireAudio->playSfx("explosion");
-            }
-            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
-            break;
-        case PowerUpType::ZAP:
-            if (gestionnaireAudio != nullptr) {
-                gestionnaireAudio->playSfx("zap");
-            }
-            jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
-            incr = qMax(this->width(), this->height());
-            for (int i = 1; i <= int(incr / 9); i++) {
-                jeu->getArmes()->setMult(i);
-                if (jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs)) {
-                    break;
-                }
-            }
-            break;
-        case PowerUpType::MITRAILLETTE:
-            if (timer2 == nullptr) {
-                timer2 = new QTimer(this);
-            }
-
-            compteur = 0;
-            connect(timer2, &QTimer::timeout, this, [this]() {
-                if (gestionnaireAudio != nullptr) {
-                    gestionnaireAudio->playSfx("machine_gun");
-                }
-                jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
-                compteur++;
-                if (compteur >= 100) {
-                    timer2->stop();
-                    timer2->deleteLater();
-                    timer2 = nullptr;
-                }
-            });
-            timer2->start(100);
-            break;
-        case PowerUpType::TACTICAL_NUKE:
-            if (gestionnaireAudio != nullptr) {
-                gestionnaireAudio->playSfx("nuke");
-            }
-            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
-            break;
-        default:
-            cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), tempsJeuMs);
-            break;
-        }
+		PowerChoose(armes->getPowerActuelle());
     }
 
     if (gestionnaireAudio != nullptr && nbPowerUps <= 0) {
         gestionnaireAudio->playSfx("gun_empty");
+    }
+
+    declencherFinPartie();
+}
+
+void EcranJeu::PowerChoose(PowerUpType PowerUp) {
+    int incr = 0;
+    bool cibleTouchee = false;
+
+    if (PowerUp == PowerUpType::MITRAILLETTE && timer2 != nullptr && timer2->isActive()) {
+        declencherFinPartie();
+        return;
+    }
+
+    switch (PowerUp) {
+    case PowerUpType::GRENADE:
+        if (gestionnaireAudio != nullptr) {
+            gestionnaireAudio->playSfx("explosion");
+        }
+        cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUp, tempsJeuMs);
+        break;
+    case PowerUpType::ZAP:
+        if (gestionnaireAudio != nullptr) {
+            gestionnaireAudio->playSfx("zap");
+        }
+        jeu->TireGratuit(reticule->getX(), reticule->getY(), tempsJeuMs);
+        incr = qMax(this->width(), this->height());
+        for (int i = 1; i <= int(incr / 9); i++) {
+            jeu->getArmes()->setMult(i);
+            if (jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUp, tempsJeuMs)) {
+                break;
+            }
+        }
+        break;
+    case PowerUpType::MITRAILLETTE:
+        if (timer2 == nullptr) {
+            timer2 = new QTimer(this);
+        }
+    
+        compteur = 0;
+        connect(timer2, &QTimer::timeout, this, [this]() {
+            if (gestionnaireAudio != nullptr) {
+                gestionnaireAudio->playSfx("machine_gun");
+            }
+            jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUpMitraillette, tempsJeuMs);
+            compteur++;
+            if (compteur >= 100) {
+                timer2->stop();
+                timer2->deleteLater();
+                timer2 = nullptr;
+            }
+        });
+        timer2->start(100);
+        break;
+    case PowerUpType::TACTICAL_NUKE:
+        if (gestionnaireAudio != nullptr) {
+            gestionnaireAudio->playSfx("nuke");
+        }
+        cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUp, tempsJeuMs);
+        break;
+    default:
+        cibleTouchee = jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUp, tempsJeuMs);
+        break;
     }
 
     declencherFinPartie();

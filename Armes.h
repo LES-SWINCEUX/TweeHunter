@@ -16,7 +16,6 @@ public:
 	void setArmes(int arme) { ArmeActuelle = arme; }
 
 	QPainterPath choixArme(int x, int y);
-	QPainterPath choixPowerUp(int x, int y);
 
 	QPainterPath Hitbox(int choix, int x, int y);
 	QPainterPath Hitbox(PowerUpType choix, int x, int y);

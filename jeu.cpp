@@ -321,8 +321,8 @@ bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
 	return verifierCollisions(armes->choixArme(x, y), tempsMs);
 }
 
-bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
-	return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
+bool Jeu::PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs) {
+	return verifierCollisions(armes->Hitbox(choix, x, y), tempsMs);
 }
 
 bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {

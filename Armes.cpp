@@ -11,10 +11,6 @@ QPainterPath Armes::choixArme(int x, int y) {
 	return Hitbox(ArmeActuelle, x, y);
 }
 
-QPainterPath Armes::choixPowerUp(int x, int y) {
-	return Hitbox(PowerActuelle, x, y);
-}
-
 QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
 	QPainterPath Hitbox;
 	switch (choix) {

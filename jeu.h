@@ -87,7 +87,7 @@ public:
 
 	bool Tirer(const int x, const int y, qint64 tempsMs);
 	bool TireGratuit(const int x, const int y, qint64 tempsMs);
-	bool PowerUp(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs);
 
 	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
 
