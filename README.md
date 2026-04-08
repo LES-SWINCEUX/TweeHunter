@@ -71,8 +71,8 @@ Après le nettoyage :
 
 1. Rouvre le projet avec **Visual Studio**
 2. Recharge `TweeHunter.pro`
-2.1 **Extensions → Qt VS Tools → Open Qt Project File (.pro)**
-3. Recompile la solution
+3. **Extensions → Qt VS Tools → Open Qt Project File (.pro)**
+4. Recompile la solution
 
 ### 3. Installer SDL3 si nécessaire
 Si la compilation échoue encore et que le problème semble venir de **SDL3** (bibliothèque manquante, lien impossible, include introuvable, etc.), exécute le script suivant :
