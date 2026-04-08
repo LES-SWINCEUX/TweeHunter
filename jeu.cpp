@@ -7,10 +7,11 @@ static constexpr int CYCLE_DESTRUCTION = 1000;
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
 	armes = A;
+	compteurPowerUp = C;
 
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
@@ -239,6 +240,9 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			if (cible->getType() ==TypeTarget::BONUS) {
 				Explosion(cible->getPosition().x(), cible->getPosition().y(), tempsMs);
 
+			}
+			if(cible->getType() == TypeTarget::LEGENDAIRE) {
+				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + 1);
 			}
 
 			compteurPoints->setPoints(score);

@@ -6,6 +6,7 @@
 #include "compteur_points.h"
 #include "compteur_balles.h"
 #include "compteur_vies.h"
+#include "compteur_powerup.h"
 #include <QList>
 #include <QSizeF>
 #include <QTimer>
@@ -50,7 +51,7 @@ class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr);
 
 	~Jeu();
 
@@ -133,6 +134,7 @@ private:
 	BushLouche* bushLoucheActif = nullptr;
 	GestionnaireAudio* gestionnaireAudio = nullptr;
 	Armes* armes = nullptr;
+	CompteurPowerUp* compteurPowerUp = nullptr;
 
 	std::function<void()> onMoteurDemande;
 
