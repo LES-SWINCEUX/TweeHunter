@@ -107,6 +107,21 @@ int Armes::nbPowerUp() const {
 	}
 }
 
+int Armes::addPowerUp() {
+	switch (PowerActuelle) {
+	case PowerUpType::GRENADE:
+		return 2;
+	case PowerUpType::ZAP:
+		return 5;
+	case PowerUpType::MITRAILLETTE:
+		return 1;
+	case PowerUpType::TACTICAL_NUKE:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
 QPainterPath Armes::CreerContourTarte(int x, int y)
 {
 	QPainterPath path;

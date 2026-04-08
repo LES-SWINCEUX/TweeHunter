@@ -242,7 +242,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 
 			}
 			if(cible->getType() == TypeTarget::LEGENDAIRE) {
-				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + 1);
+				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + armes->addPowerUp());
 			}
 
 			compteurPoints->setPoints(score);

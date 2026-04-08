@@ -22,6 +22,7 @@ public:
 	QPainterPath CreerContourTarte(int x, int y);
 	int nbMunitions() const;
 	int nbPowerUp() const;
+	int addPowerUp();
 	int getMult() { return mult; }
 	void setMult(int value) { mult = value; }
 
