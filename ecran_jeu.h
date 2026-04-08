@@ -58,11 +58,14 @@ private:
     void initAudio();
     void initAnimations();
     void initMinuterie();
+    PowerUpType RandomPowerUp();
+
 
     void tick();
     void timeoutReticuleAleatoire();
 
     void Power();
+    void PowerChoose(PowerUpType PowerUp);
     void rechargerArme();
 
     void placerElementsGUI();
@@ -117,6 +120,10 @@ private:
 
     QTimer* timer2 = nullptr;
     int compteur = 0;
+    int PowerUpCycle = 0;
+
+	PowerUpType PowerUpMitraillette = PowerUpType::MITRAILLETTE;
+
 };
 
 #endif
