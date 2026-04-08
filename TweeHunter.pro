@@ -139,7 +139,7 @@ HEADERS += \
     poison.h \
     gestionnaire_configuration.h \
     arriere_plan.h \
-    lecteur_serie.cpp
+    lecteur_serie.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

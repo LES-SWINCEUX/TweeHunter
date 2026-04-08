@@ -151,8 +151,6 @@ private:
 
 	QList<IndicateurScore> indicateurs;
 
-	void UpdateWave(qint64 tempsMs);
-
 	QSizeF tailleEcran;
 	QList<Enpleineface> enpleineface;
 
