@@ -74,7 +74,7 @@ signals:
 	void reloadDemande();
 	void pauseDemande();
 	void powerUpDemande();
-	void joystickDeplace(float deltaMs);
+	void joystickDeplace(float dx, float dy, float deltaMs);
 
 	void naviguerHaut();
 	void naviguerBas();

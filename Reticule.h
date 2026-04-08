@@ -22,7 +22,7 @@ public:
 	void setPosition(const QPoint& pos);
 	std::string getPath(int choix) const;
 
-	void applyJoystickPerso(QWidget* parent, float deltaMs);
+	void applyJoystick(QWidget* parent, float dx, float dy, float deltaMs);
 
 	int getX() const;
 	int getY() const;

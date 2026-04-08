@@ -14,6 +14,7 @@
 #include <QtMath>
 #include <QDebug>
 #include <QDir>
+#include <QMouseEvent>
 #include <algorithm>
 #include <iostream>
 
@@ -30,8 +31,15 @@ public:
     void setFPS(int fps);
     void setCycle(int ms);
 
+    QRect zoneCanette(int index) const { return zone(index < zonesN.size() ? zonesN[index] : QRectF()); }
+    int nombreCanettes() const { return std::min(sprites.size(), zonesN.size()); }
+
+signals:
+    void canetteCliquee(int index);
+
 protected:
     void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent* event) override;
 
 private:
     void redessiner();

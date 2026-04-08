@@ -39,8 +39,8 @@ void EcranJeu::initReticuleEtArmes()
     connect(touches, &Touches::reloadDemande,   this, &EcranJeu::rechargerArme);
     connect(touches, &Touches::pauseDemande,    this, &EcranJeu::mettreEnPause);
     connect(touches, &Touches::powerUpDemande,  this, &EcranJeu::Power);
-    connect(touches, &Touches::joystickDeplace, this, [this](float delta) {
-        reticule->applyJoystickPerso(this, delta);
+    connect(touches, &Touches::joystickDeplace, this, [this](float dx, float dy, float deltaMs) {
+        reticule->applyJoystick(this, dx, dy, deltaMs);
     });
 }
 

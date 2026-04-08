@@ -23,6 +23,8 @@ public:
     void setSelected(bool selected);
     bool isSelected() const { return m_selected; }
 
+    void setHoverActif(bool actif);
+
     void setTitre(const QString& titre);
     void setSousTitre(const QString& sousTitre);
     void setTheme(Theme theme);
@@ -35,6 +37,7 @@ private:
     QString m_sousTitre;
     Theme m_theme = Theme::Rouge;
     bool m_selected = false;
+    bool m_hoverActif = true;
 };
 
 #endif

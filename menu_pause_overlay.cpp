@@ -17,33 +17,20 @@ MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget
         }
 
         if (touches) {
+            const bool avantConnectee = touches->isAnyConnected();
             touches->verifierConnexion();
+            const bool apresConnectee = touches->isAnyConnected();
+            if (avantConnectee && !apresConnectee) {
+                panneau->reinitialiserFocus();
+            }
             touches->lireNavigation();
         }
     });
     timerManette.setInterval(16);
 
     if (touches) {
-        connect(touches, &Touches::naviguerHaut, this, [this]() { 
-            if (panneau) {
-                panneau->naviguerHaut();
-            }
-        });
-
-        connect(touches, &Touches::naviguerBas, this, [this]() { 
-            if (panneau) {
-                panneau->naviguerBas();
-            }
-        });
-
-        connect(touches, &Touches::naviguerConfirmer, this, [this]() { 
-            if (panneau) {
-                panneau->confirmer();
-            }
-        });
-
-        connect(touches, &Touches::naviguerRetour, this, [this]() { 
-            emit reprendreDemande(); 
+        connect(touches, &Touches::naviguerRetour, this, [this]() {
+            emit reprendreDemande();
         });
     }
 
@@ -182,6 +169,7 @@ void MenuPauseOverlay::afficherPanneauPrincipal() {
 
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     connect(panneau, &PanneauMenu::demanderScores, this, &MenuPauseOverlay::afficherPanneauScores);
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPauseOverlay::afficherOptions);
@@ -202,6 +190,7 @@ void MenuPauseOverlay::afficherOptions() {
 
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
@@ -223,6 +212,7 @@ void MenuPauseOverlay::afficherPanneauScores()
     panneau->setGeometry(rect());
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     if (ancien) {
         ancien->hide();

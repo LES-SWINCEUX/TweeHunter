@@ -16,28 +16,6 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 	setAttribute(Qt::WA_StaticContents);
 
 	ChangeReticule(parent, choixTir);
-
-	if (manetteActive == TypeManette::STANDARD && touches && touches->isJoystickConnected()) {
-		QTimer* timer = new QTimer(this);
-		timer->start(16);
-
-		connect(timer, &QTimer::timeout, this, [=]() {
-			touches->mettreAJour();
-
-			float x = touches->axeX();
-			float y = touches->axeY();
-
-			if (std::fabs(x) < 0.1f) {
-				x = 0.0f;
-			}
-
-			if (std::fabs(y) < 0.1f) {
-				y = 0.0f;
-			}
-
-			moveJoystick(x, y, parent);
-		});
-	}
 }
 
 void Reticule::ChangeReticule(QWidget* parent, int choix)
@@ -85,30 +63,40 @@ void Reticule::moveJoystick(float dx, float dy, QWidget* parent)
 	update();
 }
 
-void Reticule::applyJoystickPerso(QWidget* parent, float deltaMs)
+void Reticule::applyJoystick(QWidget* parent, float dx, float dy, float deltaMs)
 {
-	float dx = touches->customAxeX();
-	float dy = touches->customAxeY();
+	if (manetteActive == TypeManette::STANDARD) {
+		if (std::fabs(dx) < 0.1f) {
+			dx = 0.0f;
+		}
 
-	if (std::sqrt(dx * dx + dy * dy) < 0.06f) {
-		return;
+		if (std::fabs(dy) < 0.1f) {
+			dy = 0.0f;
+		}
+
+		moveJoystick(dx, dy, parent);
+	} 
+	else {
+		if (std::sqrt(dx * dx + dy * dy) < 0.06f) {
+			return;
+		}
+
+		const float vitesse = 1.0f;
+
+		accumX += dx * vitesse * deltaMs;
+		accumY += dy * vitesse * deltaMs;
+
+		int moveX = int(accumX);
+		int moveY = int(accumY);
+		accumX -= moveX;
+		accumY -= moveY;
+
+		posX += moveX;
+		posY += moveY;
+
+		bornerPosition(parent);
+		move(posX, posY);
 	}
-
-	const float vitesse = 1.0f;
-
-	accumX += dx * vitesse * deltaMs;
-	accumY += dy * vitesse * deltaMs;
-
-	int moveX = int(accumX);
-	int moveY = int(accumY);
-	accumX -= moveX;
-	accumY -= moveY;
-
-	posX += moveX;
-	posY += moveY;
-
-	bornerPosition(parent);
-	move(posX, posY);
 }
 
 void Reticule::bornerPosition(QWidget* parent)
