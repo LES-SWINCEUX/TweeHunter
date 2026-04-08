@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
         qDebug() << "Erreur SDL:" << SDL_GetError();
     }
 
-    locale::global(locale{ "" });
+    std::locale::global(std::locale{ "" });
     QApplication a(argc, argv);
     qRegisterMetaType<ConfigurationPartie>("ConfigurationPartie");
     MainWindow w;

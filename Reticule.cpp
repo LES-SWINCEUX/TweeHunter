@@ -53,7 +53,7 @@ void Reticule::ChangeReticule(QWidget* parent, int choix)
 	setPosition(pos);
 }
 
-string Reticule::getPath(int choix) const
+std::string Reticule::getPath(int choix) const
 {
 	Variete v;
 	return v.findpath(choix);
@@ -76,7 +76,7 @@ void Reticule::setPosition(const QPoint& pos)
 void Reticule::moveJoystick(float dx, float dy, QWidget* parent)
 {
 	// dx/dy sont normalisés [-1, 1] — vitesse en pixels par frame (à 60fps ~16ms)
-	const float vitesse = 12.0f;
+	const float vitesse = 28.0f;
 	posX += int(dx * vitesse);
 	posY += int(dy * vitesse);
 

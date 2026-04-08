@@ -12,8 +12,6 @@
 #include "Touches.h"
 #include "configuration_partie.h"
 
-using namespace std;
-
 class Reticule : public QWidget
 {
 	Q_OBJECT
@@ -22,7 +20,7 @@ public:
 	~Reticule() = default;
 
 	void setPosition(const QPoint& pos);
-	string getPath(int choix) const;
+	std::string getPath(int choix) const;
 
 	void applyJoystickPerso(QWidget* parent, float deltaMs);
 
