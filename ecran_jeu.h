@@ -116,7 +116,7 @@ private:
     bool reloadPrecedent = false;
     bool startPrecedent = false;
 
-    QTimer* timer2 = nullptr;
+    QTimer* timerPowerUp = nullptr;
     int compteur = 0;
     int PowerUpCycle = 0;
 
