@@ -1,23 +1,10 @@
 #include "ecran_parametres.h"
 
-namespace
-{
-    QSize tailleSource(const QSharedPointer<QPixmap>& pixmap)
-    {
-        if (!pixmap || pixmap->isNull()) {
-            return QSize();
-        }
-        return pixmap->size();
-    }
-}
-
-EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio,
-    Touches* touches,
-    QWidget* parent)
-    : QWidget(parent),
+EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* touchesParam, QWidget* parent) : 
+    QWidget(parent),
     gestionnaireAudio(gestionnaireAudio),
-    touches(touches),
-    arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
+    touches(touchesParam),
+    bg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titrePrincipalImg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/parameters/titre.png")),
     titreChoixArmeImg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/parameters/titre_choix_arme.png")),
     titreModeJeuImg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/parameters/titre_mode_jeu.png")),
@@ -63,9 +50,43 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio,
     fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
     fadeOutAnim->setDuration(600);
 
-    connect(&timerManette, &QTimer::timeout, this, &EcranParametres::tickManette);
+    connect(&timerManette, &QTimer::timeout, this, [this]() {
+        if (transitionEnCours || widgetsNavigables.empty()) {
+            return;
+        }
+
+        if (touches) {
+            const bool standardAvant = touches->isJoystickConnected();
+            const bool customAvant   = touches->isJoystickPersoConnected();
+            touches->verifierConnexion();
+            const bool standardApres = touches->isJoystickConnected();
+            const bool customApres   = touches->isJoystickPersoConnected();
+            if (standardAvant != standardApres || customAvant != customApres) {
+                appliquerDisponibiliteManettes();
+                appliquerEtatVisuel();
+                placerElements();
+            }
+            touches->lireNavigation();
+        }
+    });
     timerManette.setInterval(16);
     timerManette.start();
+
+    if (touches) {
+        connect(touches, &Touches::naviguerHaut, this, [this]() { deplacerFocusDirection(0, -1); });
+        connect(touches, &Touches::naviguerBas, this, [this]() { deplacerFocusDirection(0,  1); });
+        connect(touches, &Touches::naviguerGauche, this, [this]() { deplacerFocusDirection(-1, 0); });
+        connect(touches, &Touches::naviguerDroite, this, [this]() { deplacerFocusDirection( 1, 0); });
+        connect(touches, &Touches::naviguerConfirmer, this, [this]() { confirmerFocus(); });
+    }
+}
+
+QSize EcranParametres::tailleSource(const QSharedPointer<QPixmap>& pixmap) const
+{
+    if (!pixmap || pixmap->isNull()) {
+        return QSize();
+    }
+    return pixmap->size();
 }
 
 void EcranParametres::creerInterface()
@@ -665,9 +686,7 @@ void EcranParametres::paintEvent(QPaintEvent*)
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);
 
-    if (!arrierePlanCache.isNull()) {
-        painter.drawPixmap(0, 0, arrierePlanCache);
-    }
+    bg.dessiner(painter);
 
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
@@ -685,13 +704,7 @@ void EcranParametres::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
 
-    arrierePlanCache = QPixmap();
-    if (arrierePlan && !arrierePlan->isNull() && width() > 0 && height() > 0) {
-        QPixmap scaled = arrierePlan->scaled(size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-        const int x = std::max(0, (scaled.width() - width()) / 2);
-        const int y = std::max(0, (scaled.height() - height()) / 2);
-        arrierePlanCache = scaled.copy(QRect(x, y, width(), height()));
-    }
+    bg.mettreAJour(size());
 
     placerElements();
 }
@@ -983,29 +996,6 @@ void EcranParametres::deplacerFocusDirection(int dx, int dy)
     }
 }
 
-void EcranParametres::gererNavigationJoystick(float axeX, float axeY)
-{
-    const float deadZone = 0.55f;
-
-    if (std::abs(axeX) < deadZone && std::abs(axeY) < deadZone) {
-        verrouNavigationJoystick = false;
-        return;
-    }
-
-    if (verrouNavigationJoystick) {
-        return;
-    }
-
-    if (std::abs(axeX) > std::abs(axeY)) {
-        deplacerFocusDirection(axeX > 0.0f ? 1 : -1, 0);
-    }
-    else {
-        deplacerFocusDirection(0, axeY > 0.0f ? 1 : -1);
-    }
-
-    verrouNavigationJoystick = true;
-}
-
 void EcranParametres::appliquerFocus(int nouvelIndex)
 {
     if (nouvelIndex < 0 || nouvelIndex >= int(widgetsNavigables.size())) {
@@ -1182,96 +1172,6 @@ void EcranParametres::lancerRetourMenu()
     });
 
     fadeOutAnim->start();
-}
-
-void EcranParametres::tickManette()
-{
-    if (transitionEnCours || widgetsNavigables.empty()) {
-        return;
-    }
-
-    SDL_UpdateGamepads();
-
-    bool dpadHaut = false;
-    bool dpadBas = false;
-    bool dpadGauche = false;
-    bool dpadDroite = false;
-    bool ok = false;
-
-    float axeX = 0.0f;
-    float axeY = 0.0f;
-
-    if (touches && touches->isJoystickConnected()) {
-        SDL_Gamepad* gamepad = touches->getGamepad();
-        if (gamepad) {
-            const Sint16 axeBrutX = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
-            const Sint16 axeBrutY = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
-
-            axeX = std::clamp(float(axeBrutX) / 32767.0f, -1.0f, 1.0f);
-            axeY = std::clamp(float(axeBrutY) / 32767.0f, -1.0f, 1.0f);
-
-            dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-            dpadBas = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-            dpadGauche = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-            dpadDroite = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-
-            ok = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH)
-                || SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
-        }
-    }
-
-    if (dpadHaut && !hautPrecedent) {
-        deplacerFocusDirection(0, -1);
-    }
-    if (dpadBas && !basPrecedent) {
-        deplacerFocusDirection(0, 1);
-    }
-    if (dpadGauche && !gauchePrecedent) {
-        deplacerFocusDirection(-1, 0);
-    }
-    if (dpadDroite && !droitePrecedent) {
-        deplacerFocusDirection(1, 0);
-    }
-
-    gererNavigationJoystick(axeX, axeY);
-
-    if (ok && !okPrecedent) {
-        confirmerFocus();
-    }
-
-    hautPrecedent = dpadHaut;
-    basPrecedent = dpadBas;
-    gauchePrecedent = dpadGauche;
-    droitePrecedent = dpadDroite;
-    okPrecedent = ok;
-
-    if (touches && touches->isJoystickPersoConnected()) {
-        touches->lirePerso();
-
-        const float customX = std::clamp((float(touches->getxPerso()) - 512.0f) / 512.0f, -1.0f, 1.0f);
-        const float customY = std::clamp((float(touches->getyPerso()) - 512.0f) / 512.0f, -1.0f, 1.0f);
-        const bool customOk = touches->getGachette();
-
-        const float deadZone = 0.35f;
-        if (std::abs(customX) < deadZone && std::abs(customY) < deadZone) {
-            verrouNavigationJoystickCustom = false;
-        }
-        else if (!verrouNavigationJoystickCustom) {
-            if (std::abs(customX) > std::abs(customY)) {
-                deplacerFocusDirection(customX > 0.0f ? 1 : -1, 0);
-            }
-            else {
-                deplacerFocusDirection(0, customY > 0.0f ? 1 : -1);
-            }
-            verrouNavigationJoystickCustom = true;
-        }
-
-        if (customOk && !customOkPrecedent) {
-            confirmerFocus();
-        }
-
-        customOkPrecedent = customOk;
-    }
 }
 
 void EcranParametres::chargerConfiguration(const ConfigurationPartie& config)

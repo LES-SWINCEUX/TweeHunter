@@ -1,12 +1,11 @@
 #include "menu.h"
-#include "panneau_scores.h"
 
-MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartMusique, QWidget* parent, Touches* touches) :
+MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartMusique, QWidget* parent, Touches* touchesParam) :
     QWidget(parent),
     arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png")),
     titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
-    touchesPerso = touches;
+    touches = touchesParam;
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     this->gestionnaireAudio = gestionnaireAudio;
@@ -45,11 +44,37 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
 
     connect(estompeAnimation, &QPropertyAnimation::finished, this, &MenuPrincipal::jouerDemande);
 
-    connect(&timerManette, &QTimer::timeout, this, &MenuPrincipal::tickManette);
+    connect(&timerManette, &QTimer::timeout, this, [this]() {
+        if (!panneau || fadeEnCours) {
+            return;
+        }
+        if (touches) {
+            touches->verifierConnexion();
+            touches->lireNavigation();
+        }
+    });
     timerManette.setInterval(16);
     timerManette.start();
 
-    initialiserManette();
+    if (touches) {
+        connect(touches, &Touches::naviguerHaut, this, [this]() { 
+            if (panneau) {
+                panneau->naviguerHaut();
+            }
+        });
+
+        connect(touches, &Touches::naviguerBas, this, [this]() { 
+            if (panneau) {
+                panneau->naviguerBas();
+            }
+        });
+
+        connect(touches, &Touches::naviguerConfirmer, this, [this]() { 
+            if (panneau) {
+                panneau->confirmer();
+            }
+        });
+    }
 
     afficherPanneauPrincipal();
 }
@@ -182,7 +207,7 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 }
 
 void MenuPrincipal::configuerAnimationTitre() {
-    timerAnimationTitre.setInterval(tempsAnimation / 18);
+    timerAnimationTitre.setInterval(intervalleFrameTitreMs);
 
     connect(&timerAnimationTitre, &QTimer::timeout, this, [this]() {
 
@@ -261,7 +286,7 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
 void MenuPrincipal::afficherOptions() {
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauOptions(this->gestionnaireAudio, this);
+    panneau = new PanneauOptions(this->gestionnaireAudio, manetteConnectee(), this);
     panneau->setGeometry(zonePourPanneau(panneau));
 
     if (ancienPanneau) {
@@ -275,7 +300,9 @@ void MenuPrincipal::afficherOptions() {
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
         // Index 2 = bouton Options (Jouer=0, Scores=1, Options=2, Quitter=3)
-        panneau->focusSurIndex(2);
+        if (manetteConnectee()) {
+            panneau->focusSurIndex(2);
+        }
     });
 }
 
@@ -285,7 +312,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
 
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauPrincipal(this);
+    panneau = new PanneauPrincipal(manetteConnectee(), this);
     panneau->setGeometry(zonePourPanneau(panneau));
 
     if (ancienPanneau) {
@@ -331,7 +358,7 @@ void MenuPrincipal::afficherPanneauScores() {
 
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauScores(this);
+    panneau = new PanneauScores(manetteConnectee(), this);
     panneau->setGeometry(zonePourPanneau(panneau));
 
     if (ancienPanneau) {
@@ -345,106 +372,46 @@ void MenuPrincipal::afficherPanneauScores() {
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
         // Index 1 = bouton Scores (Jouer=0, Scores=1, Options=2, Quitter=3)
-        panneau->focusSurIndex(1);
+        if (manetteConnectee()) {
+            panneau->focusSurIndex(1);
+        }
     });
 }
 
 void MenuPrincipal::keyPressEvent(QKeyEvent* e)
 {
-    if (!panneau) { QWidget::keyPressEvent(e); return; }
+    if (!panneau) { 
+        QWidget::keyPressEvent(e);
+        return;
+    }
 
     switch (e->key()) {
-    case Qt::Key_Up:   panneau->naviguerHaut(); break;
-    case Qt::Key_Down: panneau->naviguerBas();  break;
+    case Qt::Key_Up:   
+        panneau->naviguerHaut();
+        break;
+    case Qt::Key_Down: 
+        panneau->naviguerBas();  
+        break;
     case Qt::Key_Return:
-    case Qt::Key_Space: panneau->confirmer();   break;
+    case Qt::Key_Space: 
+        panneau->confirmer();   
+        break;
     default: QWidget::keyPressEvent(e);
     }
 }
 
 void MenuPrincipal::initialiserManette()
 {
-    SDL_Init(SDL_INIT_GAMEPAD);
-
-    int count = 0;
-    SDL_JoystickID* ids = SDL_GetGamepads(&count);
-    if (ids && count > 0) {
-        gamepad = SDL_OpenGamepad(ids[0]);
-        SDL_free(ids);
+    if (touches) {
+        touches->verifierConnexion();
     }
 }
 
-void MenuPrincipal::tickManette()
+bool MenuPrincipal::manetteConnectee() const
 {
-    if (!panneau || fadeEnCours) {
-        return;
+    if (!touches) {
+        return false;
     }
 
-    SDL_PumpEvents();
-
-    if (!gamepad || !SDL_GamepadConnected(gamepad)) {
-        if (gamepad) { 
-            SDL_CloseGamepad(gamepad); 
-            gamepad = nullptr; 
-        }
-        initialiserManette();
-    }
-
-    bool haut = false;
-    bool bas = false;
-    bool ok  = false;
-
-    if (gamepad && SDL_GamepadConnected(gamepad)) {
-        bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-        bool dpadBas = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-        bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
-        bool joystickBas = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
-        bool croix = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-        bool start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
-
-        haut = dpadHaut || joystickHaut;
-        bas = dpadBas || joystickBas;
-        ok = croix || start;
-    }
-
-    if (haut && !dpadHautPrecedent) {
-        panneau->naviguerHaut();
-    }
-
-    if (bas && !dpadBasPrecedent) {
-        panneau->naviguerBas();
-    }
-
-    if (ok && !boutonOkPrecedent) {
-        panneau->confirmer();
-    }
-
-    dpadHautPrecedent = haut;
-    dpadBasPrecedent = bas;
-    boutonOkPrecedent = ok;
-
-    if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
-        touchesPerso->lirePerso();
-
-        int jy = touchesPerso->getyPerso();
-        bool customHaut = (jy < 300);
-        bool customBas = (jy > 700);
-        bool customOk = touchesPerso->getGachette();
-
-        if (customHaut && !customHautPrecedent) {
-            panneau->naviguerHaut();
-        }
-
-        if (customBas && !customBasPrecedent) {
-            panneau->naviguerBas();
-        }
-
-        if (customOk && !customOkPrecedent) {
-            panneau->confirmer();
-        }
-
-        customHautPrecedent = customHaut;
-        customBasPrecedent = customBas;
-        customOkPrecedent = customOk;
-    }
+    return touches->isJoystickConnected() || touches->isJoystickPersoConnected();
 }

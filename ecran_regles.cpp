@@ -6,7 +6,7 @@ EcranRegles::EcranRegles(GestionnaireAudio* gestionnaireAudio,
     : QWidget(parent),
     gestionnaireAudio(gestionnaireAudio),
     touches(touches),
-    arrierePlan(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png"))
+    bg(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/background.png"))
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
     setFocusPolicy(Qt::StrongFocus);
@@ -46,6 +46,10 @@ EcranRegles::EcranRegles(GestionnaireAudio* gestionnaireAudio,
     timerAnimation->setInterval(33);
     connect(timerAnimation, &QTimer::timeout, this, &EcranRegles::mettreAJourAnimation);
 
+    timerManette = new QTimer(this);
+    timerManette->setInterval(16);
+    connect(timerManette, &QTimer::timeout, this, &EcranRegles::tickManette);
+
     ajusterTailleBoutons();
     mettreAJourFondCache();
     mettreAJourMiseEnPage();
@@ -81,7 +85,7 @@ void EcranRegles::connecterSignaux()
 void EcranRegles::ajusterTailleBoutons()
 {
     const int h = qMax(520, height());
-    const int hauteurBouton = qMax(30, h / 15);
+    const int hauteurBouton = qMax(30, h / 20);
 
     auto ajuster = [&](Bouton* bouton)
         {
@@ -642,26 +646,14 @@ int EcranRegles::calculerOffsetVertical(const CarteRegle& carte) const
 
 void EcranRegles::mettreAJourFondCache()
 {
-    if (!arrierePlan || arrierePlan->isNull() || size().isEmpty()) {
-        arrierePlanCache = QPixmap();
-        return;
-    }
-
-    arrierePlanCache = arrierePlan->scaled(
-        size(),
-        Qt::KeepAspectRatioByExpanding,
-        Qt::SmoothTransformation
-    );
+    bg.mettreAJour(size());
 }
 
 void EcranRegles::dessinerArrierePlan(QPainter& painter)
 {
-    if (!arrierePlanCache.isNull()) {
-        const int x = (arrierePlanCache.width() - width()) / 2;
-        const int y = (arrierePlanCache.height() - height()) / 2;
-        painter.drawPixmap(0, 0, arrierePlanCache, x, y, width(), height());
-    }
-    else {
+    if (bg.estValide()) {
+        bg.dessiner(painter);
+    } else {
         painter.fillRect(rect(), QColor(20, 20, 40));
     }
 }
@@ -842,6 +834,47 @@ void EcranRegles::showEvent(QShowEvent* event)
     placerElements();
     demarrerAnimation();
 
+    indexFocus = 0;
+
+    const bool manetteDisponible = (touches && touches->isJoystickConnected()) || (touches && touches->isJoystickPersoConnected());
+    if (manetteDisponible) {
+        boutonRetour->setSelectionneManette(true);
+        boutonCommencer->setSelectionneManette(false);
+    }
+
+    // Connexions navigation manette — déconnectées dans hideEvent
+    if (touches) {
+        connect(touches, &Touches::naviguerGauche, this, [this]() {
+            if (indexFocus != 0) {
+                indexFocus = 0;
+                boutonRetour->setSelectionneManette(true);
+                boutonCommencer->setSelectionneManette(false);
+            }
+        });
+        connect(touches, &Touches::naviguerDroite, this, [this]() {
+            if (indexFocus != 1) {
+                indexFocus = 1;
+                boutonRetour->setSelectionneManette(false);
+                boutonCommencer->setSelectionneManette(true);
+            }
+        });
+        connect(touches, &Touches::naviguerConfirmer, this, [this]() {
+            if (indexFocus == 1) {
+                boutonCommencer->simulerClic();
+            }
+            else {
+                boutonRetour->simulerClic();
+            }
+        });
+        connect(touches, &Touches::naviguerRetour, this, [this]() {
+            boutonRetour->simulerClic();
+        });
+    }
+
+    if (timerManette) {
+        timerManette->start();
+    }
+
     if (overlay) {
         overlay->setGeometry(rect());
         overlay->setAlpha(255);
@@ -859,6 +892,42 @@ void EcranRegles::hideEvent(QHideEvent* event)
 {
     QWidget::hideEvent(event);
     arreterAnimation();
+
+    if (touches) {
+        disconnect(touches, &Touches::naviguerGauche, this, nullptr);
+        disconnect(touches, &Touches::naviguerDroite, this, nullptr);
+        disconnect(touches, &Touches::naviguerConfirmer, this, nullptr);
+        disconnect(touches, &Touches::naviguerRetour, this, nullptr);
+    }
+
+    if (timerManette) {
+        timerManette->stop();
+    }
+}
+
+void EcranRegles::tickManette()
+{
+    if (transitionEnCours) {
+        return;
+    }
+
+    if (!touches) return;
+
+    const bool standardAvant = touches->isJoystickConnected();
+    touches->verifierConnexion();
+    const bool standardApres = touches->isJoystickConnected();
+
+    // Mettre à jour le focus visuel si l'état de connexion a changé
+    if (!standardAvant && standardApres) {
+        indexFocus = 0;
+        boutonRetour->setSelectionneManette(true);
+        boutonCommencer->setSelectionneManette(false);
+    } else if (standardAvant && !standardApres) {
+        boutonRetour->setSelectionneManette(false);
+        boutonCommencer->setSelectionneManette(false);
+    }
+
+    touches->lireNavigation();
 }
 
 void EcranRegles::keyPressEvent(QKeyEvent* event)

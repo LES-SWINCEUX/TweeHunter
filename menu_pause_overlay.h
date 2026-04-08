@@ -8,11 +8,12 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QElapsedTimer>
+
+#include "panneau_pause_principal.h"
 #include "panneau_menu.h"
 #include "panneau_options.h"
 #include "panneau_scores.h"
 #include "sprite_manager.h"
-#include <SDL3/SDL.h>
 #include "Touches.h"
 
 class MenuPauseOverlay : public QWidget
@@ -53,11 +54,12 @@ private:
     void afficherTitre(QPainter& painter);
 
     void initialiserManette();
-    void tickManette();
+    bool manetteConnectee() const;
 
     const int nombreImageTitre = 12;
     const int tempsAnimation = 1000;
     const int tempsAttenteAnimation = 9000;
+    const int intervalleFrameTitreMs = 55; // ~18 fps pour l'animation du titre
 
     const float ratioPanneaux = 0.25f;
 
@@ -68,16 +70,7 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
-    bool dpadHautPrecedent = false;
-    bool dpadBasPrecedent = false;
-    bool boutonOkPrecedent = false;
-
-    SDL_Gamepad* gamepad = nullptr;
-
-    Touches* touchesPerso = nullptr;
-    bool customHautPrecedent = false;
-    bool customBasPrecedent = false;
-    bool customOkPrecedent = false;
+    Touches* touches = nullptr;
 };
 
 #endif

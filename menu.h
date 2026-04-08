@@ -1,13 +1,6 @@
 #ifndef MENU_PRINCIPAL_H
 #define MENU_PRINCIPAL_H
 
-#include "panneau_principal.h"
-#include "panneau_options.h"
-#include "decoration_menu.h"
-#include "sprite_manager.h"
-#include "fade_overlay.h"
-#include "gestionnaire_audio.h"
-
 #include <QWidget>
 #include <QPixmap>
 #include <QSharedPointer>
@@ -20,8 +13,15 @@
 #include <QPropertyAnimation>
 #include <iostream>
 #include <algorithm>
-#include <SDL3/SDL.h>
+
 #include "Touches.h"
+#include "panneau_principal.h"
+#include "panneau_options.h"
+#include "decoration_menu.h"
+#include "sprite_manager.h"
+#include "fade_overlay.h"
+#include "gestionnaire_audio.h"
+#include "panneau_scores.h"
 
 class PanneauMenu;
 
@@ -43,6 +43,7 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
+    bool manetteConnectee() const;
     QSharedPointer<QPixmap> arrierePlan;
     QSharedPointer<QPixmap> titreSprite;
 
@@ -66,6 +67,7 @@ private:
     const int nombreImageTitre = 12;
     const int tempsAnimation = 1000;
     const int tempsAttenteAnimation = 9000;
+    const int intervalleFrameTitreMs = 55; // ~18 fps pour l'animation du titre
 
     const float ratioPanneaux = 0.25f;
 
@@ -76,16 +78,7 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
-    bool dpadHautPrecedent  = false;
-    bool dpadBasPrecedent   = false;
-    bool boutonOkPrecedent  = false;
-
-    SDL_Gamepad* gamepad = nullptr;
-
-    Touches* touchesPerso   = nullptr;
-    bool customHautPrecedent = false;
-    bool customBasPrecedent  = false;
-    bool customOkPrecedent   = false;
+    Touches* touches = nullptr;
     bool restartMusique = false;
 
     QElapsedTimer timerPauseAnimation;
@@ -101,7 +94,6 @@ private:
     void afficherPanneauPrincipal();
 
     void initialiserManette();
-    void tickManette();
 };
 
 #endif

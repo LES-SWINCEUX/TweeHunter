@@ -1,11 +1,11 @@
 #include "main_window.h"
 
-#include <QFontDatabase>
-#include <QApplication>
-#include <QCoreApplication>
-
 int main(int argc, char *argv[])
 {
+    if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
+        qDebug() << "Erreur SDL:" << SDL_GetError();
+    }
+
     locale::global(locale{ "" });
     QApplication a(argc, argv);
     qRegisterMetaType<ConfigurationPartie>("ConfigurationPartie");
@@ -23,5 +23,7 @@ int main(int argc, char *argv[])
     w.showMaximized();
     //w.showFullScreen();
 
-    return a.exec();
+    int ret = a.exec();
+    SDL_Quit();
+    return ret;
 }

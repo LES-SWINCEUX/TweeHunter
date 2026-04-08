@@ -17,15 +17,14 @@
 #include <QResizeEvent>
 #include <QShowEvent>
 #include <algorithm>
-
 #include <QTimer>
-#include <SDL3/SDL.h>
 
 #include "fade_overlay.h"
 #include "sprite_manager.h"
 #include "bouton.h"
 #include "gestionnaire_audio.h"
 #include "Touches.h"
+#include "arriere_plan.h"
 
 class EcranFinPartie : public QWidget
 {
@@ -51,21 +50,16 @@ private:
     void lancerFadeIn();
     QRect srcRectToScreen(int screenW, int screenH, int srcX, int srcY, int srcW, int srcH);
 
-    QPixmap buildCache(const QSharedPointer<QPixmap>& src);
+    ArrierePlan bg;
+    ArrierePlan bgPanneau;    
     QLabel* makeLabel(const QString& txt, const QString& couleur);
     QRect geometrieLabel(float ratioY, float ratioH, float ratioW, int zoneW, int panX, int panY, int panW, int panH);
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
-    QSharedPointer<QPixmap> arrierePlan;
-    QPixmap arrierePlanCache;
-
-    QSharedPointer<QPixmap> panneauImg;
-    QPixmap panneauCache;
-
     QSharedPointer<QPixmap> titreImg;
-    QPixmap titreCache;       // cache du titre mis à l'échelle (recalculé uniquement au resize)
-    QRect   titreCacheRect;   // position/taille précalculée du titre
+    QPixmap titreCache;
+    QRect titreCacheRect;
 
     FadeOverlay* overlay = nullptr;
     QPropertyAnimation* fadeAnim = nullptr;
@@ -82,16 +76,11 @@ private:
 
     QFont fontPixel;
 
-    // --- Manette ---
-    Touches*     touches      = nullptr;
-    SDL_Gamepad* gamepad      = nullptr;
-    QTimer       timerManette;
-    bool         boutonOkPrecedent     = false;
-    bool         customOkPrecedent     = false;
-    bool         transitionEnCours     = false;
+    Touches* touches      = nullptr;
+    QTimer timerManette;
+    bool transitionEnCours     = false;
 
     void initialiserManette();
-    void tickManette();
 
     const int SRC_W = 1536;
     const int SRC_H = 1024;
