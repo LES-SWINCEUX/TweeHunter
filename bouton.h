@@ -24,6 +24,7 @@ public:
     void setEchelle(float s);
     void setSelectionneManette(bool actif);
     void setActif(bool actif);
+    void setHoverActif(bool actif);
     bool estActif() const { return actif; }
     void simulerClic();
     QSize sizeHint() const override;
@@ -49,6 +50,7 @@ protected:
     bool focusManette = false;
     bool actif = false;
     bool clique = false;
+    bool hoverActif = true;
 
     QRect rectangeEtat(Etat s) const;
     void updateTailleImage();

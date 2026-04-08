@@ -105,3 +105,21 @@ void DecorationMenu::paintEvent(QPaintEvent*)
         sprites[i].dessiner(p, target, ms, true, (i < count / 2 ? false : true));
     }
 }
+
+void DecorationMenu::mousePressEvent(QMouseEvent* event)
+{
+    if (zonesN.isEmpty()) {
+        QWidget::mousePressEvent(event);
+        return;
+    }
+
+    const int count = std::min<int>(sprites.size(), zonesN.size());
+    for (int i = 0; i < count; ++i) {
+        if (zone(zonesN[i]).contains(event->pos())) {
+            emit canetteCliquee(i);
+            return;
+        }
+    }
+
+    QWidget::mousePressEvent(event);
+}

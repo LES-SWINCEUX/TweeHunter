@@ -66,7 +66,6 @@ private:
     Touches* touches = nullptr;
 
     const int NOMBRE_IMAGE_TITRE = 12;
-    const int TEMPS_ANIMATION = 1000;
     const int TEMPS_ATTENTE_ANIMATION = 9000;
     const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
 

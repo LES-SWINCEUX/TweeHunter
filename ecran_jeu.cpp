@@ -39,8 +39,8 @@ void EcranJeu::initReticuleEtArmes()
     connect(touches, &Touches::reloadDemande,   this, &EcranJeu::rechargerArme);
     connect(touches, &Touches::pauseDemande,    this, &EcranJeu::mettreEnPause);
     connect(touches, &Touches::powerUpDemande,  this, &EcranJeu::Power);
-    connect(touches, &Touches::joystickDeplace, this, [this](float delta) {
-        reticule->applyJoystickPerso(this, delta);
+    connect(touches, &Touches::joystickDeplace, this, [this](float dx, float dy, float deltaMs) {
+        reticule->applyJoystick(this, dx, dy, deltaMs);
     });
 }
 
@@ -456,6 +456,10 @@ void EcranJeu::mettreEnPause()
 
     enPause = true;
 
+    if (timerPowerUp) {
+        timerPowerUp->stop();
+    }
+
     if (configurationPartie.difficulte == DifficultePartie::RNG) {
         int leftOver = timerReticulesAleatoire.remainingTime();
         timerReticulesAleatoire.stop();
@@ -506,7 +510,7 @@ void EcranJeu::PowerChoose(PowerUpType PowerUp) {
     int incr = 0;
     bool cibleTouchee = false;
 
-    if (PowerUp == PowerUpType::MITRAILLETTE && timer2 != nullptr && timer2->isActive()) {
+    if (PowerUp == PowerUpType::MITRAILLETTE && timerPowerUp != nullptr && timerPowerUp->isActive()) {
         declencherFinPartie();
         return;
     }
@@ -532,24 +536,24 @@ void EcranJeu::PowerChoose(PowerUpType PowerUp) {
         }
         break;
     case PowerUpType::MITRAILLETTE:
-        if (timer2 == nullptr) {
-            timer2 = new QTimer(this);
+        if (timerPowerUp == nullptr) {
+            timerPowerUp = new QTimer(this);
         }
     
         compteur = 0;
-        connect(timer2, &QTimer::timeout, this, [this]() {
+        connect(timerPowerUp, &QTimer::timeout, this, [this]() {
             if (gestionnaireAudio != nullptr) {
                 gestionnaireAudio->playSfx("machine_gun");
             }
             jeu->PowerUp(reticule->getX(), reticule->getY(), PowerUpMitraillette, tempsJeuMs);
             compteur++;
             if (compteur >= 100) {
-                timer2->stop();
-                timer2->deleteLater();
-                timer2 = nullptr;
+                timerPowerUp->stop();
+                timerPowerUp->deleteLater();
+                timerPowerUp = nullptr;
             }
         });
-        timer2->start(100);
+        timerPowerUp->start(100);
         break;
     case PowerUpType::TACTICAL_NUKE:
         if (gestionnaireAudio != nullptr) {
@@ -572,6 +576,11 @@ void EcranJeu::reprendreJeu()
     }
 
     enPause = false;
+
+    if (timerPowerUp) {
+        timerPowerUp->start();
+    }
+
     if (configurationPartie.difficulte == DifficultePartie::RNG) {
         timerReticulesAleatoire.start();
     }
@@ -656,6 +665,12 @@ void EcranJeu::declencherFinPartie()
 
     if (compteurVies->getDemiVies() > 0) {
         return;
+    }
+
+    if (timerPowerUp) {
+        timerPowerUp->stop();
+        timerPowerUp->deleteLater();
+        timerPowerUp = nullptr;
     }
 
     transitionVersMenu = true;

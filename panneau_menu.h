@@ -7,6 +7,7 @@
 #include <QList>
 
 #include "bouton.h"
+#include "Touches.h"
 
 class PanneauMenu : public QWidget
 {
@@ -26,6 +27,17 @@ public:
     void reinitialiserFocus();
     void focusSurIndex(int index);
     virtual QList<Bouton*> boutonsNavigables() const { return {}; }
+
+    void connecterTouches(Touches* touches)
+    {
+        if (!touches) {
+            return;
+        }
+
+        connect(touches, &Touches::naviguerHaut, this, &PanneauMenu::naviguerHaut);
+        connect(touches, &Touches::naviguerBas, this, &PanneauMenu::naviguerBas);
+        connect(touches, &Touches::naviguerConfirmer, this, &PanneauMenu::confirmer);
+    }
 
 signals:
     void demanderJouer();

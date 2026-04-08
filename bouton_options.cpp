@@ -60,6 +60,12 @@ BoutonOptions::BoutonOptions(const QString& titre,
     setMinimumHeight(48);
 }
 
+void BoutonOptions::setHoverActif(bool actif)
+{
+    m_hoverActif = actif;
+    update();
+}
+
 void BoutonOptions::setSelected(bool selected)
 {
     if (m_selected == selected) {
@@ -102,7 +108,7 @@ void BoutonOptions::paintEvent(QPaintEvent* event)
         return;
     }
 
-    const bool hover = underMouse() || hasFocus();
+    const bool hover = m_hoverActif && (underMouse() || hasFocus());
     const bool selected = m_selected;
 
     PaletteBouton pal = palettePourTheme(m_theme);

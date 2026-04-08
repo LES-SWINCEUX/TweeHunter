@@ -1,6 +1,6 @@
 #include "ecran_parametres.h"
 
-EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* touchesParam, QWidget* parent) : 
+EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* touchesParam, QWidget* parent) :
     QWidget(parent),
     gestionnaireAudio(gestionnaireAudio),
     touches(touchesParam),
@@ -44,7 +44,7 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* 
         if (overlay) {
             overlay->hide();
         }
-    });
+        });
 
     fadeOutAnim = new QPropertyAnimation(overlay, "alpha", this);
     fadeOutAnim->setEasingCurve(QEasingCurve::InOutQuad);
@@ -57,36 +57,47 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* 
 
         if (touches) {
             const bool standardAvant = touches->isJoystickConnected();
-            const bool customAvant   = touches->isJoystickPersoConnected();
+            const bool customAvant = touches->isJoystickPersoConnected();
+
             touches->verifierConnexion();
+
             const bool standardApres = touches->isJoystickConnected();
-            const bool customApres   = touches->isJoystickPersoConnected();
+            const bool customApres = touches->isJoystickPersoConnected();
             if (standardAvant != standardApres || customAvant != customApres) {
                 appliquerDisponibiliteManettes();
                 appliquerEtatVisuel();
                 placerElements();
+
+                const bool manetteDisponibleApres = standardApres || customApres;
+                if (!manetteDisponibleApres) {
+                    // Effacer le focus de navigation sans toucher à l'état actif des boutons
+                    if (indexFocus >= 0 && indexFocus < int(widgetsNavigables.size())) {
+                        if (auto* bouton = qobject_cast<Bouton*>(widgetsNavigables[indexFocus])) {
+                            bouton->setSelectionneManette(false);
+                        }
+                        else if (widgetsNavigables[indexFocus]) {
+                            widgetsNavigables[indexFocus]->clearFocus();
+                            widgetsNavigables[indexFocus]->update();
+                        }
+                    }
+                    indexFocus = -1;
+                    setFocus(Qt::OtherFocusReason);
+                    update();
+                }
             }
             touches->lireNavigation();
         }
-    });
+        });
     timerManette.setInterval(16);
     timerManette.start();
 
     if (touches) {
         connect(touches, &Touches::naviguerHaut, this, [this]() { deplacerFocusDirection(0, -1); });
-        connect(touches, &Touches::naviguerBas, this, [this]() { deplacerFocusDirection(0,  1); });
+        connect(touches, &Touches::naviguerBas, this, [this]() { deplacerFocusDirection(0, 1); });
         connect(touches, &Touches::naviguerGauche, this, [this]() { deplacerFocusDirection(-1, 0); });
-        connect(touches, &Touches::naviguerDroite, this, [this]() { deplacerFocusDirection( 1, 0); });
+        connect(touches, &Touches::naviguerDroite, this, [this]() { deplacerFocusDirection(1, 0); });
         connect(touches, &Touches::naviguerConfirmer, this, [this]() { confirmerFocus(); });
     }
-}
-
-QSize EcranParametres::tailleSource(const QSharedPointer<QPixmap>& pixmap) const
-{
-    if (!pixmap || pixmap->isNull()) {
-        return QSize();
-    }
-    return pixmap->size();
 }
 
 void EcranParametres::creerInterface()
@@ -168,49 +179,49 @@ void EcranParametres::connecterSignaux()
         configuration.arme = 1;
         appliquerEtatVisuel();
         connecterFocus(boutonCarabine);
-    });
+        });
 
     connect(boutonShotgun, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 2;
         appliquerEtatVisuel();
         connecterFocus(boutonShotgun);
-    });
+        });
 
     connect(boutonBombardier, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 4;
         appliquerEtatVisuel();
         connecterFocus(boutonBombardier);
-    });
+        });
 
     connect(boutonGrpc, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 3;
         appliquerEtatVisuel();
         connecterFocus(boutonGrpc);
-    });
+        });
 
     connect(boutonTarte, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 5;
         appliquerEtatVisuel();
         connecterFocus(boutonTarte);
-    });
+        });
 
     connect(boutonSwince, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.arme = 6;
         appliquerEtatVisuel();
         connecterFocus(boutonSwince);
-    });
+        });
 
     connect(boutonMode18, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.modeJeu = ModeJeu::PLUS_18;
         appliquerEtatVisuel();
         connecterFocus(boutonMode18);
-    });
+        });
 
     connect(boutonModeNormal, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.modeJeu = ModeJeu::MOINS_18;
         appliquerEtatVisuel();
         connecterFocus(boutonModeNormal);
-    });
+        });
 
     auto selectionnerPowerUp = [this](PowerUpType powerUp, Bouton* bouton) {
         configuration.powerUp = powerUp;
@@ -220,60 +231,60 @@ void EcranParametres::connecterSignaux()
         if (it != widgetsNavigables.end()) {
             appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
         }
-    };
+        };
 
     connect(boutonGrenade, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::GRENADE, boutonGrenade);
-    });
+        });
     connect(boutonZap, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::ZAP, boutonZap);
-    });
+        });
     connect(boutonMitraillette, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::MITRAILLETTE, boutonMitraillette);
-    });
+        });
     connect(boutonTacticalNuke, &Bouton::clicked, this, [=]() {
         selectionnerPowerUp(PowerUpType::TACTICAL_NUKE, boutonTacticalNuke);
-    });
+        });
 
     connect(boutonDifficulteNormal, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::NORMAL;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteNormal);
-    });
+        });
 
     connect(boutonDifficulteRng, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::RNG;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteRng);
-    });
+        });
 
     connect(boutonDifficulteChaos, &QPushButton::clicked, this, [this, connecterFocus]() {
         configuration.difficulte = DifficultePartie::CHAOS;
         appliquerEtatVisuel();
         connecterFocus(boutonDifficulteChaos);
-    });
+        });
 
     connect(boutonManetteStandard, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::STANDARD;
         appliquerEtatVisuel();
         connecterFocus(boutonManetteStandard);
-    });
+        });
 
     connect(boutonManetteCustom, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::CUSTOM;
         appliquerEtatVisuel();
         connecterFocus(boutonManetteCustom);
-    });
+        });
 
     connect(boutonClavierSouris, &Bouton::clicked, this, [this, connecterFocus]() {
         configuration.manette = TypeManette::CLAVIER_SOURIS;
         appliquerEtatVisuel();
         connecterFocus(boutonClavierSouris);
-    });
+        });
 
     connect(champNom, &QLineEdit::selectionChanged, this, [this, connecterFocus]() {
         connecterFocus(champNom);
-    });
+        });
 
     connect(champNom, &QLineEdit::textChanged, this, [this](const QString& texte) {
         const QString majuscule = texte.toUpper();
@@ -283,7 +294,7 @@ void EcranParametres::connecterSignaux()
 
         QSignalBlocker bloqueur(champNom);
         champNom->setText(majuscule);
-    });
+        });
 
     connect(champNom, &QLineEdit::returnPressed, this, &EcranParametres::lancerDemarrage);
     connect(boutonRetour, &Bouton::clicked, this, &EcranParametres::lancerRetourMenu);
@@ -301,7 +312,7 @@ void EcranParametres::appliquerEtatVisuel()
     boutonTarte->setActif(configuration.arme == 5);
     boutonSwince->setActif(configuration.arme == 6);
 
-    boutonGrenade->setActif(configuration.powerUp ==PowerUpType::GRENADE);
+    boutonGrenade->setActif(configuration.powerUp == PowerUpType::GRENADE);
     boutonZap->setActif(configuration.powerUp == PowerUpType::ZAP);
     boutonMitraillette->setActif(configuration.powerUp == PowerUpType::MITRAILLETTE);
     boutonTacticalNuke->setActif(configuration.powerUp == PowerUpType::TACTICAL_NUKE);
@@ -318,396 +329,6 @@ void EcranParametres::appliquerEtatVisuel()
     boutonClavierSouris->setActif(configuration.manette == TypeManette::CLAVIER_SOURIS);
 }
 
-QRect EcranParametres::calculerRectTitre(const QSharedPointer<QPixmap>& pixmap, int centreX, int y, int hauteurCible, int largeurMax) const
-{
-    const QSize source = tailleSource(pixmap);
-    if (!source.isValid() || hauteurCible <= 0 || largeurMax <= 0) {
-        return QRect();
-    }
-
-    float echelle = float(hauteurCible) / float(source.height());
-    int largeur = int(source.width() * echelle);
-    int hauteur = int(source.height() * echelle);
-
-    if (largeur > largeurMax) {
-        echelle = float(largeurMax) / float(source.width());
-        largeur = int(source.width() * echelle);
-        hauteur = int(source.height() * echelle);
-    }
-
-    return QRect(centreX - largeur / 2, y, largeur, hauteur);
-}
-
-void EcranParametres::dessinerPixmap(QPainter& painter,
-    const QSharedPointer<QPixmap>& pixmap,
-    const QRect& destination) const
-{
-    if (!pixmap || pixmap->isNull() || !destination.isValid()) {
-        return;
-    }
-
-    painter.drawPixmap(destination, *pixmap, pixmap->rect());
-}
-
-int EcranParametres::placerGrille(const std::vector<Bouton*>& boutons, int colonnes, int x, int y, int largeurDisponible, int hauteurBoutonCible, int espacementX, int espacementY)
-{
-    if (boutons.empty() || colonnes <= 0 || largeurDisponible <= 0) {
-        return 0;
-    }
-
-    const QSize base = boutons.front()->tailleImage();
-    if (!base.isValid()) {
-        return 0;
-    }
-
-    const int celluleW = (largeurDisponible - (colonnes - 1) * espacementX) / colonnes;
-
-    float echelle = std::min(float(celluleW) / float(base.width()),
-        float(hauteurBoutonCible) / float(base.height()));
-    echelle = std::clamp(echelle, 0.18f, 1.25f);
-
-    for (Bouton* bouton : boutons) {
-        if (bouton) {
-            bouton->setEchelle(echelle);
-        }
-    }
-
-    const int largeurBouton = boutons.front()->width();
-    const int hauteurBouton = boutons.front()->height();
-    const int nombreLignes = int((boutons.size() + colonnes - 1) / colonnes);
-
-    for (int ligne = 0; ligne < nombreLignes; ++ligne) {
-        const int debut = ligne * colonnes;
-        const int nombreSurLigne = std::min(colonnes, int(boutons.size()) - debut);
-
-        for (int i = 0; i < nombreSurLigne; ++i) {
-            Bouton* bouton = boutons[debut + i];
-            if (!bouton) {
-                continue;
-            }
-
-            bouton->move(
-                x + i * (largeurBouton + espacementX),
-                y + ligne * (hauteurBouton + espacementY)
-            );
-        }
-    }
-
-    return nombreLignes * hauteurBouton + (nombreLignes - 1) * espacementY;
-}
-
-void EcranParametres::placerElements()
-{
-    const int W = width();
-    const int H = height();
-    if (W <= 0 || H <= 0) {
-        return;
-    }
-
-    const float echelleH = std::clamp(float(H) / 1080.0f, 0.72f, 1.12f);
-    const float echelleW = std::clamp(float(W) / 1920.0f, 0.80f, 1.20f);
-    const float echelle = std::min(echelleH, echelleW);
-
-    const int centreX = W / 2;
-    const int margeX = std::max(16, int(W * 0.02f));
-    const int largeurContenu = W - 2 * margeX;
-
-    const int espacementX = std::max(10, int(14 * echelleW));
-    const int espacementY = std::max(8, int(10 * echelle));
-    const int espacementTitre = std::max(4, int(5 * echelle));
-    const int espacementSection = std::max(10, int(12 * echelle));
-    const int ecartColonnes = std::max(12, int(16 * echelleW));
-
-    int y = std::max(8, int(10 * echelle));
-
-    auto estimerLargeurGrille = [&](Bouton* boutonRef, int colonnes, int largeurMax, int hauteurBoutonCible, int spacingX) -> int
-    {
-        if (!boutonRef || colonnes <= 0 || largeurMax <= 0) {
-            return 0;
-        }
-
-        const QSize base = boutonRef->tailleImage();
-        if (!base.isValid()) {
-            return 0;
-        }
-
-        const int celluleW = (largeurMax - (colonnes - 1) * spacingX) / colonnes;
-
-        float scale = std::min(float(celluleW) / float(base.width()),
-            float(hauteurBoutonCible) / float(base.height()));
-        scale = std::clamp(scale, 0.18f, 1.25f);
-
-        const int largeurBouton = int(base.width() * scale);
-        return colonnes * largeurBouton + (colonnes - 1) * spacingX;
-    };
-
-    rectTitrePrincipal = calculerRectTitre(titrePrincipalImg, centreX, y, int(118 * echelle), int(largeurContenu * 0.52f));
-
-    y = rectTitrePrincipal.bottom() + 1 + espacementSection;
-
-    const int hauteurCartesHaut = int(150 * echelle);
-
-    const int largeurArmes = estimerLargeurGrille(boutonCarabine, 3, int(largeurContenu * 0.48f), hauteurCartesHaut, espacementX);
-
-    const int largeurPowerUps = estimerLargeurGrille(boutonGrenade, 2, int(largeurContenu * 0.28f), hauteurCartesHaut, espacementX);
-
-    const int largeurTop = largeurArmes + ecartColonnes + largeurPowerUps;
-    const int xTop = centreX - largeurTop / 2;
-
-    const int xArmes = xTop;
-    const int xPowerUps = xArmes + largeurArmes + ecartColonnes;
-
-    appliquerDisponibiliteManettes();
-
-    const int hauteurBanniereHaut = int(38 * echelle);
-
-    rectTitreArmes = calculerRectTitre(titreChoixArmeImg, xArmes + largeurArmes / 2, y, hauteurBanniereHaut, int(largeurArmes * 0.52f));
-
-    rectTitrePowerUps = calculerRectTitre(titrePowerUpsImg, xPowerUps + largeurPowerUps / 2, y, hauteurBanniereHaut, int(largeurPowerUps * 1.18f));
-
-    const int yTop = std::max(rectTitreArmes.bottom(), rectTitrePowerUps.bottom()) + 1 + espacementTitre;
-
-    const int hauteurArmes = placerGrille({ boutonCarabine, boutonShotgun, boutonBombardier, boutonGrpc, boutonTarte, boutonSwince }, 3, xArmes, yTop, largeurArmes, hauteurCartesHaut, espacementX, std::max(6, espacementY / 2));
-
-    const int hauteurPowerUps = placerGrille({ boutonGrenade, boutonZap, boutonMitraillette, boutonTacticalNuke }, 2, xPowerUps, yTop, largeurPowerUps, hauteurCartesHaut, espacementX, std::max(6, espacementY / 2));
-
-    y = yTop + std::max(hauteurArmes, hauteurPowerUps) + espacementSection;
-
-    const int hauteurBoutonsMilieu = std::clamp(int(70 * echelle), 56, 82);
-
-    const int largeurMode18 = std::clamp(int(165 * echelleW), 130, 220);
-    const int largeurModeNormal = std::clamp(int(210 * echelleW), 160, 280);
-
-    const int largeurDiff = std::clamp(int(180 * echelleW), 145, 240);
-    const int espacementDiff = std::max(8, int(10 * echelleW));
-
-    const int largeurModeJeu = largeurMode18 + espacementX + largeurModeNormal;
-    const int largeurDifficulte = largeurDiff * 3 + espacementDiff * 2;
-
-    const int largeurMilieu = largeurModeJeu + ecartColonnes + largeurDifficulte;
-    const int xMilieu = centreX - largeurMilieu / 2;
-
-    const int xModeJeu = xMilieu;
-    const int xDifficulte = xModeJeu + largeurModeJeu + ecartColonnes;
-
-    rectTitreModeJeu = calculerRectTitre(titreModeJeuImg, xModeJeu + largeurModeJeu / 2, y, int(36 * echelle), int(largeurModeJeu * 0.82f));
-
-    rectTitreDifficulte = calculerRectTitre(titreDifficulteImg, xDifficulte + largeurDifficulte / 2, y, int(36 * echelle), int(largeurDifficulte * 0.62f));
-
-    const int yMilieu = std::max(rectTitreModeJeu.bottom(), rectTitreDifficulte.bottom()) + 1 + espacementTitre;
-
-    if (boutonMode18) {
-        boutonMode18->setGeometry(xModeJeu, yMilieu, largeurMode18, hauteurBoutonsMilieu);
-    }
-    if (boutonModeNormal) {
-        boutonModeNormal->setGeometry(xModeJeu + largeurMode18 + espacementX, yMilieu, largeurModeNormal, hauteurBoutonsMilieu);
-    }
-
-    if (boutonDifficulteNormal) {
-        boutonDifficulteNormal->setGeometry(xDifficulte, yMilieu, largeurDiff, hauteurBoutonsMilieu);
-    }
-    if (boutonDifficulteRng) {
-        boutonDifficulteRng->setGeometry(xDifficulte + largeurDiff + espacementDiff, yMilieu, largeurDiff, hauteurBoutonsMilieu);
-    }
-    if (boutonDifficulteChaos) {
-        boutonDifficulteChaos->setGeometry(xDifficulte + 2 * (largeurDiff + espacementDiff), yMilieu, largeurDiff, hauteurBoutonsMilieu);
-    }
-
-    y = yMilieu + hauteurBoutonsMilieu + espacementSection;
-
-    const int hauteurManette = int(145 * echelle);
-
-    std::vector<Bouton*> boutonsManetteVisibles;
-    if (boutonManetteStandard && boutonManetteStandard->isVisible()) {
-        boutonsManetteVisibles.push_back(boutonManetteStandard);
-    }
-    if (boutonManetteCustom && boutonManetteCustom->isVisible()) {
-        boutonsManetteVisibles.push_back(boutonManetteCustom);
-    }
-    if (boutonClavierSouris && boutonClavierSouris->isVisible()) {
-        boutonsManetteVisibles.push_back(boutonClavierSouris);
-    }
-
-    int largeurManette = 0;
-    int xManette = centreX;
-
-    if (!boutonsManetteVisibles.empty()) {
-        largeurManette = estimerLargeurGrille(boutonsManetteVisibles.front(), int(boutonsManetteVisibles.size()), int(largeurContenu * 0.44f), hauteurManette, espacementX);
-
-        xManette = centreX - largeurManette / 2;
-    }
-
-    const int largeurBanniereManette = std::clamp(
-        std::max(int(largeurManette * 0.90f), int(largeurContenu * 0.22f)),
-        260,
-        520
-    );
-
-    rectTitreChoixManette = calculerRectTitre(
-        titreChoixManetteImg,
-        centreX,
-        y,
-        int(38 * echelle),
-        largeurBanniereManette
-    );
-
-    y = rectTitreChoixManette.bottom() + 1 + espacementTitre;
-
-    if (!boutonsManetteVisibles.empty()) {
-        y += placerGrille(boutonsManetteVisibles, int(boutonsManetteVisibles.size()), xManette, y, largeurManette, hauteurManette, espacementX, espacementY) + espacementSection;
-    }
-
-    const int largeurBlocNom = std::clamp(int(largeurContenu * 0.18f), 280, 380);
-
-    rectTitreNom = calculerRectTitre(titreNomImg, centreX, y, int(38 * echelle), int(largeurBlocNom * 1.18f));
-
-    y = rectTitreNom.bottom() + 1 + espacementTitre;
-
-    rectFondNom = calculerRectTitre(fondNomImg, centreX, y, int(56 * echelle), largeurBlocNom);
-
-    if (champNom) {
-        QFont f = policeTitre;
-        f.setPixelSize(std::max(12, int(rectFondNom.height() * 0.48f)));
-        champNom->setFont(f);
-        champNom->setGeometry(rectFondNom.adjusted(20, 8, -50, -8));
-    }
-
-    y = rectFondNom.bottom() + 1 + espacementSection;
-
-    if (boutonRetour && boutonCommencer) {
-        const QSize baseRetour = boutonRetour->tailleImage();
-        const QSize baseJouer = boutonCommencer->tailleImage();
-
-        if (baseRetour.isValid() && baseJouer.isValid()) {
-            const int hauteurBoutonCible = std::clamp(int(68 * echelle), 48, 82);
-            const int espaceEntreBoutons = std::max(14, int(18 * echelleW));
-
-            float echelleRetour = float(hauteurBoutonCible) / float(baseRetour.height());
-            float echelleJouer = float(hauteurBoutonCible) / float(baseJouer.height());
-
-            echelleRetour = std::clamp(echelleRetour, 0.20f, 1.25f);
-            echelleJouer = std::clamp(echelleJouer, 0.20f, 1.25f);
-
-            boutonRetour->setEchelle(echelleRetour);
-            boutonCommencer->setEchelle(echelleJouer);
-
-            const int largeurTotale =
-                boutonRetour->width() + espaceEntreBoutons + boutonCommencer->width();
-
-            const int xDepart = centreX - largeurTotale / 2;
-
-            boutonRetour->move(xDepart, y + (boutonCommencer->height() - boutonRetour->height()) / 2);
-
-            boutonCommencer->move(xDepart + boutonRetour->width() + espaceEntreBoutons, y);
-        }
-    }
-
-    centrerContenuVerticalement();
-
-    aideFont_pixelSize = std::max(8, int(12 * std::clamp(float(H) / 1080.0f, 0.7f, 1.0f)));
-
-    if (overlay) {
-        overlay->setGeometry(rect());
-        overlay->raise();
-    }
-}
-
-void EcranParametres::centrerContenuVerticalement()
-{
-    int top = rectTitrePrincipal.top();
-
-    int bottom = rectFondNom.bottom();
-    if (boutonCommencer) {
-        bottom = std::max(bottom, boutonCommencer->geometry().bottom());
-    }
-    if (boutonRetour) {
-        bottom = std::max(bottom, boutonRetour->geometry().bottom());
-    }
-
-    const int hauteurContenu = bottom - top + 1;
-    const int margeMin = 12;
-
-    int decalageY = (height() - hauteurContenu) / 2 - top;
-
-    if (top + decalageY < margeMin) {
-        decalageY = margeMin - top;
-    }
-
-    if (decalageY == 0) {
-        return;
-    }
-
-    rectTitrePrincipal.translate(0, decalageY);
-    rectTitreArmes.translate(0, decalageY);
-    rectTitrePowerUps.translate(0, decalageY);
-    rectTitreModeJeu.translate(0, decalageY);
-    rectTitreDifficulte.translate(0, decalageY);
-    rectTitreChoixManette.translate(0, decalageY);
-    rectTitreNom.translate(0, decalageY);
-    rectFondNom.translate(0, decalageY);
-
-    auto deplacerWidget = [decalageY](QWidget* w) 
-    {
-        if (w) {
-            w->move(w->x(), w->y() + decalageY);
-        }
-    };
-
-    deplacerWidget(boutonCarabine);
-    deplacerWidget(boutonShotgun);
-    deplacerWidget(boutonBombardier);
-    deplacerWidget(boutonGrpc);
-    deplacerWidget(boutonTarte);
-    deplacerWidget(boutonSwince);
-
-    deplacerWidget(boutonGrenade);
-    deplacerWidget(boutonZap);
-    deplacerWidget(boutonMitraillette);
-    deplacerWidget(boutonTacticalNuke);
-
-    deplacerWidget(boutonMode18);
-    deplacerWidget(boutonModeNormal);
-
-    deplacerWidget(boutonDifficulteNormal);
-    deplacerWidget(boutonDifficulteRng);
-    deplacerWidget(boutonDifficulteChaos);
-
-    deplacerWidget(boutonManetteStandard);
-    deplacerWidget(boutonManetteCustom);
-    deplacerWidget(boutonClavierSouris);
-
-    deplacerWidget(champNom);
-    deplacerWidget(boutonRetour);
-    deplacerWidget(boutonCommencer);
-}
-
-void EcranParametres::paintEvent(QPaintEvent*)
-{
-    QPainter painter(this);
-    painter.fillRect(rect(), Qt::black);
-
-    bg.dessiner(painter);
-
-    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-    dessinerPixmap(painter, titrePrincipalImg, rectTitrePrincipal);
-    dessinerPixmap(painter, titreChoixArmeImg, rectTitreArmes);
-    dessinerPixmap(painter, titrePowerUpsImg, rectTitrePowerUps);
-    dessinerPixmap(painter, titreModeJeuImg, rectTitreModeJeu);
-    dessinerPixmap(painter, titreDifficulteImg, rectTitreDifficulte);
-    dessinerPixmap(painter, titreChoixManetteImg, rectTitreChoixManette);
-    dessinerPixmap(painter, titreNomImg, rectTitreNom);
-    dessinerPixmap(painter, fondNomImg, rectFondNom);
-}
-
-void EcranParametres::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-
-    bg.mettreAJour(size());
-
-    placerElements();
-}
 void EcranParametres::showEvent(QShowEvent* event)
 {
     QWidget::showEvent(event);
@@ -753,358 +374,6 @@ void EcranParametres::showEvent(QShowEvent* event)
     }
 }
 
-QRect EcranParametres::rectNavigable(QWidget* widget) const
-{
-    if (!widget) {
-        return QRect();
-    }
-
-    if (widget == champNom) {
-        return rectFondNom;
-    }
-
-    return widget->geometry();
-}
-
-QPoint EcranParametres::centreNavigable(QWidget* widget) const
-{
-    return rectNavigable(widget).center();
-}
-
-int EcranParametres::trouverProchainIndexDansDirection(int dx, int dy) const
-{
-    if (widgetsNavigables.empty()) {
-        return -1;
-    }
-
-    if (indexFocus < 0 || indexFocus >= int(widgetsNavigables.size())) {
-        for (int i = 0; i < int(widgetsNavigables.size()); ++i) {
-            QWidget* w = widgetsNavigables[i];
-            if (w && w->isVisible() && w->isEnabled()) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    QWidget* courant = widgetsNavigables[indexFocus];
-    if (!courant) {
-        return -1;
-    }
-
-    const QPoint centreCourant = centreNavigable(courant);
-
-    int meilleurIndex = -1;
-    double meilleurScore = std::numeric_limits<double>::max();
-
-    for (int i = 0; i < int(widgetsNavigables.size()); ++i) {
-        if (i == indexFocus) {
-            continue;
-        }
-
-        QWidget* candidat = widgetsNavigables[i];
-        if (!candidat || !candidat->isVisible() || !candidat->isEnabled()) {
-            continue;
-        }
-
-        const QPoint centreCandidat = centreNavigable(candidat);
-        const int vx = centreCandidat.x() - centreCourant.x();
-        const int vy = centreCandidat.y() - centreCourant.y();
-
-        int primaire = 0;
-        int secondaire = 0;
-
-        if (dx != 0) {
-            primaire = vx * dx;
-            secondaire = std::abs(vy);
-        }
-        else {
-            primaire = vy * dy;
-            secondaire = std::abs(vx);
-        }
-
-        if (primaire <= 0) {
-            continue;
-        }
-
-        double score = double(primaire) + double(secondaire) * 2.75;
-
-        if (secondaire < 24) {
-            score *= 0.75;
-        }
-
-        if (score < meilleurScore) {
-            meilleurScore = score;
-            meilleurIndex = i;
-        }
-    }
-
-    return meilleurIndex;
-}
-
-void EcranParametres::deplacerFocusDirection(int dx, int dy)
-{
-    if (indexFocus < 0 || indexFocus >= int(widgetsNavigables.size())) {
-        const int premier = trouverProchainIndexDansDirection(dx, dy);
-        if (premier >= 0) {
-            appliquerFocus(premier);
-        }
-        return;
-    }
-
-    QWidget* courant = widgetsNavigables[indexFocus];
-    if (!courant) {
-        return;
-    }
-
-    auto focusWidget = [this](QWidget* cible) -> bool
-    {
-        if (!cible || !cible->isVisible() || !cible->isEnabled()) {
-            return false;
-        }
-
-        const auto it = std::find(widgetsNavigables.begin(), widgetsNavigables.end(), cible);
-        if (it == widgetsNavigables.end()) {
-            return false;
-        }
-
-        appliquerFocus(int(std::distance(widgetsNavigables.begin(), it)));
-        return true;
-    };
-
-    auto focusNom = [this, &focusWidget]() -> bool
-    {
-        return focusWidget(champNom);
-    };
-
-    auto manettesVisibles = [this]() -> std::vector<QWidget*>
-    {
-        std::vector<QWidget*> resultat;
-
-        if (boutonManetteStandard && boutonManetteStandard->isVisible() && boutonManetteStandard->isEnabled()) {
-            resultat.push_back(boutonManetteStandard);
-        }
-        if (boutonManetteCustom && boutonManetteCustom->isVisible() && boutonManetteCustom->isEnabled()) {
-            resultat.push_back(boutonManetteCustom);
-        }
-        if (boutonClavierSouris && boutonClavierSouris->isVisible() && boutonClavierSouris->isEnabled()) {
-            resultat.push_back(boutonClavierSouris);
-        }
-
-        return resultat;
-    };
-
-    auto premiereManetteVisible = [&]() -> QWidget*
-    {
-        auto liste = manettesVisibles();
-        return liste.empty() ? nullptr : liste.front();
-    };
-
-    auto deplacerDansRangee = [&](const std::vector<QWidget*>& rangee, int direction) -> bool
-    {
-        if (direction == 0) {
-            return false;
-        }
-
-        auto it = std::find(rangee.begin(), rangee.end(), courant);
-        if (it == rangee.end()) {
-            return false;
-        }
-
-        const int index = int(std::distance(rangee.begin(), it));
-        const int suivant = index + direction;
-
-        if (suivant < 0 || suivant >= int(rangee.size())) {
-            return true;
-        }
-
-        return focusWidget(rangee[suivant]);
-    };
-
-    const std::vector<QWidget*> rangeeMilieu = {
-        boutonMode18,
-        boutonModeNormal,
-        boutonDifficulteNormal,
-        boutonDifficulteRng,
-        boutonDifficulteChaos
-    };
-
-    const std::vector<QWidget*> rangeeBoutonsBas = {
-        boutonRetour,
-        boutonCommencer
-    };
-
-    const auto rangeeManette = manettesVisibles();
-
-    const bool focusSurBlocMilieu = courant == boutonMode18 || courant == boutonModeNormal || courant == boutonDifficulteNormal || courant == boutonDifficulteRng || courant == boutonDifficulteChaos;
-
-    const bool focusSurManette = courant == boutonManetteStandard || courant == boutonManetteCustom || courant == boutonClavierSouris;
-
-    const bool focusSurBoutonsBas = courant == boutonRetour || courant == boutonCommencer;
-
-    if (dx != 0) {
-        if (courant == champNom) {
-            return;
-        }
-
-        if (deplacerDansRangee(rangeeMilieu, dx)) {
-            return;
-        }
-
-        if (deplacerDansRangee(rangeeManette, dx)) {
-            return;
-        }
-
-        if (deplacerDansRangee(rangeeBoutonsBas, dx)) {
-            return;
-        }
-    }
-
-    if (dy > 0 && focusSurBlocMilieu) {
-        if (focusWidget(premiereManetteVisible())) {
-            return;
-        }
-    }
-
-    if (dy > 0 && focusSurManette) {
-        if (focusNom()) {
-            return;
-        }
-    }
-
-    if (dy < 0 && focusSurBoutonsBas) {
-        if (focusNom()) {
-            return;
-        }
-    }
-
-    if (dy < 0 && courant == champNom) {
-        if (focusWidget(premiereManetteVisible())) {
-            return;
-        }
-    }
-
-    if (dy > 0 && courant == champNom) {
-        if (focusWidget(boutonCommencer)) {
-            return;
-        }
-    }
-
-    const int prochain = trouverProchainIndexDansDirection(dx, dy);
-    if (prochain >= 0) {
-        appliquerFocus(prochain);
-    }
-}
-
-void EcranParametres::appliquerFocus(int nouvelIndex)
-{
-    if (nouvelIndex < 0 || nouvelIndex >= int(widgetsNavigables.size())) {
-        return;
-    }
-
-    QWidget* cible = widgetsNavigables[nouvelIndex];
-    if (!cible || !cible->isVisible() || !cible->isEnabled()) {
-        return;
-    }
-
-    if (indexFocus >= 0 && indexFocus < int(widgetsNavigables.size())) {
-        if (auto* bouton = qobject_cast<Bouton*>(widgetsNavigables[indexFocus])) {
-            bouton->setSelectionneManette(false);
-        }
-        else if (widgetsNavigables[indexFocus] && widgetsNavigables[indexFocus]->hasFocus()) {
-            widgetsNavigables[indexFocus]->clearFocus();
-            widgetsNavigables[indexFocus]->update();
-        }
-    }
-
-    indexFocus = nouvelIndex;
-
-    QWidget* widget = widgetsNavigables[indexFocus];
-    if (auto* bouton = qobject_cast<Bouton*>(widget)) {
-        bouton->setSelectionneManette(true);
-    }
-    else if (widget) {
-        widget->setFocus(Qt::OtherFocusReason);
-        widget->update();
-    }
-
-    update();
-}
-
-void EcranParametres::confirmerFocus()
-{
-    if (indexFocus < 0 || indexFocus >= int(widgetsNavigables.size())) {
-        return;
-    }
-
-    QWidget* widget = widgetsNavigables[indexFocus];
-
-    if (auto* boutonSprite = qobject_cast<Bouton*>(widget)) {
-        boutonSprite->simulerClic();
-        return;
-    }
-
-    if (auto* boutonQt = qobject_cast<QPushButton*>(widget)) {
-        boutonQt->click();
-        return;
-    }
-
-    if (widget == champNom) {
-        champNom->setFocus(Qt::OtherFocusReason);
-    }
-}
-
-void EcranParametres::keyPressEvent(QKeyEvent* event)
-{
-    if (!event) {
-        return;
-    }
-
-    if (transitionEnCours) {
-        event->accept();
-        return;
-    }
-
-    switch (event->key()) {
-    case Qt::Key_Left:
-        deplacerFocusDirection(-1, 0);
-        event->accept();
-        return;
-
-    case Qt::Key_Right:
-        deplacerFocusDirection(1, 0);
-        event->accept();
-        return;
-
-    case Qt::Key_Up:
-        deplacerFocusDirection(0, -1);
-        event->accept();
-        return;
-
-    case Qt::Key_Down:
-        deplacerFocusDirection(0, 1);
-        event->accept();
-        return;
-
-    case Qt::Key_Return:
-    case Qt::Key_Enter:
-    case Qt::Key_Space:
-        confirmerFocus();
-        event->accept();
-        return;
-
-    case Qt::Key_Escape:
-        lancerRetourMenu();
-        event->accept();
-        return;
-
-    default:
-        break;
-    }
-
-    QWidget::keyPressEvent(event);
-}
-
 ConfigurationPartie EcranParametres::configurationFinale() const
 {
     ConfigurationPartie config = configuration;
@@ -1139,7 +408,7 @@ void EcranParametres::lancerDemarrage()
     connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() {
         GestionnaireConfiguration::instance().sauvegarder(configurationFinale());
         emit demarrerPartieDemande(configurationFinale());
-    });
+        });
 
     fadeOutAnim->start();
 }
@@ -1169,7 +438,7 @@ void EcranParametres::lancerRetourMenu()
     connect(fadeOutAnim, &QPropertyAnimation::finished, this, [this]() {
         GestionnaireConfiguration::instance().sauvegarder(configurationFinale());
         emit retourMenuDemande(configurationFinale());
-    });
+        });
 
     fadeOutAnim->start();
 }

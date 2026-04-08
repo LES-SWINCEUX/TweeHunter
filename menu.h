@@ -11,6 +11,8 @@
 #include <QResizeEvent>
 #include <QShowEvent>
 #include <QPropertyAnimation>
+#include <QMouseEvent>
+#include <QApplication>
 #include <iostream>
 #include <algorithm>
 
@@ -22,6 +24,7 @@
 #include "fade_overlay.h"
 #include "gestionnaire_audio.h"
 #include "panneau_scores.h"
+#include "easter_egg_dialog.h"
 
 class PanneauMenu;
 
@@ -41,6 +44,8 @@ protected:
     void resizeEvent(QResizeEvent* e) override;
     void showEvent(QShowEvent* e) override;
     void keyPressEvent(QKeyEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
     void configuerAnimationTitre();
@@ -88,12 +93,13 @@ private:
 
     Touches* touches = nullptr;
 
+    EasterEggDialog* easterEgg = nullptr;
+
     QElapsedTimer timerPauseAnimation;
 
     const int NOMBRE_IMAGE_TITRE = 12;
-    const int TEMPS_ANIMATION = 1000;
     const int TEMPS_ATTENTE_ANIMATION = 9000;
-    const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
+    const int INTERVALE_TITRE_MS = 55;
 
     const float RATIO_PANNEAUX = 0.25f;
 };
