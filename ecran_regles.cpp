@@ -156,11 +156,11 @@ QVector<QString> EcranRegles::obtenirCheminsPoisonSelonMode(ModeJeu mode) const
 {
     switch (mode) {
     case ModeJeu::PLUS_18:
-        return kSpritesPoisonPlus18;
+        return SPRITES_POISON_PLUS_18;
 
     case ModeJeu::MOINS_18:
     default:
-        return kSpritesPoisonMoins18;
+        return SPRITES_POISON_MOINS_18;
     }
 }
 
@@ -168,11 +168,11 @@ QVector<QString> EcranRegles::obtenirCheminsGatorSelonMode(ModeJeu mode) const
 {
     switch (mode) {
     case ModeJeu::PLUS_18:
-        return kSpritesGatorPlus18;
+        return SPRITES_GATORADE_PLUS_18;
 
     case ModeJeu::MOINS_18:
     default:
-        return kSpritesGatorMoins18;
+        return SPRITES_GATORADE_MOINS_18;
     }
 }
 
@@ -180,11 +180,11 @@ QVector<QString> EcranRegles::obtenirCheminsDebuffSelonMode(ModeJeu mode) const
 {
     switch (mode) {
     case ModeJeu::PLUS_18:
-        return kSpritesDebuffPlus18;
+        return SPRITES_DEBUFF_PLUS_18;
 
     case ModeJeu::MOINS_18:
     default:
-        return kSpritesDebuffMoins18;
+        return SPRITES_DEBUFF_MOINS_18;
     }
 }
 
@@ -192,11 +192,11 @@ QVector<QString> EcranRegles::obtenirCheminsWaterSelonMode(ModeJeu mode) const
 {
     switch (mode) {
     case ModeJeu::PLUS_18:
-        return kSpritesWaterPlus18;
+        return SPRITES_WATER_PLUS_18;
 
     case ModeJeu::MOINS_18:
     default:
-        return kSpritesWaterMoins18;
+        return SPRITES_WATER_MOINS_18;
     }
 }
 
@@ -212,9 +212,8 @@ void EcranRegles::initialiserCartes()
 
         const QVector<QString> cheminsPoison = obtenirCheminsPoisonSelonMode(configuration.modeJeu);
         for (int i = 0; i < cheminsPoison.size(); ++i) {
-            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsPoison[i],
-                kColonnesSpritesheet,
-                kLignesSpritesheet);
+            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsPoison[i], COLONNES_SPRITESHEET, LIGNES_SPRITESHEET);
+
             if (!frames.isEmpty()) {
                 carte.animations.push_back(frames);
             }
@@ -229,7 +228,7 @@ void EcranRegles::initialiserCartes()
         carte.amplitudeOscillation = 9;
         cartesRegles.push_back(carte);
     }
-
+    
     {
         CarteRegle carte;
         carte.titre = "Gatorade";
@@ -238,9 +237,8 @@ void EcranRegles::initialiserCartes()
 
         const QVector<QString> cheminsGator = obtenirCheminsGatorSelonMode(configuration.modeJeu);
         for (int i = 0; i < cheminsGator.size(); ++i) {
-            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsGator[i],
-                kColonnesSpritesheet,
-                kLignesSpritesheet);
+            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsGator[i], COLONNES_SPRITESHEET, LIGNES_SPRITESHEET);
+
             if (!frames.isEmpty()) {
                 carte.animations.push_back(frames);
             }
@@ -255,7 +253,7 @@ void EcranRegles::initialiserCartes()
         carte.amplitudeOscillation = 11;
         cartesRegles.push_back(carte);
     }
-
+    
     {
         CarteRegle carte;
         carte.titre = "Splash";
@@ -264,9 +262,8 @@ void EcranRegles::initialiserCartes()
 
         const QVector<QString> cheminsDebuff = obtenirCheminsDebuffSelonMode(configuration.modeJeu);
         for (int i = 0; i < cheminsDebuff.size(); ++i) {
-            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsDebuff[i],
-                kColonnesSpritesheet,
-                kLignesSpritesheet);
+            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsDebuff[i], COLONNES_SPRITESHEET, LIGNES_SPRITESHEET);
+
             if (!frames.isEmpty()) {
                 carte.animations.push_back(frames);
             }
@@ -281,7 +278,7 @@ void EcranRegles::initialiserCartes()
         carte.amplitudeOscillation = 10;
         cartesRegles.push_back(carte);
     }
-
+    
     {
         CarteRegle carte;
         carte.titre = "Eau";
@@ -290,9 +287,8 @@ void EcranRegles::initialiserCartes()
 
         const QVector<QString> cheminsWater = obtenirCheminsWaterSelonMode(configuration.modeJeu);
         for (int i = 0; i < cheminsWater.size(); ++i) {
-            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsWater[i],
-                kColonnesSpritesheet,
-                kLignesSpritesheet);
+            QVector<QPixmap> frames = extraireFramesSpritesheet(cheminsWater[i], COLONNES_SPRITESHEET, LIGNES_SPRITESHEET);
+
             if (!frames.isEmpty()) {
                 carte.animations.push_back(frames);
             }

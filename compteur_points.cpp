@@ -49,8 +49,8 @@ void CompteurPoints::setPoints(int value)
 {
     value = std::max(0, value);
 
-    if (value >= this->nombrePointsMax) {
-        value = nombrePointsMax;
+    if (value >= this->NOMBRE_POINTS_MAX) {
+        value = NOMBRE_POINTS_MAX;
     }
 
     if (!estAnime) {

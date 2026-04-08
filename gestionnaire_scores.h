@@ -30,7 +30,7 @@ public:
 
     const QList<EntreeScore>& scores() const { return listeScores; }
 
-    static constexpr int MAX_SCORES = 10;
+    static const int MAX_SCORES = 10;
 
 private:
     GestionnaireScores() { charger(); }

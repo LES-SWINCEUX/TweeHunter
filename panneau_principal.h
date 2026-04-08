@@ -18,6 +18,9 @@ protected:
     void positionner() override;
 
 private:
+    void parametrerBoutons(Bouton* bouton, int& hauteur, int& nombre);
+    void positionnementBoutons(Bouton* bouton, int& y);
+
     Bouton* boutonJouer = nullptr;
     Bouton* boutonScores = nullptr;
     Bouton* boutonOptions = nullptr;
@@ -25,9 +28,6 @@ private:
 
     int espacementBoutons = std::max(10, int(height() * 0.04f));
     float echelleBoutons = 0.7f;
-
-    void parametrerBoutons(Bouton* bouton, int &hauteur, int &nombre);
-    void positionnementBoutons(Bouton* bouton, int& y);
 };
 
 #endif

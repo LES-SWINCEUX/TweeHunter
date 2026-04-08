@@ -52,8 +52,9 @@ protected:
     }
 
 private:
-    int indexFocus = -1;
     void appliquerFocus(int nouvelIndex);
+
+    int indexFocus = -1;
 };
 
 #endif

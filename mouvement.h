@@ -54,7 +54,6 @@ public:
 	}
 
 private:
-	
 	QPointF calculerPositionLineaire(double progression);
 	QPointF calculerPositionCourbe(double progression, double direction);
 	QPointF calculerPositionZigzag(double progression);
@@ -69,11 +68,10 @@ private:
 	double dureeTrajet;
 	bool arrive;
 
-	static constexpr double AMPLITUDE_ZIGZAG = 50.0;
-	static constexpr double FREQUENCE_ZIGZAG = 5.0;
-	static constexpr double AMPLITUDE_COURBE = 0.1;
-	static constexpr double FREQUENCE_COURBE = 0.5;
-
+	const double AMPLITUDE_ZIGZAG = 50.0;
+	const double FREQUENCE_ZIGZAG = 5.0;
+	const double AMPLITUDE_COURBE = 0.1;
+	const double FREQUENCE_COURBE = 0.5;
 };
 
 #endif

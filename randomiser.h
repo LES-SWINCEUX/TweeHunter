@@ -61,14 +61,15 @@ public:
 
 
 private:
-	
-	qint64 tempsCourant = 0;
+	double calculerFacteurVitesse(qint64 tempsMs) const;
+	double choisirVitesse(double min, double max) const;
 
 	QPointF choisirPointDepart(Bord bord) const;
 	QPointF choisirPointArrivee(Bord bord) const;
-	Bord choisirBordAleatoire() const;
 	Bord choisirBordOppose(Bord bordDepart) const;
-	double choisirVitesse(double min, double max) const;
+
+	Bord choisirBordAleatoire() const;
+
 	TypeTrajectoire choisirTrajectoire() const;
 
 	QSizeF tailleEcran;
@@ -81,21 +82,20 @@ private:
 
 	mutable std::mt19937 generateur;
 
-	static constexpr qint64 INTERVALLE_SPAWN_DEFAUT = 1500;
-	static constexpr qint64 VARIATION_SPAWN_DEFAUT = 500;
-	static constexpr double MARGE_ECRAN_DEFAULT = 100.0;
-
 	qint64 prochainBushLouche = 0;
-	static constexpr qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 11500;
-	static constexpr qint64 VARIATION_SPAWN_BUSH_LOUCHE = 20000;
-
 	qint64 tempsDebutPartie = 0;
-	static constexpr qint64 INTERVALLE_DIFFICULTE = 15000;
-	static constexpr double MULTIPLICATEUR_PALIER = 1.15;
-	static constexpr double FACTEUR_MAX = 3;
+	qint64 tempsCourant = 0;
 
-	double calculerFacteurVitesse(qint64 tempsMs) const;
+	const qint64 INTERVALLE_SPAWN_DEFAUT = 1500;
+	const qint64 VARIATION_SPAWN_DEFAUT = 500;
+	const double MARGE_ECRAN_DEFAULT = 100.0;
 
+	const qint64 INTERVALLE_SPAWN_BUSH_LOUCHE = 11500;
+	const qint64 VARIATION_SPAWN_BUSH_LOUCHE = 20000;
+
+	const qint64 INTERVALLE_DIFFICULTE = 15000;
+	const double MULTIPLICATEUR_PALIER = 1.15;
+	const double FACTEUR_MAX = 3;
 };
 
 #endif
