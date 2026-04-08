@@ -23,6 +23,19 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
     cannettes->show();
     cannettes->lower();
 
+    connect(cannettes, &DecorationMenu::canetteCliquee, this, [this](int index) {
+        if (easterEgg || fadeEnCours) {
+            return;
+        }
+        easterEgg = new EasterEggDialog(index, this);
+        connect(easterEgg, &QDialog::finished, this, [this]() {
+            easterEgg = nullptr;
+        });
+        easterEgg->exec();
+    });
+
+    qApp->installEventFilter(this);
+
     overlay = new FadeOverlay(this);
     overlay->setGeometry(rect());
     overlay->raise();
@@ -65,6 +78,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
 }
 
 MenuPrincipal::~MenuPrincipal() {
+    qApp->removeEventFilter(this);
 }
 
 QRect MenuPrincipal::zonePanneauxBas() const
@@ -402,4 +416,40 @@ bool MenuPrincipal::manetteConnectee() const
     }
 
     return touches->isJoystickConnected() || touches->isJoystickPersoConnected();
+}
+
+void MenuPrincipal::mousePressEvent(QMouseEvent* e)
+{
+    if (cannettes && !easterEgg && !fadeEnCours) {
+        const int n = cannettes->nombreCanettes();
+        for (int i = 0; i < n; ++i) {
+            if (cannettes->zoneCanette(i).contains(e->pos())) {
+                emit cannettes->canetteCliquee(i);
+                return;
+            }
+        }
+    }
+
+    QWidget::mousePressEvent(e);
+}
+
+bool MenuPrincipal::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() == QEvent::MouseButtonPress && cannettes && !easterEgg && !fadeEnCours) {
+        QWidget* w = qobject_cast<QWidget*>(obj);
+
+        if (w && (w == this || isAncestorOf(w))) {
+            QMouseEvent* me = static_cast<QMouseEvent*>(event);
+
+            const QPoint posLocal = w->mapTo(this, me->pos());
+            const int n = cannettes->nombreCanettes();
+            for (int i = 0; i < n; ++i) {
+                if (cannettes->zoneCanette(i).contains(posLocal)) {
+                    emit cannettes->canetteCliquee(i);
+                    return true;
+                }
+            }
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

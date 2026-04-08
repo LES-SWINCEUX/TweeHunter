@@ -43,6 +43,7 @@ SOURCES += \
     panneau_menu.cpp \
     panneau_principal.cpp \
     decoration_menu.cpp \
+    easter_egg_dialog.cpp \
     bouton.cpp \
     sprite.cpp \
     spritesheet.cpp \
@@ -95,6 +96,7 @@ HEADERS += \
     panneau_menu.h \
     panneau_principal.h \
     decoration_menu.h \
+    easter_egg_dialog.h \
     bouton.h \
     sprite.h \
     spritesheet.h \
