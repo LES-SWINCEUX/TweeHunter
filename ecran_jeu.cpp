@@ -1,6 +1,4 @@
 #include "ecran_jeu.h"
-#include <iostream>
-using namespace std;
 
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
     : QWidget(parent)

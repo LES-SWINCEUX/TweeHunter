@@ -44,8 +44,6 @@ struct Enpleineface {
 
 };
 
-using namespace std;
-
 class Jeu
 {
 
