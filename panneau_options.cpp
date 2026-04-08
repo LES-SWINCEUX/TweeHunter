@@ -1,10 +1,12 @@
 #include "panneau_options.h"
 
-PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent) : PanneauMenu(parent)
+PanneauOptions::PanneauOptions(GestionnaireAudio* gestionnaireAudio, bool manetteConnectee, QWidget* parent) : PanneauMenu(parent)
 {
     this->gestionnaireAudio = gestionnaireAudio;
     initialiserPanneau();
-    naviguerBas();
+    if (manetteConnectee) {
+        naviguerBas();
+    }
 }
 
 PanneauOptions::~PanneauOptions() {}

@@ -8,7 +8,7 @@ class PanneauPrincipal : public PanneauMenu
 {
     Q_OBJECT
 public:
-    PanneauPrincipal(QWidget* parent = nullptr);
+    PanneauPrincipal(bool manetteConnectee = false, QWidget* parent = nullptr);
     ~PanneauPrincipal();
 
     QList<Bouton*> boutonsNavigables() const override;

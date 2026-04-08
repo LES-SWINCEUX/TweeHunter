@@ -1,4 +1,5 @@
 #include "Reticule.h"
+
 Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette manetteActive_, Touches* t)
 	: QWidget(parent), manetteActive(manetteActive_)
 {
@@ -20,35 +21,27 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 		QTimer* timer = new QTimer(this);
 		timer->start(16);
 
-		gamepad = touches->getGamepad();
-
-		if (gamepad) {
-			xini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
-			yini = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
-		}
-
 		connect(timer, &QTimer::timeout, this, [=]() {
-			if (!gamepad) return;
+			touches->mettreAJour();
 
-			SDL_UpdateGamepads();
+			float x = touches->axeX();
+			float y = touches->axeY();
 
-			float x = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
-			float y = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
-
-			if (std::fabs(x) < 0.1f) x = 0;
-			if (std::fabs(y) < 0.1f) y = 0;
-
-			if (std::sqrt((x - xini) * (x - xini) + (y - yini) * (y - yini)) > protJoystick) {
-				moveJoystick(x, y, parent);
+			if (std::fabs(x) < 0.1f) {
+				x = 0.0f;
 			}
+
+			if (std::fabs(y) < 0.1f) {
+				y = 0.0f;
+			}
+
+			moveJoystick(x, y, parent);
 		});
 	}
 }
 
-Reticule::~Reticule() {
-}
-
-void Reticule::ChangeReticule(QWidget* parent,int choix) {
+void Reticule::ChangeReticule(QWidget* parent, int choix)
+{
 	QPoint pos(getX(), getY());
 
 	choixTir = choix;
@@ -58,11 +51,9 @@ void Reticule::ChangeReticule(QWidget* parent,int choix) {
 	resize(parent->size());
 
 	setPosition(pos);
-
 }
 
-
-string Reticule::getPath(int choix) const
+std::string Reticule::getPath(int choix) const
 {
 	Variete v;
 	return v.findpath(choix);
@@ -82,85 +73,48 @@ void Reticule::setPosition(const QPoint& pos)
 	update();
 }
 
-void Reticule::moveJoystick(int x, int y, QWidget* parent)
+void Reticule::moveJoystick(float dx, float dy, QWidget* parent)
 {
-	int facteurRedu = 1000;
-	posX += (x / facteurRedu);
-	posY += (y / facteurRedu);
+	// dx/dy sont normalisés [-1, 1] — vitesse en pixels par frame (à 60fps ~16ms)
+	const float vitesse = 28.0f;
+	posX += int(dx * vitesse);
+	posY += int(dy * vitesse);
 
-	if (posX > (parent->width() - image.width() / 2)) {
-		posX = parent->width() - image.width() / 2;
-	}
-
-	if (posX < -image.width() / 2) {
-		posX = -image.width() / 2;
-	}
-
-	if (posY > parent->height() - image.height() / 2) {
-		posY = parent->height() - image.height() / 2;
-	}
-
-	if (posY < -image.height() / 2) {
-		posY = -image.height() / 2;
-	}
-
+	bornerPosition(parent);
 	move(posX, posY);
 	update();
 }
 
-void Reticule::moveJoystickPerso(int x, int y, QWidget* parent)
-{
-	int facteurRedu = 20;
-
-	posX += ((x - 512) / facteurRedu);
-	posY += ((y - 512) / facteurRedu);
-
-	if (posX > (parent->width() - image.width() / 2)) {
-		posX = parent->width() - image.width() / 2;
-	}
-
-	if (posX < -image.width() / 2) {
-		posX = -image.width() / 2;
-	}
-
-	if (posY > parent->height() - image.height() / 2) {
-		posY = parent->height() - image.height() / 2;
-	}
-
-	if (posY < -image.height() / 2) {
-		posY = -image.height() / 2;
-	}
-
-	move(posX, posY);
-}
-
 void Reticule::applyJoystickPerso(QWidget* parent, float deltaMs)
 {
-	int x = touches->getxPerso();
-	int y = touches->getyPerso();
+	float dx = touches->customAxeX();
+	float dy = touches->customAxeY();
 
-	float dx = (x - 512) / 512.0f;
-	float dy = (y - 512) / 512.0f;
+	if (std::sqrt(dx * dx + dy * dy) < 0.06f) {
+		return;
+	}
 
-	if (sqrt(dx * dx + dy * dy) < 0.06f) return;
-
-	float vitesse = 1.0f;
+	const float vitesse = 1.0f;
 
 	accumX += dx * vitesse * deltaMs;
 	accumY += dy * vitesse * deltaMs;
 
-	int moveX = (int)accumX;
-	int moveY = (int)accumY;
+	int moveX = int(accumX);
+	int moveY = int(accumY);
 	accumX -= moveX;
 	accumY -= moveY;
 
 	posX += moveX;
 	posY += moveY;
 
-	posX = qBound(-image.width() / 2, posX, parent->width() - image.width() / 2);
-	posY = qBound(-image.height() / 2, posY, parent->height() - image.height() / 2);
-
+	bornerPosition(parent);
 	move(posX, posY);
+}
+
+void Reticule::bornerPosition(QWidget* parent)
+{
+	posX = qBound(-image.width() / 2,  posX, parent->width()  - image.width()  / 2);
+	posY = qBound(-image.height() / 2, posY, parent->height() - image.height() / 2);
 }
 
 void Reticule::paintEvent(QPaintEvent*)

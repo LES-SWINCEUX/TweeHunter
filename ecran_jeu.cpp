@@ -1,6 +1,4 @@
 #include "ecran_jeu.h"
-#include <iostream>
-using namespace std;
 
 EcranJeu::EcranJeu(GestionnaireAudio* gestionnaireAudio, const ConfigurationPartie& configuration, QWidget* parent, Touches* touches)
     : QWidget(parent)
@@ -37,19 +35,11 @@ void EcranJeu::initReticuleEtArmes()
     armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
 
-    gamepad = reticule->getGamepad();
-
-    if (SDL_Init(SDL_INIT_GAMEPAD) < 0) {
-        qDebug() << "Erreur SDL:" << SDL_GetError();
-    }
-
-    gestionnaireEntrees = new GestionnaireEntrees(configurationPartie, reticule, gamepad, this);
-
-    connect(gestionnaireEntrees, &GestionnaireEntrees::tireDemande, this, &EcranJeu::tire);
-    connect(gestionnaireEntrees, &GestionnaireEntrees::reloadDemande, this, &EcranJeu::rechargerArme);
-    connect(gestionnaireEntrees, &GestionnaireEntrees::pauseDemande, this, &EcranJeu::mettreEnPause);
-    connect(gestionnaireEntrees, &GestionnaireEntrees::powerUpDemande, this, &EcranJeu::Power);
-    connect(gestionnaireEntrees, &GestionnaireEntrees::joystickDeplace, this, [this](float delta) {
+    connect(touches, &Touches::tireDemande,     this, &EcranJeu::tire);
+    connect(touches, &Touches::reloadDemande,   this, &EcranJeu::rechargerArme);
+    connect(touches, &Touches::pauseDemande,    this, &EcranJeu::mettreEnPause);
+    connect(touches, &Touches::powerUpDemande,  this, &EcranJeu::Power);
+    connect(touches, &Touches::joystickDeplace, this, [this](float delta) {
         reticule->applyJoystickPerso(this, delta);
     });
 }
@@ -109,7 +99,7 @@ void EcranJeu::initAudio()
 
 void EcranJeu::initAnimations()
 {
-    arrierePlan = SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png");
+    bg.setSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/jeu/background.png"));
     setAttribute(Qt::WA_OpaquePaintEvent);
 
     overlay = new FadeOverlay(this);
@@ -191,13 +181,7 @@ void EcranJeu::resizeEvent(QResizeEvent* e)
 {
     QWidget::resizeEvent(e);
 
-    arrierePlanCache = QPixmap();
-    if (arrierePlan && !arrierePlan->isNull() && width() > 0 && height() > 0) {
-        QPixmap scaled = arrierePlan->scaled(size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-        int x = std::max(0, (scaled.width()  - width())  / 2);
-        int y = std::max(0, (scaled.height() - height()));
-        arrierePlanCache = scaled.copy(QRect(x, y, width(), height()));
-    }
+    bg.mettreAJour(size(), ArrierePlan::AncrageV::Bas);
 
     auto redimensionnerOverlay = [this](QWidget* w) {
         if (w) { w->setGeometry(rect()); w->raise(); }
@@ -229,8 +213,8 @@ void EcranJeu::tick()
 
     declencherFinPartie();
 
-    if (gestionnaireEntrees) {
-        gestionnaireEntrees->lire(deltaMs);
+    if (touches) {
+        touches->lireJeu(configurationPartie.manette, deltaMs);
     }
 
     update();
@@ -435,13 +419,8 @@ void EcranJeu::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
 
-    if (!arrierePlanCache.isNull()) {
-        painter.drawPixmap(0, 0, arrierePlanCache);
-    }
-    else if (!arrierePlan.isNull()) {
-        painter.drawPixmap(rect(), *arrierePlan);
-    }
-    else {
+    bg.dessiner(painter);
+    if (!bg.estValide()) {
         painter.fillRect(rect(), Qt::black);
     }
 

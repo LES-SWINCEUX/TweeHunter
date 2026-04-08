@@ -1,9 +1,11 @@
 #include "panneau_principal.h"
 
-PanneauPrincipal::PanneauPrincipal(QWidget* parent) : PanneauMenu(parent)
+PanneauPrincipal::PanneauPrincipal(bool manetteConnectee, QWidget* parent) : PanneauMenu(parent)
 {
     initialiserPanneau();
-    naviguerBas();
+    if (manetteConnectee) {
+        naviguerBas();
+    }
 }
 
 PanneauPrincipal::~PanneauPrincipal() {}
