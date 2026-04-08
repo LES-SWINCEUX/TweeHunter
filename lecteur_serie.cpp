@@ -14,7 +14,7 @@ void LecteurSerie::demarrer()
         emit accelerometreChange(touches->getAccelerometre());
         emit joystickChange(touches->getxPerso(), touches->getyPerso());
 
-        int enc = touches->getEncodeur();
+        int enc = touches->useLastEncodeur();
         if (enc != 0) {
             emit encodeurChange(enc);
         }
