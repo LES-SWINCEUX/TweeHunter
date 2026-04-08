@@ -31,18 +31,22 @@ protected:
 private:
     void chargerSpriteSheet();
     void recalcWidgetSize();
-    int  indexType(PowerUpType t) const;
+
+    int indexType(PowerUpType t) const;
 
     QSharedPointer<QPixmap> spriteSheet;
     QLabel* labelCount = nullptr;
 
     PowerUpType typePowerUp;
+
     int nbRestant  = 0;
     int nbMax = 0;
 
-    static constexpr int NB_COLONNES = 4;
     QSize tailleIcon;
+
     float echelle = 1.0f;
+
+    const int NB_COLONNES = 4;
 };
 
 #endif

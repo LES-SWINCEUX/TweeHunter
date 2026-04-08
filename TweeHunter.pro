@@ -50,6 +50,7 @@ SOURCES += \
     ecran_jeu.cpp \
     ecran_fin_partie.cpp \
     ecran_parametres.cpp \
+    ecran_regles.cpp \
     panneau_options.cpp \
     volume_bouton.cpp \
     fade_overlay.cpp \
@@ -85,7 +86,6 @@ SOURCES += \
     water.cpp \
     poison.cpp \
     bush.cpp \
-    gestionnaire_entrees.cpp \
     lecteur_serie.cpp
 
 HEADERS += \
@@ -101,6 +101,7 @@ HEADERS += \
     ecran_jeu.h \
     ecran_fin_partie.h \
     ecran_parametres.h \
+    ecran_regles.h \
     fade_overlay.h \
     panneau_options.h \
     volume_bouton.h \
@@ -137,7 +138,7 @@ HEADERS += \
     water.h \
     poison.h \
     gestionnaire_configuration.h \
-    gestionnaire_entrees.h \
+    arriere_plan.h \
     lecteur_serie.cpp
 
 # Default rules for deployment.

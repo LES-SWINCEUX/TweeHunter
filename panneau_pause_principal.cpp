@@ -1,13 +1,12 @@
 #include "panneau_pause_principal.h"
 
-#include <algorithm>
-#include <iostream>
-
-PanneauPausePrincipal::PanneauPausePrincipal(QWidget* parent)
+PanneauPausePrincipal::PanneauPausePrincipal(bool manetteConnectee, QWidget* parent)
     : PanneauMenu(parent)
 {
     initialiserPanneau();
-    naviguerBas();
+    if (manetteConnectee) {
+        naviguerBas();
+    }
 }
 
 PanneauPausePrincipal::~PanneauPausePrincipal() {}

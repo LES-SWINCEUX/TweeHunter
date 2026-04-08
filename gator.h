@@ -13,7 +13,7 @@ public:
 private:
     static const QVector<QString> spritesPlus18;
     static const QVector<QString> spritesMoins18;
-    static QString choisirSprite(ModeJeu mode);
+    QString choisirSprite(ModeJeu mode);
 };
 
 #endif

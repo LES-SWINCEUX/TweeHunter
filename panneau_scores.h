@@ -20,7 +20,7 @@ class PanneauScores : public PanneauMenu
 {
     Q_OBJECT
 public:
-    PanneauScores(QWidget* parent = nullptr);
+    PanneauScores(bool manetteConnectee = false, QWidget* parent = nullptr);
     ~PanneauScores() = default;
 
     QList<Bouton*> boutonsNavigables() const override;
@@ -31,21 +31,21 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    TexteMenu* setupTexteMenu(const QString& txt);
-
-    Bouton*  boutonRetour = nullptr;
-    QFont fontPixel;
-    QSharedPointer<QPixmap> imgPanneau;
-
     struct Ligne {
         TexteMenu* rang = nullptr;
         TexteMenu* nom = nullptr;
         TexteMenu* score = nullptr;
     };
-    QList<Ligne> lignes;
-    QLabel* labelTitre = nullptr;
 
     void rafraichirLignes();
+    TexteMenu* setupTexteMenu(const QString& txt);
+
+    Bouton* boutonRetour = nullptr;
+    QFont fontPixel;
+    QSharedPointer<QPixmap> imgPanneau;
+
+    QList<Ligne> lignes;
+    QLabel* labelTitre = nullptr;
 };
 
 #endif

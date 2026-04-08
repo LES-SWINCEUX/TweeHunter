@@ -8,11 +8,12 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QElapsedTimer>
+
+#include "panneau_pause_principal.h"
 #include "panneau_menu.h"
 #include "panneau_options.h"
 #include "panneau_scores.h"
 #include "sprite_manager.h"
-#include <SDL3/SDL.h>
 #include "Touches.h"
 
 class MenuPauseOverlay : public QWidget
@@ -33,14 +34,6 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
-    GestionnaireAudio* gestionnaireAudio = nullptr;
-    PanneauMenu* panneau = nullptr;
-    QSharedPointer<QPixmap> titreSprite = nullptr;
-
-    QTimer timerAnimationTitre;
-    QTimer timerManette;
-    QElapsedTimer timerPauseAnimation;
-
     QRect zonePourPanneau(PanneauMenu* p) const;
     QRect zonePanneauxBas() const;
 
@@ -53,13 +46,15 @@ private:
     void afficherTitre(QPainter& painter);
 
     void initialiserManette();
-    void tickManette();
+    bool manetteConnectee() const;
 
-    const int nombreImageTitre = 12;
-    const int tempsAnimation = 1000;
-    const int tempsAttenteAnimation = 9000;
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+    PanneauMenu* panneau = nullptr;
+    QSharedPointer<QPixmap> titreSprite = nullptr;
 
-    const float ratioPanneaux = 0.25f;
+    QTimer timerAnimationTitre;
+    QTimer timerManette;
+    QElapsedTimer timerPauseAnimation;
 
     int indexImageTitre = 0;
     int imagesAffichees = 0;
@@ -68,16 +63,14 @@ private:
     bool fadeEnCours = false;
     bool cacherTitre = false;
 
-    bool dpadHautPrecedent = false;
-    bool dpadBasPrecedent = false;
-    bool boutonOkPrecedent = false;
+    Touches* touches = nullptr;
 
-    SDL_Gamepad* gamepad = nullptr;
+    const int NOMBRE_IMAGE_TITRE = 12;
+    const int TEMPS_ANIMATION = 1000;
+    const int TEMPS_ATTENTE_ANIMATION = 9000;
+    const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
 
-    Touches* touchesPerso = nullptr;
-    bool customHautPrecedent = false;
-    bool customBasPrecedent = false;
-    bool customOkPrecedent = false;
+    const float RATIO_PANNEAUX = 0.25f;
 };
 
 #endif

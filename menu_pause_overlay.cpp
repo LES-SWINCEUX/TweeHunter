@@ -1,33 +1,62 @@
 #include "menu_pause_overlay.h"
 
-#include <QKeyEvent>
-
-#include "panneau_pause_principal.h"
-
-MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touches)
+MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget* parent, Touches* touchesParam)
     : QWidget(parent), titreSprite(SpriteManager::instance().getPixmap(QDir::currentPath() + "/images/menu/titre.png"))
 {
-    touchesPerso = touches;
+    touches = touchesParam;
     this->gestionnaireAudio = gestionnaireAudio;
-
     setAttribute(Qt::WA_TranslucentBackground);
     setFocusPolicy(Qt::StrongFocus);
     setFocus();
 
     configuerAnimationTitre();
 
-    connect(&timerManette, &QTimer::timeout, this, &MenuPauseOverlay::tickManette);
-    timerManette.setInterval(16);
-    timerManette.start();
+    connect(&timerManette, &QTimer::timeout, this, [this]() {
+        if (!panneau) {
+            return;
+        }
 
-    initialiserManette();
+        if (touches) {
+            touches->verifierConnexion();
+            touches->lireNavigation();
+        }
+    });
+    timerManette.setInterval(16);
+
+    if (touches) {
+        connect(touches, &Touches::naviguerHaut, this, [this]() { 
+            if (panneau) {
+                panneau->naviguerHaut();
+            }
+        });
+
+        connect(touches, &Touches::naviguerBas, this, [this]() { 
+            if (panneau) {
+                panneau->naviguerBas();
+            }
+        });
+
+        connect(touches, &Touches::naviguerConfirmer, this, [this]() { 
+            if (panneau) {
+                panneau->confirmer();
+            }
+        });
+
+        connect(touches, &Touches::naviguerRetour, this, [this]() { 
+            emit reprendreDemande(); 
+        });
+    }
+
+    // Délai avant de démarrer le polling pour éviter de capter le bouton Start
+    // encore enfoncé au moment où le menu de pause s'ouvre.
+    QTimer::singleShot(200, this, [this]() { timerManette.start(); });
 
     afficherPanneauPrincipal();
 }
 
 QRect MenuPauseOverlay::zonePanneauxBas() const
 {
-    const int decalageY = int(height() * ratioPanneaux);
+    const int decalageY = int(height() * RATIO_PANNEAUX);
     return QRect(0, decalageY, width(), std::max(0, height() - decalageY));
 }
 
@@ -92,110 +121,34 @@ void MenuPauseOverlay::keyPressEvent(QKeyEvent* e)
     }
 }
 
-void MenuPauseOverlay::initialiserManette()
+bool MenuPauseOverlay::manetteConnectee() const
 {
-    if (!SDL_WasInit(SDL_INIT_GAMEPAD)) {
-        SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+    if (!touches) {
+        return false;
     }
 
-    int count = 0;
-    SDL_JoystickID* ids = SDL_GetGamepads(&count);
-    if (ids && count > 0) {
-        gamepad = SDL_OpenGamepad(ids[0]);
-        SDL_free(ids);
-    }
+    return touches->isJoystickConnected() || touches->isJoystickPersoConnected();
 }
 
-void MenuPauseOverlay::tickManette()
+void MenuPauseOverlay::initialiserManette()
 {
-    if (!panneau) return;
-
-    SDL_PumpEvents();
-
-    if (!gamepad || !SDL_GamepadConnected(gamepad)) {
-        if (gamepad) { 
-            SDL_CloseGamepad(gamepad); gamepad = nullptr;
-        }
-        initialiserManette();
-    }
-
-    bool haut = false;
-    bool bas = false;
-    bool ok = false;
-    bool retour = false;
-
-    if (gamepad && SDL_GamepadConnected(gamepad)) {
-        bool dpadHaut = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-        bool dpadBas = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-        bool joystickHaut = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) < -16000;
-        bool joystickBas = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY) >  16000;
-        bool croix = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-        bool rond = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST);
-
-        haut = dpadHaut || joystickHaut;
-        bas = dpadBas || joystickBas;
-        ok = croix;      
-        retour = rond;
-    }
-
-    if (haut && !dpadHautPrecedent) {
-        panneau->naviguerHaut();
-    }
-
-    if (bas && !dpadBasPrecedent) {
-        panneau->naviguerBas();
-    }
-
-    if (ok && !boutonOkPrecedent) {
-        panneau->confirmer();
-    }
-
-    if (retour && !boutonOkPrecedent) {
-        emit reprendreDemande();
-    }
-
-    dpadHautPrecedent = haut;
-    dpadBasPrecedent = bas;
-    boutonOkPrecedent = ok || retour;
-
-    if (touchesPerso && touchesPerso->isJoystickPersoConnected()) {
-        touchesPerso->lirePerso();
-
-        int jy = touchesPerso->getyPerso();
-        bool customHaut = (jy < 300);
-        bool customBas  = (jy > 700);
-        bool customOk   = touchesPerso->getGachette();
-
-        if (customHaut && !customHautPrecedent) {
-            panneau->naviguerHaut();
-        }
-
-        if (customBas && !customBasPrecedent) {
-            panneau->naviguerBas();
-        }
-
-        if (customOk && !customOkPrecedent) {
-            panneau->confirmer();
-        }
-
-        customHautPrecedent = customHaut;
-        customBasPrecedent = customBas;
-        customOkPrecedent = customOk;
+    if (touches) {
+        touches->verifierConnexion();
     }
 }
 
 void MenuPauseOverlay::configuerAnimationTitre() {
-    timerAnimationTitre.setInterval(tempsAnimation / 18);
+    timerAnimationTitre.setInterval(INTERVALE_TITRE_MS);
 
     connect(&timerAnimationTitre, &QTimer::timeout, this, [this]() {
 
         if (animationActive)
         {
-            indexImageTitre = (indexImageTitre + 1) % nombreImageTitre;
+            indexImageTitre = (indexImageTitre + 1) % NOMBRE_IMAGE_TITRE;
             imagesAffichees++;
             update();
 
-            if (imagesAffichees < nombreImageTitre) {
+            if (imagesAffichees < NOMBRE_IMAGE_TITRE) {
                 return;
             }
 
@@ -203,7 +156,7 @@ void MenuPauseOverlay::configuerAnimationTitre() {
             imagesAffichees = 0;
             timerPauseAnimation.restart();
         }
-        else if (timerPauseAnimation.elapsed() >= tempsAttenteAnimation)
+        else if (timerPauseAnimation.elapsed() >= TEMPS_ATTENTE_ANIMATION)
         {
             animationActive = true;
             indexImageTitre = 0;
@@ -219,7 +172,7 @@ void MenuPauseOverlay::afficherPanneauPrincipal() {
 
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauPausePrincipal(this);
+    panneau = new PanneauPausePrincipal(manetteConnectee(), this);
     panneau->setGeometry(zonePourPanneau(panneau));
 
     if (ancienPanneau) {
@@ -239,7 +192,7 @@ void MenuPauseOverlay::afficherPanneauPrincipal() {
 void MenuPauseOverlay::afficherOptions() {
     PanneauMenu* ancienPanneau = panneau;
 
-    panneau = new PanneauOptions(this->gestionnaireAudio, this);
+    panneau = new PanneauOptions(this->gestionnaireAudio, manetteConnectee(), this);
     panneau->setGeometry(zonePourPanneau(panneau));
 
     if (ancienPanneau) {
@@ -253,7 +206,9 @@ void MenuPauseOverlay::afficherOptions() {
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
         // Index 2 = bouton Options (Jouer=0, Scores=1, Options=2, Quitter=3)
-        panneau->focusSurIndex(2);
+        if (manetteConnectee()) {
+            panneau->focusSurIndex(2);
+        }
     });
 }
 
@@ -264,7 +219,7 @@ void MenuPauseOverlay::afficherPanneauScores()
 
     PanneauMenu* ancien = panneau;
 
-    panneau = new PanneauScores(this);
+    panneau = new PanneauScores(manetteConnectee(), this);
     panneau->setGeometry(rect());
     panneau->show();
     panneau->raise();
@@ -277,7 +232,9 @@ void MenuPauseOverlay::afficherPanneauScores()
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
         // Index 1 = bouton Scores (Jouer=0, Scores=1, Options=2, Quitter=3)
-        panneau->focusSurIndex(1);
+        if (manetteConnectee()) {
+            panneau->focusSurIndex(1);
+        }
     });
 }
 
@@ -286,7 +243,7 @@ void MenuPauseOverlay::afficherTitre(QPainter& painter) {
         return;
     }
 
-    const int largeurImage = titreSprite->width() / nombreImageTitre;
+    const int largeurImage = titreSprite->width() / NOMBRE_IMAGE_TITRE;
     const int hauteurImage = titreSprite->height();
     if (largeurImage <= 0 || hauteurImage <= 0) {
         return;

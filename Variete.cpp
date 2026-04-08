@@ -8,8 +8,8 @@ Variete::Variete()
 Variete::~Variete() {
 }
 
-string Variete::findpath(int iteration)
+std::string Variete::findpath(int iteration)
 {
-	string path = BasePath + to_string(iteration) + ".png";
+	std::string path = BasePath + std::to_string(iteration) + ".png";
 	return path;
 }

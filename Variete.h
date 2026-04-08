@@ -4,19 +4,16 @@
 #include <string>
 #include <QDir>
 
-using namespace std;
-
 class Variete
 {
 	public:
 		Variete();
 		~Variete();
 
-		string findpath(int iteration);
+		std::string findpath(int iteration);
 
 	private:
-		string BasePath;
-
+		std::string BasePath;
 };
 
 #endif

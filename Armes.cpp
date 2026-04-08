@@ -11,10 +11,6 @@ QPainterPath Armes::choixArme(int x, int y) {
 	return Hitbox(ArmeActuelle, x, y);
 }
 
-QPainterPath Armes::choixPowerUp(int x, int y) {
-	return Hitbox(PowerActuelle, x, y);
-}
-
 QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
 	QPainterPath Hitbox;
 	switch (choix) {
@@ -39,6 +35,8 @@ QPainterPath Armes::Hitbox(PowerUpType choix, int x, int y) {
 QPainterPath Armes::Hitbox(int choix, int x, int y)
 {
 	QPainterPath Hitbox;
+	int largeur = 120;
+	int hauteur = 195;
 
 	switch (choix) {
 	case 1:
@@ -67,7 +65,7 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		return Hitbox;
 	case 6:
 		// Swince : comportement temporaire en attendant un réticule dédié
-		Hitbox.addEllipse(QPointF(x, y), 45, 45);
+		Hitbox.addRect(x-(largeur/2), y-(hauteur/2), largeur, hauteur);
 		return Hitbox;
 	default:
 		return Hitbox;
@@ -102,6 +100,21 @@ int Armes::nbPowerUp() const {
 		return 9;
 	case PowerUpType::MITRAILLETTE:
 		return 2;
+	case PowerUpType::TACTICAL_NUKE:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+int Armes::addPowerUp() {
+	switch (PowerActuelle) {
+	case PowerUpType::GRENADE:
+		return 2;
+	case PowerUpType::ZAP:
+		return 5;
+	case PowerUpType::MITRAILLETTE:
+		return 1;
 	case PowerUpType::TACTICAL_NUKE:
 		return 1;
 	default:

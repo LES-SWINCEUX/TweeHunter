@@ -4,13 +4,9 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
 {
     gamepad = nullptr;
 
-    joystickOficiel = false;
+    joystickOfficiel = false;
 
-    if (SDL_Init(SDL_INIT_GAMEPAD) < 0)
-    {
-        qDebug() << "Erreur SDL:" << SDL_GetError();
-        return;
-    }
+    SDL_PumpEvents();
 
     int count = 1;
     SDL_JoystickID* ids = SDL_GetGamepads(&count);
@@ -23,7 +19,7 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
         SDL_free(ids);
 
         if (gamepad) {
-            joystickOficiel = true;
+            joystickOfficiel = true;
         }
     }
 
@@ -45,6 +41,13 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
 }
 
 Touches::~Touches() {
+    if (gamepad) {
+        SDL_CloseGamepad(gamepad);
+        gamepad = nullptr;
+    }
+    if (serial.isOpen()) {
+        serial.close();
+    }
 }
 
 bool Touches::RTpressed() const {
@@ -123,7 +126,324 @@ void Touches::lirePerso() {
     }
 }
 
-int Touches::UseLastEncodeur() {
+void Touches::mettreAJour()
+{
+    if (joystickOfficiel && gamepad) {
+        SDL_UpdateGamepads();
+    }
+    if (joystickPerso) {
+        lirePerso();
+    }
+}
+
+bool Touches::haut() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) || axeY() < -DEAD_ZONE_STANDARD;
+}
+
+bool Touches::bas() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) || axeY() > DEAD_ZONE_STANDARD;
+}
+
+bool Touches::gauche() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || axeX() < -DEAD_ZONE_STANDARD;
+}
+
+bool Touches::droite() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) || axeX() > DEAD_ZONE_STANDARD;
+}
+
+bool Touches::confirmer() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) || SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+}
+
+bool Touches::retour() const
+{
+    if (!gamepad) {
+        return false;
+    }
+
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST) || SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK);
+}
+
+float Touches::axeX() const
+{
+    if (!gamepad) {
+        return 0.0f;
+    }
+
+    return std::clamp(float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f, -1.0f, 1.0f);
+}
+
+float Touches::axeY() const
+{
+    if (!gamepad) {
+        return 0.0f;
+    }
+
+    return std::clamp(float(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f, -1.0f, 1.0f);
+}
+
+bool Touches::customHaut() const
+{
+    return y < SEUIL_HAUT_CUSTOM;
+}
+
+bool Touches::customBas() const
+{
+    return y > SEUIL_BAS_CUSTOM;
+}
+
+bool Touches::customGauche() const
+{
+    return customAxeX() < -DEAD_ZONE_CUSTOM;
+}
+
+bool Touches::customDroite() const
+{
+    return customAxeX() > DEAD_ZONE_CUSTOM;
+}
+
+float Touches::customAxeX() const
+{
+    return std::clamp((float(x) - 512.0f) / 512.0f, -1.0f, 1.0f);
+}
+
+float Touches::customAxeY() const
+{
+    return std::clamp((float(y) - 512.0f) / 512.0f, -1.0f, 1.0f);
+}
+
+void Touches::lireNavigation()
+{
+    mettreAJour();
+
+    if (joystickOfficiel && gamepad) {
+        const bool h = haut();
+        const bool b = bas();
+        const bool g = gauche();
+        const bool d = droite();
+        const bool ok = confirmer();
+        const bool re = retour();
+
+        // Dead zone joystick pour éviter les répétitions
+        const bool enDeadZone = std::abs(axeX()) < DEAD_ZONE_STANDARD && std::abs(axeY()) < DEAD_ZONE_STANDARD;
+        if (enDeadZone) navVerrouJoystick = false;
+
+        if (h && !navHautPrecedent) {
+            emit naviguerHaut();
+        }
+
+        if (b && !navBasPrecedent) {
+            emit naviguerBas();
+        }
+
+        if (g && !navGauchePrecedent) {
+            emit naviguerGauche();
+        }
+
+        if (d && !navDroitePrecedent) {
+            emit naviguerDroite();
+        }
+
+        if (ok && !navOkPrecedent) {
+            emit naviguerConfirmer();
+        }
+
+        if (re && !navRetourPrecedent) {
+            emit naviguerRetour();
+        }
+
+        navHautPrecedent = h;
+        navBasPrecedent = b;
+        navGauchePrecedent = g;
+        navDroitePrecedent = d;
+        navOkPrecedent = ok;
+        navRetourPrecedent = re;
+    }
+
+    // --- Manette custom ---
+    if (joystickPerso) {
+        const bool ch = customHaut();
+        const bool cb = customBas();
+        const bool cg = customGauche();
+        const bool cd = customDroite();
+        const bool co = customConfirmer();
+
+        const bool enDeadZone = !cg && !cd && !ch && !cb;
+
+        if (enDeadZone) {
+            navVerrouJoystickCustom = false;
+        }
+
+        if (!navVerrouJoystickCustom) {
+            if (ch && !navCustomHautPrecedent) { 
+                emit naviguerHaut();   
+                navVerrouJoystickCustom = true; 
+            }
+
+            if (cb && !navCustomBasPrecedent) { 
+                emit naviguerBas();
+                navVerrouJoystickCustom = true;
+            }
+            if (cg && !navCustomGauchePrecedent) {
+                emit naviguerGauche(); 
+                navVerrouJoystickCustom = true; 
+            }
+
+            if (cd && !navCustomHautPrecedent) { 
+                emit naviguerDroite(); 
+                navVerrouJoystickCustom = true; 
+            }
+        }
+
+        if (co && !navCustomOkPrecedent) {
+            emit naviguerConfirmer();
+        }
+
+        navCustomHautPrecedent = ch;
+        navCustomBasPrecedent = cb;
+        navCustomGauchePrecedent = cg;
+        navCustomOkPrecedent = co;
+    }
+}
+
+void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
+{
+    mettreAJour();
+
+    switch (manette) {
+    case TypeManette::STANDARD: {
+        if (!gamepad) return;
+
+        const bool gachetteTir = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > SEUIL_GACHETTE_CUSTOM;
+        const bool gachettePowerUp = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)  > SEUIL_GACHETTE_CUSTOM;
+        const bool reloadBtn = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
+        const bool startBtn = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
+
+        if (gachetteTir && !gachetteTirPrecedente) {
+            emit tireDemande();
+        }
+
+        if (gachettePowerUp && !gachettePowerUpPrecedente) {
+            emit powerUpDemande();
+        }
+
+        if (reloadBtn && !reloadPrecedent) {
+            emit reloadDemande();
+        }
+
+        if (startBtn && !startPrecedent) {
+            emit pauseDemande();
+        }
+
+        gachetteTirPrecedente = gachetteTir;
+        gachettePowerUpPrecedente = gachettePowerUp;
+        reloadPrecedent = reloadBtn;
+        startPrecedent = startBtn;
+        break;
+    }
+    case TypeManette::CUSTOM: {
+        if (!isJoystickPersoConnected()) {
+            return;
+        }
+
+        if (customConfirmer() && !reload) {
+            if (!gachetteTirPrecedente) {
+                emit tireDemande();
+            }
+            gachetteTirPrecedente = true;
+        } else if (!customConfirmer()) {
+            gachetteTirPrecedente = false;
+        }
+
+        if (reload && getAccelerometre()) {
+            emit reloadDemande();
+        }
+
+        if (reload && getEncodeur() != 0) {
+            emit pauseDemande();
+        }
+
+        if (customConfirmer() && reload) {
+            if (!powerUpActif) {
+                powerUpActif = true;
+                emit powerUpDemande();
+            }
+        } else {
+            powerUpActif = false;
+        }
+
+        emit joystickDeplace(float(deltaMs));
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void Touches::verifierConnexion()
+{
+    // Re-détecter la manette standard si elle n'était pas connectée
+    if (!joystickOfficiel || !gamepad) {
+        SDL_PumpEvents();
+        int count = 0;
+        SDL_JoystickID* ids = SDL_GetGamepads(&count);
+        if (ids && count > 0) {
+            if (gamepad) {
+                SDL_CloseGamepad(gamepad);
+                gamepad = nullptr;
+            }
+            gamepad = SDL_OpenGamepad(ids[0]);
+            SDL_free(ids);
+            joystickOfficiel = (gamepad != nullptr);
+        } else {
+            // Manette déconnectée
+            if (gamepad && !SDL_GamepadConnected(gamepad)) {
+                SDL_CloseGamepad(gamepad);
+                gamepad = nullptr;
+                joystickOfficiel = false;
+            }
+            if (ids) {
+                SDL_free(ids);
+            }
+        }
+    } else {
+        // Vérifier si la manette existante est toujours connectée
+        if (!SDL_GamepadConnected(gamepad)) {
+            SDL_CloseGamepad(gamepad);
+            gamepad = nullptr;
+            joystickOfficiel = false;
+        }
+    }
+}
+
+int Touches::useLastEncodeur()
+{
     int temp = lastEncodeur;
     if (temp != 0) {
         lastEncodeur = 0;

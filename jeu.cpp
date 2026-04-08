@@ -1,16 +1,12 @@
 #include "jeu.h"
 
-static const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
-static constexpr int COLONNES_DESTRUCTION = 4;
-static constexpr int LIGNES_DESTRUCTION = 3;
-static constexpr int CYCLE_DESTRUCTION = 1000;
-
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
 	armes = A;
+	compteurPowerUp = C;
 
 	if (!spriteDestruction) {
 		QString chemin = QDir::currentPath() + "/images/sprites/Explosion.png";
@@ -231,6 +227,13 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			if (cible->getType() == TypeTarget::GATOR) {
 				compteurVies->setDemiVies(compteurVies->getDemiVies() + 1);
 			}
+			if (cible->getType() ==TypeTarget::BONUS) {
+				Explosion(cible->getPosition().x(), cible->getPosition().y(), tempsMs);
+
+			}
+			if(cible->getType() == TypeTarget::LEGENDAIRE) {
+				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + armes->addPowerUp());
+			}
 
 			compteurPoints->setPoints(score);
 			ciblesTouchees++;
@@ -316,12 +319,12 @@ bool Jeu::TireGratuit(const int x, const int y, qint64 tempsMs) {
 	return verifierCollisions(armes->choixArme(x, y), tempsMs);
 }
 
-bool Jeu::PowerUp(const int x, const int y, qint64 tempsMs) {
-	return verifierCollisions(armes->choixPowerUp(x, y), tempsMs);
+bool Jeu::PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs) {
+	return verifierCollisions(armes->Hitbox(choix, x, y), tempsMs);
 }
 
-bool Jeu::Explosion(const int x, const int y, qint64 tempsMs, int explo) {
-	return verifierCollisions(armes->Hitbox(explo, x, y), tempsMs);
+bool Jeu::Explosion(const int x, const int y, qint64 tempsMs) {
+	return verifierCollisions(armes->Hitbox(PowerUpType::GRENADE, x, y), tempsMs);
 }
 
 void Jeu::nettoyerCiblesInactives()

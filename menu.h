@@ -1,13 +1,6 @@
 #ifndef MENU_PRINCIPAL_H
 #define MENU_PRINCIPAL_H
 
-#include "panneau_principal.h"
-#include "panneau_options.h"
-#include "decoration_menu.h"
-#include "sprite_manager.h"
-#include "fade_overlay.h"
-#include "gestionnaire_audio.h"
-
 #include <QWidget>
 #include <QPixmap>
 #include <QSharedPointer>
@@ -20,8 +13,15 @@
 #include <QPropertyAnimation>
 #include <iostream>
 #include <algorithm>
-#include <SDL3/SDL.h>
+
 #include "Touches.h"
+#include "panneau_principal.h"
+#include "panneau_options.h"
+#include "decoration_menu.h"
+#include "sprite_manager.h"
+#include "fade_overlay.h"
+#include "gestionnaire_audio.h"
+#include "panneau_scores.h"
 
 class PanneauMenu;
 
@@ -43,6 +43,29 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
+    void configuerAnimationTitre();
+    void lancerFadeIn();
+    void afficherOptions();
+    void afficherPanneauScores();
+    void afficherPanneauPrincipal();
+    void initialiserManette();
+
+    void afficherArrierePlan(QPainter& painter);
+    void afficherTitre(QPainter& painter);
+
+    bool manetteConnectee() const;
+
+    QRect zonePanneauxBas() const;
+    QRect zonePourPanneau(PanneauMenu* p) const;
+
+    int indexImageTitre = 0;
+    int imagesAffichees = 0;
+
+    bool animationActive = true;
+    bool fadeEnCours = false;
+    bool cacherTitre = false;
+    bool restartMusique = false;
+
     QSharedPointer<QPixmap> arrierePlan;
     QSharedPointer<QPixmap> titreSprite;
 
@@ -63,45 +86,16 @@ private:
 
     DecorationMenu* cannettes = nullptr;
 
-    const int nombreImageTitre = 12;
-    const int tempsAnimation = 1000;
-    const int tempsAttenteAnimation = 9000;
-
-    const float ratioPanneaux = 0.25f;
-
-    int indexImageTitre = 0;
-    int imagesAffichees = 0;
-
-    bool animationActive = true;
-    bool fadeEnCours = false;
-    bool cacherTitre = false;
-
-    bool dpadHautPrecedent  = false;
-    bool dpadBasPrecedent   = false;
-    bool boutonOkPrecedent  = false;
-
-    SDL_Gamepad* gamepad = nullptr;
-
-    Touches* touchesPerso   = nullptr;
-    bool customHautPrecedent = false;
-    bool customBasPrecedent  = false;
-    bool customOkPrecedent   = false;
-    bool restartMusique = false;
+    Touches* touches = nullptr;
 
     QElapsedTimer timerPauseAnimation;
-    QRect zonePanneauxBas() const;
-    QRect zonePourPanneau(PanneauMenu* p) const;
 
-    void configuerAnimationTitre();
-    void lancerFadeIn();
-    void afficherArrierePlan(QPainter& painter);
-    void afficherTitre(QPainter& painter);
-    void afficherOptions();
-    void afficherPanneauScores();
-    void afficherPanneauPrincipal();
+    const int NOMBRE_IMAGE_TITRE = 12;
+    const int TEMPS_ANIMATION = 1000;
+    const int TEMPS_ATTENTE_ANIMATION = 9000;
+    const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
 
-    void initialiserManette();
-    void tickManette();
+    const float RATIO_PANNEAUX = 0.25f;
 };
 
 #endif

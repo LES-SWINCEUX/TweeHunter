@@ -33,17 +33,16 @@ protected:
     void paintEvent(QPaintEvent*) override;
 
 private:
-    QString formatterPoints(int v) const;
     void setStyleEcriture();
     void setSpritesheet();
     void recalculerTaille();
+
+    QString formatterPoints(int v) const;
 
     QSharedPointer<QPixmap> spriteSheet;
     QSize tailleSprite;
 
     QFont styleEcriture;
-
-    const int nombrePointsMax = 999999;
 
     int nombreNumero = 4;
 
@@ -55,6 +54,8 @@ private:
     bool estAnime = false;
     int tempsParPoint = 50;
     QTimer timerAnimation;
+    
+    const int NOMBRE_POINTS_MAX = 999999;
 };
 
 #endif

@@ -113,9 +113,9 @@ protected:
 	bool m_aEteDetruite = false;
 	qint64 tempsDebutDestruction;
 
-	static constexpr qint64 DUREE_ANIMATION_DESTRUCTION = 500;
-
 	std::function<void(QPointF)> callbackQuandTouchee = nullptr;
+
+	const qint64 DUREE_ANIMATION_DESTRUCTION = 500;
 };
 
 #endif

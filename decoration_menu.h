@@ -34,6 +34,9 @@ protected:
     void paintEvent(QPaintEvent*) override;
 
 private:
+    void redessiner();
+    QRect zone(const QRectF& zone) const;
+
     QVector<QRectF> zonesN;
     QVector<Sprite> sprites;
 
@@ -45,9 +48,6 @@ private:
 
     int fps = 30;
     int cycle = 1000;
-
-    QRect zone(const QRectF& zone) const;
-    void redessiner();
 };
 
 #endif

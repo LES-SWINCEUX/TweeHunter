@@ -6,6 +6,7 @@
 #include "compteur_points.h"
 #include "compteur_balles.h"
 #include "compteur_vies.h"
+#include "compteur_powerup.h"
 #include <QList>
 #include <QSizeF>
 #include <QTimer>
@@ -25,7 +26,7 @@ struct IndicateurScore {
 	QPointF position;
 	int points;
 	qint64  tempsDebut;
-	static constexpr qint64 DUREE_MS = 1200;
+	static const qint64 DUREE_MS = 1200;
 };
 
 struct Enpleineface {
@@ -44,13 +45,11 @@ struct Enpleineface {
 
 };
 
-using namespace std;
-
 class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr);
 
 	~Jeu();
 
@@ -87,9 +86,9 @@ public:
 
 	bool Tirer(const int x, const int y, qint64 tempsMs);
 	bool TireGratuit(const int x, const int y, qint64 tempsMs);
-	bool PowerUp(const int x, const int y, qint64 tempsMs);
+	bool PowerUp(const int x, const int y, PowerUpType choix, qint64 tempsMs);
 
-	bool Explosion(const int x, const int y, qint64 tempsMs, int explo);
+	bool Explosion(const int x, const int y, qint64 tempsMs);
 
 	Armes* getArmes() const { return this->armes; }
 
@@ -113,11 +112,17 @@ public:
 	}
 
 private:
+	void nettoyerCiblesInactives();
+	void initialiserCiblesParDefaut();
+
+	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
+	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
+
+	void nettoyerEnpleinefaces(qint64 tempsMs);
+	void nettoyerIndicateurs(qint64 tempsMs);
+	void UpdateWave(qint64 tempsMs);
 
 	static QSharedPointer<QPixmap> spriteDestruction;
-	void nettoyerCiblesInactives();
-
-	void initialiserCiblesParDefaut();
 
 	QList<Target*> ciblesActives;
 	Randomiser* randomiser;
@@ -129,28 +134,36 @@ private:
 	int ciblesTouchees;
 	int ciblesManquees;
 	int maxCiblesSimultanees;
+	int niveauDebuff = 0;
+
+	bool enPause;
+	bool enWave = false;
 
 	ModeJeu modeActuel;
-	bool enPause;
 
 	QList<Bush*> bushes;
 	BushLouche* bushLoucheActif = nullptr;
 	GestionnaireAudio* gestionnaireAudio = nullptr;
 	Armes* armes = nullptr;
+	CompteurPowerUp* compteurPowerUp = nullptr;
 
 	std::function<void()> onMoteurDemande;
 
 	QList<IndicateurScore> indicateurs;
-	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
-	void nettoyerIndicateurs(qint64 tempsMs);
 
 	void UpdateWave(qint64 tempsMs);
 
 	QSizeF tailleEcran;
-	int niveauDebuff = 0;
 	QList<Enpleineface> enpleineface;
-	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
-	void nettoyerEnpleinefaces(qint64 tempsMs);
+
+	const int COLONNES_DESTRUCTION = 4;
+	const int LIGNES_DESTRUCTION = 3;
+	const int CYCLE_DESTRUCTION = 1000;
+
+	const qint64 DUREE_WAVE = 10000;
+	const qint64 INTERVALLE_WAVE = 30000;
+
+	const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
 };
 
 #endif

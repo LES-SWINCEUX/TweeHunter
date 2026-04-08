@@ -16,13 +16,13 @@ public:
 	void setArmes(int arme) { ArmeActuelle = arme; }
 
 	QPainterPath choixArme(int x, int y);
-	QPainterPath choixPowerUp(int x, int y);
 
 	QPainterPath Hitbox(int choix, int x, int y);
 	QPainterPath Hitbox(PowerUpType choix, int x, int y);
 	QPainterPath CreerContourTarte(int x, int y);
 	int nbMunitions() const;
 	int nbPowerUp() const;
+	int addPowerUp();
 	int getMult() { return mult; }
 	void setMult(int value) { mult = value; }
 

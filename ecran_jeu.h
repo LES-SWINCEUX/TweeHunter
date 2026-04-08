@@ -9,18 +9,17 @@
 #include <QShowEvent>
 #include <QResizeEvent>
 #include <QPixmap>
-#include <SDL3/SDL.h>
 #include <QKeyEvent>
 #include <QDebug>
 #include <cmath>
 #include <random>
+#include <iostream>
 
 #include "compteur_balles.h"
 #include "compteur_points.h"
 #include "compteur_powerup.h"
 #include "fade_overlay.h"
 #include "gestionnaire_audio.h"
-#include "gestionnaire_entrees.h"
 #include "jeu.h"
 #include "Reticule.h"
 #include "compteur_vies.h"
@@ -28,6 +27,7 @@
 #include "menu_pause_overlay.h"
 #include "Touches.h"
 #include "configuration_partie.h"
+#include "arriere_plan.h"
 
 class EcranJeu : public QWidget
 {
@@ -58,11 +58,14 @@ private:
     void initAudio();
     void initAnimations();
     void initMinuterie();
+    PowerUpType RandomPowerUp();
+
 
     void tick();
     void timeoutReticuleAleatoire();
 
     void Power();
+    void PowerChoose(PowerUpType PowerUp);
     void rechargerArme();
 
     void placerElementsGUI();
@@ -88,20 +91,15 @@ private:
     Armes* armes = nullptr;
     int maxBalles = 0;
 
-    GestionnaireEntrees* gestionnaireEntrees = nullptr;
     Reticule* reticule = nullptr;
-    SDL_Gamepad* gamepad  = nullptr;
     Touches* touches = nullptr;
 
     CompteurBalles* compteurBalles = nullptr;
     CompteurVies* compteurVies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     CompteurPowerUp* compteurPowerUp = nullptr;
-    int LARGEUR_MIN_BALLES = 120;
-    int LARGEUR_MAX_BALLES = 275;
 
-    QSharedPointer<QPixmap> arrierePlan;
-    QPixmap arrierePlanCache;
+    ArrierePlan bg;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
     FadeOverlay* overlay = nullptr;
@@ -120,6 +118,12 @@ private:
 
     QTimer* timer2 = nullptr;
     int compteur = 0;
+    int PowerUpCycle = 0;
+
+	PowerUpType PowerUpMitraillette = PowerUpType::MITRAILLETTE;
+
+    const int LARGEUR_MIN_BALLES = 120;
+    const int LARGEUR_MAX_BALLES = 275;
 };
 
 #endif
