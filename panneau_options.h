@@ -10,7 +10,7 @@ class PanneauOptions : public PanneauMenu
 {
     Q_OBJECT
 public:
-    PanneauOptions(GestionnaireAudio* gestionnaireAudio, QWidget* parent = nullptr);
+    PanneauOptions(GestionnaireAudio* gestionnaireAudio, bool manetteConnectee = false, QWidget* parent = nullptr);
     ~PanneauOptions();
 
     QList<Bouton*> boutonsNavigables() const override;

@@ -20,7 +20,7 @@ class PanneauScores : public PanneauMenu
 {
     Q_OBJECT
 public:
-    PanneauScores(QWidget* parent = nullptr);
+    PanneauScores(bool manetteConnectee = false, QWidget* parent = nullptr);
     ~PanneauScores() = default;
 
     QList<Bouton*> boutonsNavigables() const override;
@@ -42,6 +42,7 @@ private:
         TexteMenu* nom = nullptr;
         TexteMenu* score = nullptr;
     };
+
     QList<Ligne> lignes;
     QLabel* labelTitre = nullptr;
 

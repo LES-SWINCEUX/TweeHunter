@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFontDatabase>
+#include <QApplication>
+#include <QCoreApplication>
+#include <SDL3/SDL.h>
 
 #include "menu.h"
 #include "ecran_jeu.h"

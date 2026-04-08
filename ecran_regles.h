@@ -24,6 +24,7 @@
 #include <QEasingCurve>
 #include <cmath>
 
+#include "arriere_plan.h"
 #include "bouton.h"
 #include "configuration_partie.h"
 #include "fade_overlay.h"
@@ -102,9 +103,7 @@ private:
     void dessinerCartes(QPainter& painter);
     void dessinerCarte(QPainter& painter, const QRect& rect, const CarteRegle& carte);
 
-    QVector<QPixmap> extraireFramesSpritesheet(const QString& cheminSprite,
-        int colonnes,
-        int lignes);
+    QVector<QPixmap> extraireFramesSpritesheet(const QString& cheminSprite, int colonnes, int lignes);
 
     QVector<QString> obtenirCheminsPoisonSelonMode(ModeJeu mode) const;
     QVector<QString> obtenirCheminsGatorSelonMode(ModeJeu mode) const;
@@ -122,6 +121,8 @@ private:
     void lancerTransition(const std::function<void()>& actionFinale, bool fadeMusique);
     void lancerDemarrage();
     void lancerRetour();
+
+    void tickManette();
 
     const int kColonnesSpritesheet = 4;
     const int kLignesSpritesheet = 3;
@@ -170,8 +171,7 @@ private:
     Touches* touches = nullptr;
     ConfigurationPartie configuration;
 
-    QSharedPointer<QPixmap> arrierePlan;
-    QPixmap arrierePlanCache;
+    ArrierePlan bg;
 
     QVector<CarteRegle> cartesRegles;
     MiseEnPage miseEnPage;
@@ -186,6 +186,10 @@ private:
 
     QTimer* timerAnimation = nullptr;
     int tempsAnimationMs = 0;
+
+    QTimer* timerManette = nullptr;
+
+    int indexFocus = 0; // 0 = boutonRetour, 1 = boutonCommencer
 
     bool transitionEnCours = false;
 };

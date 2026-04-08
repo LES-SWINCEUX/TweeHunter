@@ -1,6 +1,6 @@
 ﻿#include "panneau_scores.h"
 
-PanneauScores::PanneauScores(QWidget* parent)
+PanneauScores::PanneauScores(bool manetteConnectee, QWidget* parent)
     : PanneauMenu(parent)
 {
     fontPixel.setFamily("Luckiest Guy");
@@ -9,7 +9,9 @@ PanneauScores::PanneauScores(QWidget* parent)
 
     initialiserPanneau();
 
-    naviguerBas();
+    if (manetteConnectee) {
+        naviguerBas();
+    }
 }
 
 void PanneauScores::creer()
