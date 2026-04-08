@@ -113,8 +113,18 @@ void Bouton::paintEvent(QPaintEvent*)
     p.drawPixmap(rect(), *sprite, rectangleBouton);
 }
 
+void Bouton::setHoverActif(bool valeur)
+{
+    hoverActif = valeur;
+    if (!hoverActif) {
+        survole = false;
+        update();
+    }
+}
+
 void Bouton::enterEvent(QEnterEvent*)
 {
+    if (!hoverActif) return;
     survole = true;
     update();
 }

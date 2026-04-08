@@ -50,6 +50,8 @@ SOURCES += \
     ecran_jeu.cpp \
     ecran_fin_partie.cpp \
     ecran_parametres.cpp \
+    ecran_parametres_layout.cpp \
+    ecran_parametres_navigation.cpp \
     ecran_regles.cpp \
     panneau_options.cpp \
     volume_bouton.cpp \

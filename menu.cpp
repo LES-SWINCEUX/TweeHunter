@@ -49,32 +49,17 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
             return;
         }
         if (touches) {
+            const bool avantConnectee = touches->isAnyConnected();
             touches->verifierConnexion();
+            const bool apresConnectee = touches->isAnyConnected();
+            if (avantConnectee && !apresConnectee) {
+                panneau->reinitialiserFocus();
+            }
             touches->lireNavigation();
         }
     });
     timerManette.setInterval(16);
     timerManette.start();
-
-    if (touches) {
-        connect(touches, &Touches::naviguerHaut, this, [this]() { 
-            if (panneau) {
-                panneau->naviguerHaut();
-            }
-        });
-
-        connect(touches, &Touches::naviguerBas, this, [this]() { 
-            if (panneau) {
-                panneau->naviguerBas();
-            }
-        });
-
-        connect(touches, &Touches::naviguerConfirmer, this, [this]() { 
-            if (panneau) {
-                panneau->confirmer();
-            }
-        });
-    }
 
     afficherPanneauPrincipal();
 }
@@ -296,6 +281,7 @@ void MenuPrincipal::afficherOptions() {
 
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();
@@ -322,6 +308,7 @@ void MenuPrincipal::afficherPanneauPrincipal() {
 
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     connect(panneau, &PanneauMenu::demanderScores, this, &MenuPrincipal::afficherPanneauScores);
     connect(panneau, &PanneauMenu::demanderOptions, this, &MenuPrincipal::afficherOptions);
@@ -368,6 +355,7 @@ void MenuPrincipal::afficherPanneauScores() {
 
     panneau->show();
     panneau->raise();
+    panneau->connecterTouches(touches);
 
     connect(panneau, &PanneauMenu::demanderRetourOptions, this, [this]() {
         afficherPanneauPrincipal();

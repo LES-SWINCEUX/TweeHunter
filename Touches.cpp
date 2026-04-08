@@ -336,7 +336,9 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
 
     switch (manette) {
     case TypeManette::STANDARD: {
-        if (!gamepad) return;
+        if (!gamepad) {
+            return;
+        }
 
         const bool gachetteTir = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > SEUIL_GACHETTE_CUSTOM;
         const bool gachettePowerUp = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)  > SEUIL_GACHETTE_CUSTOM;
@@ -363,6 +365,8 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
         gachettePowerUpPrecedente = gachettePowerUp;
         reloadPrecedent = reloadBtn;
         startPrecedent = startBtn;
+
+        emit joystickDeplace(axeX(), axeY(), float(deltaMs));
         break;
     }
     case TypeManette::CUSTOM: {
@@ -396,7 +400,7 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
             powerUpActif = false;
         }
 
-        emit joystickDeplace(float(deltaMs));
+        emit joystickDeplace(customAxeX(), customAxeY(), float(deltaMs));
         break;
     }
     default:
