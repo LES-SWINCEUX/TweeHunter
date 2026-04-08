@@ -98,8 +98,6 @@ private:
     CompteurVies* compteurVies = nullptr;
     CompteurPoints* compteurPoints = nullptr;
     CompteurPowerUp* compteurPowerUp = nullptr;
-    int LARGEUR_MIN_BALLES = 120;
-    int LARGEUR_MAX_BALLES = 275;
 
     ArrierePlan bg;
 
@@ -124,6 +122,8 @@ private:
 
 	PowerUpType PowerUpMitraillette = PowerUpType::MITRAILLETTE;
 
+    const int LARGEUR_MIN_BALLES = 120;
+    const int LARGEUR_MAX_BALLES = 275;
 };
 
 #endif

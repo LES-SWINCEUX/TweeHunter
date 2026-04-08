@@ -43,8 +43,12 @@ private slots:
     void onMediaFinished(QMediaPlayer::MediaStatus status);
 
 private:
-    const float maxMusicVolume = 0.025f;
-    const float maxSfxVolume = 0.025f;
+    struct SfxPool {
+        QVector<QSoundEffect*> players;
+        int nextIndex = 0;
+    };
+
+    int index = 0;
 
     float musicVolume = 0.0f;
     float sfxVolume = 0.0f;
@@ -53,14 +57,11 @@ private:
     QAudioOutput* musicOutput;
 
     QStringList playlist;
-    int index = 0;
-
-    struct SfxPool {
-        QVector<QSoundEffect*> players;
-        int nextIndex = 0;
-    };
 
     QMap<QString, SfxPool> sfx;
+
+    const float MAX_MUSIC_VOLUME = 0.025f;
+    const float MAX_SFX_VOLUME = 0.025f;
 };
 
 #endif

@@ -7,7 +7,7 @@ GestionnaireAudio::GestionnaireAudio(QObject* parent) : QObject(parent)
     musicPlayer = new QMediaPlayer(this);
 
     musicPlayer->setAudioOutput(musicOutput);
-    musicOutput->setVolume(this->maxMusicVolume);
+    musicOutput->setVolume(this->MAX_MUSIC_VOLUME);
     musicVolume = 1.0f;
     sfxVolume = 1.0f;
 
@@ -53,12 +53,12 @@ void GestionnaireAudio::setMusicVolume(float v)
         parsedVolume = 0.0f;
     }
     this->musicVolume = v;
-    musicOutput->setVolume(v * this->maxMusicVolume);
+    musicOutput->setVolume(v * this->MAX_MUSIC_VOLUME);
     sauvegarderParametres();
 }
 
 float GestionnaireAudio::getMusicVolume() const {
-    return musicOutput->volume() / this->maxMusicVolume;
+    return musicOutput->volume() / this->MAX_MUSIC_VOLUME;
 }
 
 float GestionnaireAudio::getMusicVolumeSetting() const {
@@ -66,7 +66,7 @@ float GestionnaireAudio::getMusicVolumeSetting() const {
 }
 
 float GestionnaireAudio::getMaxMusicVolume() const {
-    return this->maxMusicVolume;
+    return this->MAX_MUSIC_VOLUME;
 }
 
 void GestionnaireAudio::stopMusic()
@@ -107,7 +107,7 @@ void GestionnaireAudio::addSfx(const QString& name, const QString& path, int voi
         auto* effect = new QSoundEffect(this);
 
         effect->setSource(url);
-        effect->setVolume(this->sfxVolume * this->maxSfxVolume);
+        effect->setVolume(this->sfxVolume * this->MAX_SFX_VOLUME);
 
         pool.players.push_back(effect);
     }
@@ -144,7 +144,7 @@ void GestionnaireAudio::setSfxVolume(float v)
     for (auto it = sfx.begin(); it != sfx.end(); ++it) {
         SfxPool& pool = it.value();
         for (QSoundEffect* effect : pool.players) {
-            effect->setVolume(parsedVolume * this->maxSfxVolume);
+            effect->setVolume(parsedVolume * this->MAX_SFX_VOLUME);
         }
     }
 
@@ -156,11 +156,11 @@ float GestionnaireAudio::getSfxVolume() const {
 }
 
 float GestionnaireAudio::getSfxVolumeSetting() const {
-    return this->sfxVolume * this->maxSfxVolume;
+    return this->sfxVolume * this->MAX_SFX_VOLUME;
 }
 
 float GestionnaireAudio::getMaxSfxVolume() const {
-    return this->maxSfxVolume;
+    return this->MAX_SFX_VOLUME;
 }
 
 void GestionnaireAudio::setMusicVolumeAnimation(float v) {
@@ -171,7 +171,7 @@ void GestionnaireAudio::setMusicVolumeAnimation(float v) {
     else if (v <= 0.0f) {
         parsedVolume = 0.0f;
     }
-    musicOutput->setVolume(v * this->maxMusicVolume);
+    musicOutput->setVolume(v * this->MAX_MUSIC_VOLUME);
 }
 
 void GestionnaireAudio::sauvegarderParametres() const

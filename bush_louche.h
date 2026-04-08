@@ -76,9 +76,9 @@ private:
 	bool touchee = false;
 	bool disparait_ = false;
 
-	static constexpr qint64 DUREE_APPARITION = 500;
-	static constexpr qint64 DUREE_ACTIF = 750;
-	static constexpr qint64 DUREE_AVERTISSEMENT = 1000;
+	const qint64 DUREE_APPARITION = 500;
+	const qint64 DUREE_ACTIF = 750;
+	const qint64 DUREE_AVERTISSEMENT = 1000;
 };
 
 #endif

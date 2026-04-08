@@ -34,14 +34,6 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
-    GestionnaireAudio* gestionnaireAudio = nullptr;
-    PanneauMenu* panneau = nullptr;
-    QSharedPointer<QPixmap> titreSprite = nullptr;
-
-    QTimer timerAnimationTitre;
-    QTimer timerManette;
-    QElapsedTimer timerPauseAnimation;
-
     QRect zonePourPanneau(PanneauMenu* p) const;
     QRect zonePanneauxBas() const;
 
@@ -56,12 +48,13 @@ private:
     void initialiserManette();
     bool manetteConnectee() const;
 
-    const int nombreImageTitre = 12;
-    const int tempsAnimation = 1000;
-    const int tempsAttenteAnimation = 9000;
-    const int intervalleFrameTitreMs = 55; // ~18 fps pour l'animation du titre
+    GestionnaireAudio* gestionnaireAudio = nullptr;
+    PanneauMenu* panneau = nullptr;
+    QSharedPointer<QPixmap> titreSprite = nullptr;
 
-    const float ratioPanneaux = 0.25f;
+    QTimer timerAnimationTitre;
+    QTimer timerManette;
+    QElapsedTimer timerPauseAnimation;
 
     int indexImageTitre = 0;
     int imagesAffichees = 0;
@@ -71,6 +64,13 @@ private:
     bool cacherTitre = false;
 
     Touches* touches = nullptr;
+
+    const int NOMBRE_IMAGE_TITRE = 12;
+    const int TEMPS_ANIMATION = 1000;
+    const int TEMPS_ATTENTE_ANIMATION = 9000;
+    const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
+
+    const float RATIO_PANNEAUX = 0.25f;
 };
 
 #endif

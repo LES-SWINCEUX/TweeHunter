@@ -1,10 +1,5 @@
 #include "jeu.h"
 
-static const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
-static constexpr int COLONNES_DESTRUCTION = 4;
-static constexpr int LIGNES_DESTRUCTION = 3;
-static constexpr int CYCLE_DESTRUCTION = 1000;
-
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
 Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C)

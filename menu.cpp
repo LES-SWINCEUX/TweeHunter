@@ -84,7 +84,7 @@ MenuPrincipal::~MenuPrincipal() {
 
 QRect MenuPrincipal::zonePanneauxBas() const
 {
-    const int decalageY = int(height() * ratioPanneaux);
+    const int decalageY = int(height() * RATIO_PANNEAUX);
     return QRect(0, decalageY, width(), std::max(0, height() - decalageY));
 }
 
@@ -207,17 +207,17 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 }
 
 void MenuPrincipal::configuerAnimationTitre() {
-    timerAnimationTitre.setInterval(intervalleFrameTitreMs);
+    timerAnimationTitre.setInterval(INTERVALE_TITRE_MS);
 
     connect(&timerAnimationTitre, &QTimer::timeout, this, [this]() {
 
         if (animationActive)
         {
-            indexImageTitre = (indexImageTitre + 1) % nombreImageTitre;
+            indexImageTitre = (indexImageTitre + 1) % NOMBRE_IMAGE_TITRE;
             imagesAffichees++;
             update();
 
-            if (imagesAffichees < nombreImageTitre) {
+            if (imagesAffichees < NOMBRE_IMAGE_TITRE) {
                 return;
             }
 
@@ -225,7 +225,7 @@ void MenuPrincipal::configuerAnimationTitre() {
             imagesAffichees = 0;
             timerPauseAnimation.restart();
         }
-        else if (timerPauseAnimation.elapsed() >= tempsAttenteAnimation)
+        else if (timerPauseAnimation.elapsed() >= TEMPS_ATTENTE_ANIMATION)
         {
             animationActive = true;
             indexImageTitre = 0;
@@ -253,7 +253,7 @@ void MenuPrincipal::afficherTitre(QPainter& painter) {
         return;
     }
 
-    const int largeurImage = titreSprite->width() / nombreImageTitre;
+    const int largeurImage = titreSprite->width() / NOMBRE_IMAGE_TITRE;
     const int hauteurImage = titreSprite->height();
     if (largeurImage <= 0 || hauteurImage <= 0) {
         return;

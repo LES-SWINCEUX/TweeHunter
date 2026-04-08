@@ -53,34 +53,30 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 private:
+    void lancerDemarrage();
+    void lancerRetourMenu();
     void creerInterface();
     void connecterSignaux();
     void placerElements();
     void appliquerEtatVisuel();
     void centrerContenuVerticalement();
     void appliquerDisponibiliteManettes();
+    void confirmerFocus();
 
-    TypeManette premiereManetteDisponible() const;
+    void deplacerFocusDirection(int dx, int dy);
+    void dessinerPixmap(QPainter& painter, const QSharedPointer<QPixmap>& pixmap, const QRect& destination) const;
+    void appliquerFocus(int index);
 
     int placerGrille(const std::vector<Bouton*>& boutons, int colonnes, int x, int y, int largeurDisponible, int hauteurBoutonCible, int espacementX, int espacementY);
+    int trouverProchainIndexDansDirection(int dx, int dy) const;
 
-    QRect calculerRectTitre(const QSharedPointer<QPixmap>& pixmap, int centreX, int y, int hauteurCible, int largeurMax) const;
-
-    void dessinerPixmap(QPainter& painter, const QSharedPointer<QPixmap>& pixmap, const QRect& destination) const;
-
-    void lancerDemarrage();
-    void lancerRetourMenu();
+    TypeManette premiereManetteDisponible() const;
     ConfigurationPartie configurationFinale() const;
-
-    void appliquerFocus(int index);
-    void confirmerFocus();
-    bool verrouNavigationJoystick = false;
-    bool verrouNavigationJoystickCustom = false;
 
     QRect rectNavigable(QWidget* widget) const;
     QPoint centreNavigable(QWidget* widget) const;
-    int trouverProchainIndexDansDirection(int dx, int dy) const;
-    void deplacerFocusDirection(int dx, int dy);
+
+    QRect calculerRectTitre(const QSharedPointer<QPixmap>& pixmap, int centreX, int y, int hauteurCible, int largeurMax) const;
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
     Touches* touches = nullptr;
@@ -113,13 +109,6 @@ private:
     Bouton* boutonTarte = nullptr;
     Bouton* boutonSwince = nullptr;
 
-    BoutonOptions* boutonMode18 = nullptr;
-    BoutonOptions* boutonModeNormal = nullptr;
-
-    BoutonOptions* boutonDifficulteNormal = nullptr;
-    BoutonOptions* boutonDifficulteRng = nullptr;
-    BoutonOptions* boutonDifficulteChaos = nullptr;
-
     Bouton* boutonGrenade = nullptr;
     Bouton* boutonZap = nullptr;
     Bouton* boutonMitraillette = nullptr;
@@ -132,10 +121,16 @@ private:
     Bouton* boutonCommencer = nullptr;
     Bouton* boutonRetour = nullptr;
 
+    BoutonOptions* boutonMode18 = nullptr;
+    BoutonOptions* boutonModeNormal = nullptr;
+
+    BoutonOptions* boutonDifficulteNormal = nullptr;
+    BoutonOptions* boutonDifficulteRng = nullptr;
+    BoutonOptions* boutonDifficulteChaos = nullptr;
+
     QLineEdit* champNom = nullptr;
 
     std::vector<QWidget*> widgetsNavigables;
-    int indexFocus = -1;
 
     FadeOverlay* overlay = nullptr;
     QPropertyAnimation* fadeInAnim = nullptr;
@@ -143,9 +138,14 @@ private:
 
     QTimer timerManette;
 
-    bool transitionEnCours = false;
     QFont policeTitre;
+
+    bool transitionEnCours = false;
+    bool verrouNavigationJoystick = false;
+    bool verrouNavigationJoystickCustom = false;
+
     int aideFont_pixelSize = 12;
+    int indexFocus = -1;
 };
 
 #endif

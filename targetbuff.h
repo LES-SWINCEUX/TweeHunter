@@ -12,7 +12,7 @@ public:
 	TargetBuff(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode);
 
 private:
-	static QString choisirSpriteAleatoire(ModeJeu mode);
+	QString choisirSpriteAleatoire(ModeJeu mode);
 
 	static const QVector<QString> spritesPlus18;
 	static const QVector<QString> spritesMoins18;

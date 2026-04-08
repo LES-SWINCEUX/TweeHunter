@@ -31,22 +31,21 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    TexteMenu* setupTexteMenu(const QString& txt);
-
-    Bouton*  boutonRetour = nullptr;
-    QFont fontPixel;
-    QSharedPointer<QPixmap> imgPanneau;
-
     struct Ligne {
         TexteMenu* rang = nullptr;
         TexteMenu* nom = nullptr;
         TexteMenu* score = nullptr;
     };
 
+    void rafraichirLignes();
+    TexteMenu* setupTexteMenu(const QString& txt);
+
+    Bouton* boutonRetour = nullptr;
+    QFont fontPixel;
+    QSharedPointer<QPixmap> imgPanneau;
+
     QList<Ligne> lignes;
     QLabel* labelTitre = nullptr;
-
-    void rafraichirLignes();
 };
 
 #endif

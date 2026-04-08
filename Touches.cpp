@@ -140,7 +140,7 @@ bool Touches::haut() const
         return false;
     }
 
-    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) || axeY() < -kDeadZoneStandard;
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) || axeY() < -DEAD_ZONE_STANDARD;
 }
 
 bool Touches::bas() const
@@ -149,7 +149,7 @@ bool Touches::bas() const
         return false;
     }
 
-    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) || axeY() > kDeadZoneStandard;
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) || axeY() > DEAD_ZONE_STANDARD;
 }
 
 bool Touches::gauche() const
@@ -158,7 +158,7 @@ bool Touches::gauche() const
         return false;
     }
 
-    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || axeX() < -kDeadZoneStandard;
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) || axeX() < -DEAD_ZONE_STANDARD;
 }
 
 bool Touches::droite() const
@@ -167,7 +167,7 @@ bool Touches::droite() const
         return false;
     }
 
-    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) || axeX() > kDeadZoneStandard;
+    return SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) || axeX() > DEAD_ZONE_STANDARD;
 }
 
 bool Touches::confirmer() const
@@ -208,22 +208,22 @@ float Touches::axeY() const
 
 bool Touches::customHaut() const
 {
-    return y < kSeuilCustomHaut;
+    return y < SEUIL_HAUT_CUSTOM;
 }
 
 bool Touches::customBas() const
 {
-    return y > kSeuilCustomBas;
+    return y > SEUIL_BAS_CUSTOM;
 }
 
 bool Touches::customGauche() const
 {
-    return customAxeX() < -kDeadZoneCustom;
+    return customAxeX() < -DEAD_ZONE_CUSTOM;
 }
 
 bool Touches::customDroite() const
 {
-    return customAxeX() > kDeadZoneCustom;
+    return customAxeX() > DEAD_ZONE_CUSTOM;
 }
 
 float Touches::customAxeX() const
@@ -249,7 +249,7 @@ void Touches::lireNavigation()
         const bool re = retour();
 
         // Dead zone joystick pour éviter les répétitions
-        const bool enDeadZone = std::abs(axeX()) < kDeadZoneStandard && std::abs(axeY()) < kDeadZoneStandard;
+        const bool enDeadZone = std::abs(axeX()) < DEAD_ZONE_STANDARD && std::abs(axeY()) < DEAD_ZONE_STANDARD;
         if (enDeadZone) navVerrouJoystick = false;
 
         if (h && !navHautPrecedent) {
@@ -338,8 +338,8 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
     case TypeManette::STANDARD: {
         if (!gamepad) return;
 
-        const bool gachetteTir = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > kSeuilGachette;
-        const bool gachettePowerUp = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)  > kSeuilGachette;
+        const bool gachetteTir = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > SEUIL_GACHETTE_CUSTOM;
+        const bool gachettePowerUp = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)  > SEUIL_GACHETTE_CUSTOM;
         const bool reloadBtn = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST);
         const bool startBtn = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START);
 

@@ -26,7 +26,7 @@ struct IndicateurScore {
 	QPointF position;
 	int points;
 	qint64  tempsDebut;
-	static constexpr qint64 DUREE_MS = 1200;
+	static const qint64 DUREE_MS = 1200;
 };
 
 struct Enpleineface {
@@ -108,11 +108,17 @@ public:
 	}
 
 private:
+	void nettoyerCiblesInactives();
+	void initialiserCiblesParDefaut();
+
+	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
+	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
+
+	void nettoyerEnpleinefaces(qint64 tempsMs);
+	void nettoyerIndicateurs(qint64 tempsMs);
+	void UpdateWave(qint64 tempsMs);
 
 	static QSharedPointer<QPixmap> spriteDestruction;
-	void nettoyerCiblesInactives();
-
-	void initialiserCiblesParDefaut();
 
 	QList<Target*> ciblesActives;
 	Randomiser* randomiser;
@@ -124,9 +130,12 @@ private:
 	int ciblesTouchees;
 	int ciblesManquees;
 	int maxCiblesSimultanees;
+	int niveauDebuff = 0;
+
+	bool enPause;
+	bool enWave = false;
 
 	ModeJeu modeActuel;
-	bool enPause;
 
 	QList<Bush*> bushes;
 	BushLouche* bushLoucheActif = nullptr;
@@ -137,20 +146,20 @@ private:
 	std::function<void()> onMoteurDemande;
 
 	QList<IndicateurScore> indicateurs;
-	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
-	void nettoyerIndicateurs(qint64 tempsMs);
 
-	bool enWave = false;
 	qint64 prochaineWave= 0;
-	static constexpr qint64 DUREE_WAVE = 10000;
-	static constexpr qint64 INTERVALLE_WAVE = 30000;
-	void UpdateWave(qint64 tempsMs);
 
 	QSizeF tailleEcran;
-	int niveauDebuff = 0;
 	QList<Enpleineface> enpleineface;
-	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
-	void nettoyerEnpleinefaces(qint64 tempsMs);
+
+	const int COLONNES_DESTRUCTION = 4;
+	const int LIGNES_DESTRUCTION = 3;
+	const int CYCLE_DESTRUCTION = 1000;
+
+	const qint64 DUREE_WAVE = 10000;
+	const qint64 INTERVALLE_WAVE = 30000;
+
+	const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
 };
 
 #endif

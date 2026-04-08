@@ -94,6 +94,11 @@ private:
     void demarrerAnimation();
     void arreterAnimation();
     void mettreAJourAnimation();
+
+    void lancerDemarrage();
+    void lancerRetour();
+    void tickManette();
+
     void avancerAnimationCarte(CarteRegle& carte, int deltaMs);
 
     void dessinerArrierePlan(QPainter& painter);
@@ -103,6 +108,14 @@ private:
     void dessinerCartes(QPainter& painter);
     void dessinerCarte(QPainter& painter, const QRect& rect, const CarteRegle& carte);
 
+    void lancerTransition(const std::function<void()>& actionFinale, bool fadeMusique);
+
+    int calculerOffsetVertical(const CarteRegle& carte) const;
+    int bornerIndex(int valeur, int minimum, int maximum) const;
+    int calculerHauteurCarte(const CarteRegle& carte, int largeurCarte) const;
+
+    const QPixmap* obtenirFrameActuelle(const CarteRegle& carte) const;
+
     QVector<QPixmap> extraireFramesSpritesheet(const QString& cheminSprite, int colonnes, int lignes);
 
     QVector<QString> obtenirCheminsPoisonSelonMode(ModeJeu mode) const;
@@ -110,62 +123,8 @@ private:
     QVector<QString> obtenirCheminsDebuffSelonMode(ModeJeu mode) const;
     QVector<QString> obtenirCheminsWaterSelonMode(ModeJeu mode) const;
 
-    const QPixmap* obtenirFrameActuelle(const CarteRegle& carte) const;
-    int calculerOffsetVertical(const CarteRegle& carte) const;
-    int bornerIndex(int valeur, int minimum, int maximum) const;
-    int calculerHauteurCarte(const CarteRegle& carte, int largeurCarte) const;
-
     QFont creerPoliceCompteur(int pixelSize) const;
     QFont creerPoliceTexte(int pixelSize, bool gras = false) const;
-
-    void lancerTransition(const std::function<void()>& actionFinale, bool fadeMusique);
-    void lancerDemarrage();
-    void lancerRetour();
-
-    void tickManette();
-
-    const int kColonnesSpritesheet = 4;
-    const int kLignesSpritesheet = 3;
-
-    const QVector<QString> kSpritesPoisonPlus18 = {
-        "/images/sprites/poisonbrun.png",
-        "/images/sprites/poisonvert.png"
-    };
-
-    const QVector<QString> kSpritesPoisonMoins18 = {
-        "/images/sprites/poisonbrun.png",
-        "/images/sprites/poisonvert.png"
-    };
-
-    const QVector<QString> kSpritesGatorPlus18 = {
-        "/images/sprites/gator.png"
-    };
-
-    const QVector<QString> kSpritesGatorMoins18 = {
-        "/images/sprites/gator.png"
-    };
-
-    const QVector<QString> kSpritesDebuffPlus18 = {
-        "/images/sprites/jack_daniels.png",
-        "/images/sprites/grey_goose.png",
-        "/images/sprites/jimador.png",
-        "/images/sprites/guiness.png",
-        "/images/sprites/creme_menthe.png",
-        "/images/sprites/baileys.png"
-    };
-
-    const QVector<QString> kSpritesDebuffMoins18 = {
-        "/images/sprites/coca_cola.png",
-        "/images/sprites/fuze.png"
-    };
-
-    const QVector<QString> kSpritesWaterPlus18 = {
-        "/images/sprites/water.png"
-    };
-
-    const QVector<QString> kSpritesWaterMoins18 = {
-        "/images/sprites/water.png"
-    };
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
     Touches* touches = nullptr;
@@ -180,18 +139,61 @@ private:
     Bouton* boutonRetour = nullptr;
 
     FadeOverlay* overlay = nullptr;
+
     QPropertyAnimation* fadeInAnim = nullptr;
     QPropertyAnimation* fadeOutAnim = nullptr;
     QPropertyAnimation* fadeOutMusique = nullptr;
 
     QTimer* timerAnimation = nullptr;
-    int tempsAnimationMs = 0;
-
     QTimer* timerManette = nullptr;
 
     int indexFocus = 0; // 0 = boutonRetour, 1 = boutonCommencer
+    int tempsAnimationMs = 0;
 
     bool transitionEnCours = false;
+
+    const int COLONNES_SPRITESHEET = 4;
+    const int LIGNES_SPRITESHEET = 3;
+
+    const QVector<QString> SPRITES_POISON_PLUS_18 = {
+        "/images/sprites/poisonbrun.png",
+        "/images/sprites/poisonvert.png"
+    };
+
+    const QVector<QString> SPRITES_POISON_MOINS_18 = {
+        "/images/sprites/poisonbrun.png",
+        "/images/sprites/poisonvert.png"
+    };
+
+    const QVector<QString> SPRITES_GATORADE_PLUS_18 = {
+        "/images/sprites/gator.png"
+    };
+
+    const QVector<QString> SPRITES_GATORADE_MOINS_18 = {
+        "/images/sprites/gator.png"
+    };
+
+    const QVector<QString> SPRITES_DEBUFF_PLUS_18 = {
+        "/images/sprites/jack_daniels.png",
+        "/images/sprites/grey_goose.png",
+        "/images/sprites/jimador.png",
+        "/images/sprites/guiness.png",
+        "/images/sprites/creme_menthe.png",
+        "/images/sprites/baileys.png"
+    };
+
+    const QVector<QString> SPRITES_DEBUFF_MOINS_18 = {
+        "/images/sprites/coca_cola.png",
+        "/images/sprites/fuze.png"
+    };
+
+    const QVector<QString> SPRITES_WATER_PLUS_18 = {
+        "/images/sprites/water.png"
+    };
+
+    const QVector<QString> SPRITES_WATER_MOINS_18 = {
+        "/images/sprites/water.png"
+    };
 };
 
 #endif

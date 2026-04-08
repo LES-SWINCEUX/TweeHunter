@@ -13,9 +13,6 @@
 #include <QLabel>
 #include <QFont>
 #include <QFontDatabase>
-#include <QPainter>
-#include <QResizeEvent>
-#include <QShowEvent>
 #include <algorithm>
 #include <QTimer>
 
@@ -48,12 +45,14 @@ protected:
 private:
     void placerElements();
     void lancerFadeIn();
+    void initialiserManette();
+
     QRect srcRectToScreen(int screenW, int screenH, int srcX, int srcY, int srcW, int srcH);
+    QLabel* makeLabel(const QString& txt, const QString& couleur);
+    QRect geometrieLabel(float ratioY, float ratioH, float ratioW, int zoneW, int panX, int panY, int panW, int panH);
 
     ArrierePlan bg;
     ArrierePlan bgPanneau;    
-    QLabel* makeLabel(const QString& txt, const QString& couleur);
-    QRect geometrieLabel(float ratioY, float ratioH, float ratioW, int zoneW, int panX, int panY, int panW, int panH);
 
     GestionnaireAudio* gestionnaireAudio = nullptr;
 
@@ -76,11 +75,9 @@ private:
 
     QFont fontPixel;
 
-    Touches* touches      = nullptr;
+    Touches* touches = nullptr;
     QTimer timerManette;
-    bool transitionEnCours     = false;
-
-    void initialiserManette();
+    bool transitionEnCours = false;
 
     const int SRC_W = 1536;
     const int SRC_H = 1024;

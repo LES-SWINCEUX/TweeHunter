@@ -14,7 +14,6 @@ class Variete
 
 	private:
 		std::string BasePath;
-
 };
 
 #endif

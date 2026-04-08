@@ -43,7 +43,29 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
 
 private:
+    void configuerAnimationTitre();
+    void lancerFadeIn();
+    void afficherOptions();
+    void afficherPanneauScores();
+    void afficherPanneauPrincipal();
+    void initialiserManette();
+
+    void afficherArrierePlan(QPainter& painter);
+    void afficherTitre(QPainter& painter);
+
     bool manetteConnectee() const;
+
+    QRect zonePanneauxBas() const;
+    QRect zonePourPanneau(PanneauMenu* p) const;
+
+    int indexImageTitre = 0;
+    int imagesAffichees = 0;
+
+    bool animationActive = true;
+    bool fadeEnCours = false;
+    bool cacherTitre = false;
+    bool restartMusique = false;
+
     QSharedPointer<QPixmap> arrierePlan;
     QSharedPointer<QPixmap> titreSprite;
 
@@ -64,36 +86,16 @@ private:
 
     DecorationMenu* cannettes = nullptr;
 
-    const int nombreImageTitre = 12;
-    const int tempsAnimation = 1000;
-    const int tempsAttenteAnimation = 9000;
-    const int intervalleFrameTitreMs = 55; // ~18 fps pour l'animation du titre
-
-    const float ratioPanneaux = 0.25f;
-
-    int indexImageTitre = 0;
-    int imagesAffichees = 0;
-
-    bool animationActive = true;
-    bool fadeEnCours = false;
-    bool cacherTitre = false;
-
     Touches* touches = nullptr;
-    bool restartMusique = false;
 
     QElapsedTimer timerPauseAnimation;
-    QRect zonePanneauxBas() const;
-    QRect zonePourPanneau(PanneauMenu* p) const;
 
-    void configuerAnimationTitre();
-    void lancerFadeIn();
-    void afficherArrierePlan(QPainter& painter);
-    void afficherTitre(QPainter& painter);
-    void afficherOptions();
-    void afficherPanneauScores();
-    void afficherPanneauPrincipal();
+    const int NOMBRE_IMAGE_TITRE = 12;
+    const int TEMPS_ANIMATION = 1000;
+    const int TEMPS_ATTENTE_ANIMATION = 9000;
+    const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
 
-    void initialiserManette();
+    const float RATIO_PANNEAUX = 0.25f;
 };
 
 #endif

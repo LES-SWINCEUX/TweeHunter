@@ -32,6 +32,8 @@ public:
     void afficherEcranFinPartie(int score);
 
 private:
+    bool aDerniereConfigurationPartie = false;
+
     MenuPrincipal* menuPrincipal = nullptr;
     EcranParametres* ecranParametres = nullptr;
     EcranRegles* ecranRegles = nullptr;
@@ -42,6 +44,5 @@ private:
 
     Touches* touches = nullptr;
     ConfigurationPartie derniereConfigurationPartie;
-    bool aDerniereConfigurationPartie = false;
 };
 #endif
