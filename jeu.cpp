@@ -36,6 +36,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 		gestionnaireAudio->addSfx("louche_2", QDir::currentPath() + "/sounds/louche2.wav", 2);
 		gestionnaireAudio->addSfx("bonus_3", QDir::currentPath() + "/sounds/bonus3.wav", 2);
 		gestionnaireAudio->addSfx("disparait", QDir::currentPath() + "/sounds/destruction.wav", 4);
+		gestionnaireAudio->addSfx("fireball", QDir::currentPath() + "/sounds/fireball.wav", 4);
 	}
 
 
@@ -165,6 +166,17 @@ void Jeu::update(qint64 tempsMs)
 
 
 	nettoyerCiblesInactives();
+
+	auto it = ExplosionFireball.begin();
+	while (it != ExplosionFireball.end()) {
+		if (tempsMs - it->tempsDebut >= it->dureeMs) {
+			it = ExplosionFireball.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+
 	nettoyerIndicateurs(tempsMs);
 }
 
@@ -184,6 +196,19 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 		if (cible) {
 			cible->dessiner(painter, tempsMs);
 		}
+	}
+
+	for (AnimationExplosionFireball& anim : ExplosionFireball) {
+		if (!anim.initialise || !anim.sprite.estValide()) continue;
+
+			qint64 tempsLocal = tempsMs - anim.tempsDebut;
+			QRect dest( 
+				int ((anim.position.x() - anim.taille.width() / 2.0)),
+				int ((anim.position.y() - anim.taille.height() / 2.0)),
+				int (anim.taille.width()),
+				int(anim.taille.height())
+			);
+		anim.sprite.dessiner(painter, dest, tempsLocal, true, false);
 	}
 
 	dessinerIndicateurs(painter, tempsMs);
@@ -229,6 +254,12 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 			if (cible->getType() ==TypeTarget::BONUS) {
 				Explosion(cible->getPosition().x(), cible->getPosition().y(), tempsMs);
+
+				if (gestionnaireAudio) {
+					gestionnaireAudio->playSfx("fireball");
+				}
+
+				jouerAnimationExplosionFireball(cible->getBounds().center(), QSizeF(1000, 1000), "/images/sprites/fireball_explosion.png", 1, 1, 1000, tempsMs);
 
 			}
 			if(cible->getType() == TypeTarget::LEGENDAIRE) {
@@ -564,4 +595,26 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		painter.drawPixmap(dest, *pix);
 		painter.restore();
 	}
+}
+
+void Jeu::jouerAnimationExplosionFireball(QPointF position, QSizeF taille, const QString& cheminSprite, int colonnes, int lignes, qint64 dureeMs, qint64 tempsMs) {
+
+	AnimationExplosionFireball anim;
+	anim.position = position;
+	anim.taille = taille;
+	anim.tempsDebut = tempsMs;
+	anim.dureeMs = dureeMs;
+	anim.initialise = true;
+
+	QString cheminResolu = QDir::currentPath() + cheminSprite;
+	QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(cheminResolu);
+	if (pix && !pix->isNull()) {
+		SpriteSheet sheet(pix, colonnes, lignes);
+		anim.sprite.setSprite(sheet);
+		anim.sprite.setCycle(dureeMs);
+			
+	}
+
+	ExplosionFireball.append(anim);
+
 }

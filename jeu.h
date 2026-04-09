@@ -45,6 +45,20 @@ struct Enpleineface {
 
 };
 
+struct AnimationExplosionFireball {
+
+	QPointF position;
+	QSizeF taille;
+	Sprite sprite;
+	qint64 tempsDebut = 0;
+	qint64 dureeMs = 1000;
+	bool initialise = false;
+
+};
+
+
+
+
 class Jeu
 {
 
@@ -162,6 +176,10 @@ private:
 	const qint64 INTERVALLE_WAVE = 30000;
 
 	const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
+
+	QList<AnimationExplosionFireball> ExplosionFireball;
+
+	void jouerAnimationExplosionFireball(QPointF position, QSizeF taille, const QString& cheminSprite, int colonnes, int lignes, qint64 dureeMs, qint64 tempsMs);
 };
 
 #endif
