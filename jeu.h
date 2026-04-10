@@ -57,13 +57,11 @@ struct AnimationExplosionFireball {
 };
 
 
-
-
 class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr, GestionnaireAudio* gestionnaireAudio = nullptr);
 
 	~Jeu();
 

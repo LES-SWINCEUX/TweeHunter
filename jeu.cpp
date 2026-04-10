@@ -2,9 +2,10 @@
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C, GestionnaireAudio* gestionnaireAudio)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
+	this->gestionnaireAudio = gestionnaireAudio;
 	armes = A;
 	compteurPowerUp = C;
 
@@ -36,7 +37,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 		gestionnaireAudio->addSfx("louche_2", QDir::currentPath() + "/sounds/louche2.wav", 2);
 		gestionnaireAudio->addSfx("bonus_3", QDir::currentPath() + "/sounds/bonus3.wav", 2);
 		gestionnaireAudio->addSfx("disparait", QDir::currentPath() + "/sounds/destruction.wav", 4);
-		gestionnaireAudio->addSfx("fireball", QDir::currentPath() + "/sounds/fireball.wav", 4);
+		gestionnaireAudio->addSfx("fireball", QDir::currentPath() + "/sounds/sfx/fireball.wav", 10);
 	}
 
 
@@ -425,16 +426,16 @@ void Jeu::initialiserCiblesParDefaut()
 	DefinitionTarget debuff;
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.tailleRelative = 0.20;
-	debuff.pointsScore = 15;
+	debuff.pointsScore = 20;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 2;
+	debuff.frequenceSpawn = 3;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.tailleRelative = 0.15;
-	mixte.pointsScore = 20;
+	mixte.pointsScore = 15;
 	mixte.vitesseMin = 500.0;
 	mixte.vitesseMax = 1250.0;
 	mixte.frequenceSpawn = 2.5;
@@ -443,7 +444,7 @@ void Jeu::initialiserCiblesParDefaut()
 	DefinitionTarget legendaire;
 	legendaire.type = TypeTarget::LEGENDAIRE;
 	legendaire.tailleRelative = 0.15;
-	legendaire.pointsScore = 50;
+	legendaire.pointsScore = 100;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
 	legendaire.frequenceSpawn = 5.0;

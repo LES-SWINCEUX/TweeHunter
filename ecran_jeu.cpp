@@ -147,7 +147,7 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
 
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes,compteurPowerUp);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes,compteurPowerUp, gestionnaireAudio);
 
 
         if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
