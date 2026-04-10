@@ -95,7 +95,7 @@ void Jeu::update(qint64 tempsMs)
 
 						Enpleineface epf;
 						epf.position = QPointF(tailleEcran.width() / 2, tailleEcran.height() / 2);
-						epf.cheminSprite = "/images/sprites/splash.png";
+						epf.cheminSprite = "/images/sprites/splash1.png";
 						epf.niveau = niveauDebuff;
 						epf.initialise = false;
 						enpleineface.append(epf);
@@ -259,7 +259,7 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 					gestionnaireAudio->playSfx("fireball");
 				}
 
-				jouerAnimationExplosionFireball(cible->getBounds().center(), QSizeF(1000, 1000), "/images/sprites/fireball_explosion.png", 1, 1, 1000, tempsMs);
+				jouerAnimationExplosionFireball(cible->getBounds().center(), QSizeF(1000, 1000), "/images/sprites/fireball_explosion.png", 4, 4, 1000, tempsMs);
 
 			}
 			if(cible->getType() == TypeTarget::LEGENDAIRE) {

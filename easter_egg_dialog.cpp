@@ -20,6 +20,9 @@ const QStringList& EasterEggDialog::messages()
 
         // Canette 5 – bas-droite
         "Tu viens de perdre 3 secondes.\nNous aussi à écrire ça.\nOn est quittes.",
+
+        // Titre Kiwi
+		"Wow une belle tete de Kiwi.\n Prends le pas comme un compliment"
     };
     return msgs;
 }
