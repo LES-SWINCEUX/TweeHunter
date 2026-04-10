@@ -150,11 +150,11 @@ int BushLouche::getPointsScore() const
 {
 	switch (type) {
 	case TypeLouche::LOUCHE_1:
-		return -100;
+		return -300;
 	case TypeLouche::LOUCHE_2:
-		return -100;
+		return -300;
 	case TypeLouche::BONUS_3:
-		return 300;
+		return 600;
 	}
 
 	return 0;
