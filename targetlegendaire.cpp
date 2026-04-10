@@ -6,7 +6,7 @@ const QVector<QString> TargetLegendaire::spritesPlus18 = {
 };
 
 const QVector<QString> TargetLegendaire::spritesMoins18 = {
-	"/images/sprites/redbull.png",
+	"/images/sprites/fuze_gold.png",
 };
 
 QString TargetLegendaire::choisirSpriteAleatoire(ModeJeu mode)

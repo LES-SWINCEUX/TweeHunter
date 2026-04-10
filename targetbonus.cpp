@@ -6,7 +6,7 @@ const QVector<QString> TargetBonus::spritesPlus18 = {
 };
 
 const QVector<QString> TargetBonus::spritesMoins18 = {
-	"/images/sprites/redbull.png",
+	"/images/sprites/coke_cerise.png",
 };
 
 QString TargetBonus::choisirSpriteAleatoire(ModeJeu mode)

@@ -19,7 +19,7 @@ const QStringList& EasterEggDialog::messages()
         "Secret déverrouillé :\nRien. Absolument rien.\nBonne journée.",
 
         // Canette 5 – bas-droite
-        "Tu viens de perdre 3 secondes.\nNous aussi à écrire ça.\nOn est quittes.",
+        "Tu viens de perdre 3 secondes.\nNous aussi à écrire ça.\nOn est quitte.",
 
         // Titre Kiwi
 		"Wow une belle tete de Kiwi.\n Prends le pas comme un compliment"
