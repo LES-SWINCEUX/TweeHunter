@@ -31,7 +31,7 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
 
     labelVotreScore = makeLabel("VOTRE SCORE :", "#FFE066");
     labelScore = makeLabel("0", "#FFE066");
-    labelNom = makeLabel("ENTREZ VOTRE NOM :", "#FFFFFF");
+    labelNom = makeLabel("VALIDEZ VOTRE NOM :", "#FFFFFF");
 
     champNom = new QLineEdit(this);
     champNom->setPlaceholderText("...");
