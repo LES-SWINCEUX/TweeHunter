@@ -70,7 +70,7 @@ private:
 
 	const double AMPLITUDE_ZIGZAG = 50.0;
 	const double FREQUENCE_ZIGZAG = 5.0;
-	const double AMPLITUDE_COURBE = 0.1;
+	const double AMPLITUDE_COURBE = 0.05;
 	const double FREQUENCE_COURBE = 0.5;
 };
 

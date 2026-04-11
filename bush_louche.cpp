@@ -160,19 +160,6 @@ int BushLouche::getPointsScore() const
 	return 0;
 }
 
-QString BushLouche::getChemin() const
-{
-	switch (type) {
-	case TypeLouche::LOUCHE_1:
-		return "/images/Bush/Domingoat.png";
-	case TypeLouche::LOUCHE_2:
-		return "/images/Bush/JP.png";
-	case TypeLouche::BONUS_3:
-		return "/images/Bush/busch.png";
-	}
-	return "";
-}
-
 bool BushLouche::intersecte(const QPainterPath& cercleReticule) const
 {
 	if (!estTirable()) {

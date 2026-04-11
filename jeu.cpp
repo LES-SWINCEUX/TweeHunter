@@ -137,7 +137,7 @@ void Jeu::update(qint64 tempsMs)
 			cheminSprite = "/images/Bush/JP.png";
 			break;
 		case TypeLouche::BONUS_3:
-			cheminSprite = "/images/Bush/busch.png";
+			cheminSprite = (modeActuel == ModeJeu::PLUS_18) ? "/images/Bush/busch.png" : "/images/Bush/coke.png";
 			break;
 		}
 
