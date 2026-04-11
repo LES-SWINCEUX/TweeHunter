@@ -124,6 +124,7 @@ private:
 
     const int LARGEUR_MIN_BALLES = 120;
     const int LARGEUR_MAX_BALLES = 275;
+    const int NOMBRE_TRACK_MUSIQUE = 10;
 };
 
 #endif

@@ -60,8 +60,8 @@ private:
 
     QMap<QString, SfxPool> sfx;
 
-    const float MAX_MUSIC_VOLUME = 0.025f;
-    const float MAX_SFX_VOLUME = 0.025f;
+    const float MAX_MUSIC_VOLUME = 0.1f;
+    const float MAX_SFX_VOLUME = 0.05f;
 };
 
 #endif
