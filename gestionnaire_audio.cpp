@@ -21,6 +21,8 @@ void GestionnaireAudio::setPlaylist(const QStringList& musics)
 {
     playlist = musics;
     index = 0;
+
+    std::shuffle(playlist.begin(), playlist.end(), std::mt19937{std::random_device{}()});
 }
 
 void GestionnaireAudio::playMusic()
@@ -40,6 +42,14 @@ void GestionnaireAudio::nextMusic()
     }
 
     index = (index + 1) % playlist.size();
+
+    if (index == 0) {
+        QString derniere = playlist.last();
+        do {
+            std::shuffle(playlist.begin(), playlist.end(), std::mt19937{std::random_device{}()});
+        } while (playlist.size() > 1 && playlist.first() == derniere);
+    }
+
     playMusic();
 }
 
