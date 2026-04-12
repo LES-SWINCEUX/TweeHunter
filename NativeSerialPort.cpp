@@ -29,6 +29,7 @@ void SerialReaderThread::run()
         if (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
             QMutexLocker locker(&mutex);
             sharedBuffer.append(tmp, (int)bytesRead);
+            emit donneesRecues();
         }
     }
 }
@@ -53,6 +54,7 @@ void SerialReaderThread::run()
             if (n > 0) {
                 QMutexLocker locker(&mutex);
                 sharedBuffer.append(tmp, (int)n);
+                emit donneesRecues();
             }
         }
     }
@@ -88,18 +90,18 @@ bool NativeSerialPort::open(OpenMode mode)
     DCB dcb = {};
     dcb.DCBlength = sizeof(DCB);
 
-    if (!GetCommState(handle, &dcb)) { 
-        CloseHandle(handle); 
-        return false; 
+    if (!GetCommState(handle, &dcb)) {
+        CloseHandle(handle);
+        return false;
     }
 
     dcb.BaudRate = m_baudRate;
     dcb.ByteSize = 8;
     dcb.StopBits = ONESTOPBIT;
     dcb.Parity = NOPARITY;
-    if (!SetCommState(handle, &dcb)) { 
-        CloseHandle(handle); 
-        return false; 
+    if (!SetCommState(handle, &dcb)) {
+        CloseHandle(handle);
+        return false;
     }
 
     m_reader = new SerialReaderThread();
@@ -125,6 +127,7 @@ void NativeSerialPort::close()
     }
     m_handle = INVALID_HANDLE_VALUE;
     m_isOpen = false;
+    QMutexLocker locker(&m_bufferMutex);
     m_buffer.clear();
 }
 
@@ -161,9 +164,9 @@ bool NativeSerialPort::open(OpenMode mode)
 
     struct termios tty = {};
 
-    if (tcgetattr(fd, &tty) != 0) { 
-        ::close(fd); 
-        return false; 
+    if (tcgetattr(fd, &tty) != 0) {
+        ::close(fd);
+        return false;
     }
 
     speed_t speed = toBaudConstant(m_baudRate);
@@ -199,6 +202,7 @@ void NativeSerialPort::close()
     }
     m_fd = -1;
     m_isOpen = false;
+    QMutexLocker locker(&m_bufferMutex);
     m_buffer.clear();
 }
 
@@ -210,8 +214,9 @@ void NativeSerialPort::pullFromReader()
         return;
     }
 
-    QMutexLocker locker(&m_reader->mutex);
+    QMutexLocker readerLocker(&m_reader->mutex);
     if (!m_reader->sharedBuffer.isEmpty()) {
+        QMutexLocker bufferLocker(&m_bufferMutex);
         m_buffer.append(m_reader->sharedBuffer);
         m_reader->sharedBuffer.clear();
     }
@@ -220,12 +225,14 @@ void NativeSerialPort::pullFromReader()
 bool NativeSerialPort::canReadLine()
 {
     pullFromReader();
+    QMutexLocker locker(&m_bufferMutex);
     return m_buffer.contains('\n');
 }
 
 QByteArray NativeSerialPort::readLine()
 {
     pullFromReader();
+    QMutexLocker locker(&m_bufferMutex);
     int idx = m_buffer.indexOf('\n');
 
     if (idx < 0) {
@@ -257,7 +264,7 @@ bool NativeSerialPort::write(const QByteArray& data)
             if (!WriteFile(m_handle, ptr, remaining, &bytesWritten, nullptr)) {
                 return false;
             }
-                
+
             ptr += bytesWritten;
             remaining -= bytesWritten;
         }

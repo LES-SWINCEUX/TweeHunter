@@ -30,5 +30,5 @@ QString TargetMixte::choisirSpriteAleatoire(ModeJeu mode)
 TargetMixte::TargetMixte(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
 	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::MIXTE, taille)
 {
-	setPointsScore(50);
+	setPointsScore(15);
 }

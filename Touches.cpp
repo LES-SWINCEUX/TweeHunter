@@ -33,6 +33,8 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
 
         if (serial.open(NativeSerialPort::ReadWrite)) {
             joystickPerso = true;
+            connect(serial.getReader(), &SerialReaderThread::donneesRecues,
+                this, &Touches::lirePerso, Qt::QueuedConnection);
         }
     }
 
@@ -498,6 +500,14 @@ void Touches::envoyerMoteur()
 }
 
 void Touches::envoyerFinPartie() {
-    // TODO: envoyer signal de fin de partie pour activer le swinceur
-    qDebug("Fin de la partie");
+
+    if (!serial.isOpen()) {
+        return;
+    }
+
+    QJsonObject obj;
+    obj["type"] = "config";
+    obj["Swince"] = 1;
+    QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
+    serial.write(msg);
 }

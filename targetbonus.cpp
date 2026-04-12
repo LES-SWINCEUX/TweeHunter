@@ -6,7 +6,7 @@ const QVector<QString> TargetBonus::spritesPlus18 = {
 };
 
 const QVector<QString> TargetBonus::spritesMoins18 = {
-	"/images/sprites/redbull.png",
+	"/images/sprites/coke_cerise.png",
 };
 
 QString TargetBonus::choisirSpriteAleatoire(ModeJeu mode)
@@ -30,5 +30,5 @@ QString TargetBonus::choisirSpriteAleatoire(ModeJeu mode)
 TargetBonus::TargetBonus(Mouvement* mouvement, const QSizeF& taille, ModeJeu mode)
 	: Target(choisirSpriteAleatoire(mode), 4, 3, 800, mouvement, TypeTarget::BONUS, taille)
 {
-	setPointsScore(1000);
+	setPointsScore(50);
 }

@@ -88,7 +88,8 @@ SOURCES += \
     gator.cpp \
     water.cpp \
     poison.cpp \
-    bush.cpp
+    bush.cpp \
+    lecteur_serie.cpp
 
 HEADERS += \
     main_window.h \
@@ -141,7 +142,8 @@ HEADERS += \
     water.h \
     poison.h \
     gestionnaire_configuration.h \
-    arriere_plan.h
+    arriere_plan.h \
+    lecteur_serie.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 
 
     w.setWindowTitle("TweeHunter");
-    w.showMaximized();
-    //w.showFullScreen();
+    //w.showMaximized();
+    w.showFullScreen();
 
     int ret = a.exec();
     SDL_Quit();

@@ -3,16 +3,17 @@
 
 const QVector<QString> TargetDebuff::spritesPlus18 = {
 	"/images/sprites/jack_daniels.png",
-	"/images/sprites/grey_goose.png",
+	//"/images/sprites/grey_goose.png",
 	"/images/sprites/jimador.png",
 	"/images/sprites/guiness.png",
 	"/images/sprites/creme_menthe.png",
-	"/images/sprites/baileys.png"
+	"/images/sprites/baileys.png",
+	"/images/sprites/rona.png"
 };
 
 const QVector<QString> TargetDebuff::spritesMoins18 = {
-	"/images/sprites/coca_cola.png",
-	"/images/sprites/fuze.png",
+	"/images/sprites/windex.png",
+	"/images/sprites/tide.png"
 };
 
 QString TargetDebuff::choisirSpriteAleatoire(ModeJeu mode)

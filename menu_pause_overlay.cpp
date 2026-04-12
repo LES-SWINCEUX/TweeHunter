@@ -256,5 +256,24 @@ void MenuPauseOverlay::afficherTitre(QPainter& painter) {
     int positionY = int(height() * 0.04f) - int(height() * 0.06f);
     positionY = std::max(0, positionY);
 
-    painter.drawPixmap(QRect(positionX, positionY, int(largeur), int(hauteur)), *titreSprite, src);
+	rectTitre = QRect(positionX, positionY, int(largeur), int(hauteur));
+
+    painter.drawPixmap(rectTitre, *titreSprite, src);
+}
+
+void MenuPauseOverlay::mousePressEvent(QMouseEvent* event)
+{
+    if (rectTitre.contains(event->pos())) {
+        ouvrirEasterEggTitre();
+        return;
+            
+    }
+    QWidget::mousePressEvent(event);
+
+}
+
+void MenuPauseOverlay::ouvrirEasterEggTitre() 
+{
+	EasterEggDialog* dialog = new EasterEggDialog(6, this);
+    dialog->show();
 }

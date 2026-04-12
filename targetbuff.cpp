@@ -5,13 +5,14 @@ const QVector<QString> TargetBuff::spritesPlus18 = {
 	"/images/sprites/twisted_teas.png",
 	"/images/sprites/busch_ices.png",
 	"/images/sprites/heineken.png",
-	"/images/sprites/pabst_blue_ribbon.png",
-	"/images/sprites/rona.png"
+	"/images/sprites/pabst_blue_ribbon.png"
 };
 
 const QVector<QString> TargetBuff::spritesMoins18 = {
 	"/images/sprites/coca_cola.png",
 	"/images/sprites/fuze.png",
+	"/images/sprites/sprite.png",
+	"/images/sprites/crush.png"
 };
 
 QString TargetBuff::choisirSpriteAleatoire(ModeJeu mode)

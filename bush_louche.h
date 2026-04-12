@@ -57,7 +57,6 @@ public:
 		return type;
 	}
 	int getPointsScore() const;
-	QString getChemin() const;
 	QRectF getBounds() const;
 
 	bool intersecte(const QPainterPath& cercleReticule) const;
@@ -75,6 +74,7 @@ private:
 	qint64 tempsEtatDebut = 0;
 	bool touchee = false;
 	bool disparait_ = false;
+	
 
 	const qint64 DUREE_APPARITION = 500;
 	const qint64 DUREE_ACTIF = 750;

@@ -183,8 +183,8 @@ private:
     };
 
     const QVector<QString> SPRITES_DEBUFF_MOINS_18 = {
-        "/images/sprites/coca_cola.png",
-        "/images/sprites/fuze.png"
+        "/images/sprites/windex.png",
+        "/images/sprites/tide.png"
     };
 
     const QVector<QString> SPRITES_WATER_PLUS_18 = {

@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QMouseEvent>
 
 #include "panneau_pause_principal.h"
 #include "panneau_menu.h"
@@ -15,6 +16,7 @@
 #include "panneau_scores.h"
 #include "sprite_manager.h"
 #include "Touches.h"
+#include "easter_egg_dialog.h"
 
 class MenuPauseOverlay : public QWidget
 {
@@ -32,6 +34,7 @@ protected:
     void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent* e) override;
     void keyPressEvent(QKeyEvent* e) override;
+	void mousePressEvent(QMouseEvent* event) override;
 
 private:
     QRect zonePourPanneau(PanneauMenu* p) const;
@@ -70,6 +73,9 @@ private:
     const int INTERVALE_TITRE_MS = 55; // ~18 fps pour l'animation du titre
 
     const float RATIO_PANNEAUX = 0.25f;
+
+    QRect rectTitre;
+    void ouvrirEasterEggTitre();
 };
 
 #endif

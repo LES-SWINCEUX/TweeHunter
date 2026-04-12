@@ -2,9 +2,10 @@
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C, GestionnaireAudio* gestionnaireAudio)
 	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
 {
+	this->gestionnaireAudio = gestionnaireAudio;
 	armes = A;
 	compteurPowerUp = C;
 
@@ -36,6 +37,7 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 		gestionnaireAudio->addSfx("louche_2", QDir::currentPath() + "/sounds/louche2.wav", 2);
 		gestionnaireAudio->addSfx("bonus_3", QDir::currentPath() + "/sounds/bonus3.wav", 2);
 		gestionnaireAudio->addSfx("disparait", QDir::currentPath() + "/sounds/destruction.wav", 4);
+		gestionnaireAudio->addSfx("fireball", QDir::currentPath() + "/sounds/sfx/fireball.wav", 10);
 	}
 
 
@@ -94,7 +96,7 @@ void Jeu::update(qint64 tempsMs)
 
 						Enpleineface epf;
 						epf.position = QPointF(tailleEcran.width() / 2, tailleEcran.height() / 2);
-						epf.cheminSprite = "/images/sprites/splash.png";
+						epf.cheminSprite = "/images/sprites/splash1.png";
 						epf.niveau = niveauDebuff;
 						epf.initialise = false;
 						enpleineface.append(epf);
@@ -135,7 +137,7 @@ void Jeu::update(qint64 tempsMs)
 			cheminSprite = "/images/Bush/JP.png";
 			break;
 		case TypeLouche::BONUS_3:
-			cheminSprite = "/images/Bush/busch.png";
+			cheminSprite = (modeActuel == ModeJeu::PLUS_18) ? "/images/Bush/busch.png" : "/images/Bush/coke.png";
 			break;
 		}
 
@@ -165,6 +167,17 @@ void Jeu::update(qint64 tempsMs)
 
 
 	nettoyerCiblesInactives();
+
+	auto it = ExplosionFireball.begin();
+	while (it != ExplosionFireball.end()) {
+		if (tempsMs - it->tempsDebut >= it->dureeMs) {
+			it = ExplosionFireball.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+
 	nettoyerIndicateurs(tempsMs);
 }
 
@@ -186,6 +199,19 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 		}
 	}
 
+	for (AnimationExplosionFireball& anim : ExplosionFireball) {
+		if (!anim.initialise || !anim.sprite.estValide()) continue;
+
+			qint64 tempsLocal = tempsMs - anim.tempsDebut;
+			QRect dest( 
+				int ((anim.position.x() - anim.taille.width() / 2.0)),
+				int ((anim.position.y() - anim.taille.height() / 2.0)),
+				int (anim.taille.width()),
+				int(anim.taille.height())
+			);
+		anim.sprite.dessiner(painter, dest, tempsLocal, true, false);
+	}
+
 	dessinerIndicateurs(painter, tempsMs);
 	dessinerEnpleinefaces(painter, tempsMs);
 }
@@ -203,11 +229,6 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			cible->jouerAnimationDestruction(CHEMIN_DESTRUCTION, COLONNES_DESTRUCTION, LIGNES_DESTRUCTION, CYCLE_DESTRUCTION);
 			cible->detruire(tempsMs);
 
-			if (cible->getType() != TypeTarget::DEBUFF) {
-				enpleineface.clear();
-				niveauDebuff = 0;
-			}
-			
 			int incrementScores = cible->getPointsScore();
 			score += incrementScores;
 
@@ -234,6 +255,12 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 			}
 			if (cible->getType() ==TypeTarget::BONUS) {
 				Explosion(cible->getPosition().x(), cible->getPosition().y(), tempsMs);
+
+				if (gestionnaireAudio) {
+					gestionnaireAudio->playSfx("fireball");
+				}
+
+				jouerAnimationExplosionFireball(cible->getBounds().center(), QSizeF(1000, 1000), "/images/sprites/fireball_explosion.png", 4, 4, 1000, tempsMs);
 
 			}
 			if(cible->getType() == TypeTarget::LEGENDAIRE) {
@@ -399,16 +426,16 @@ void Jeu::initialiserCiblesParDefaut()
 	DefinitionTarget debuff;
 	debuff.type = TypeTarget::DEBUFF;
 	debuff.tailleRelative = 0.20;
-	debuff.pointsScore = 15;
+	debuff.pointsScore = 20;
 	debuff.vitesseMin = 500.0;
 	debuff.vitesseMax = 1250.0;
-	debuff.frequenceSpawn = 2;
+	debuff.frequenceSpawn = 3;
 	ajouterTypeCible(debuff);
 
 	DefinitionTarget mixte;
 	mixte.type = TypeTarget::MIXTE;
 	mixte.tailleRelative = 0.15;
-	mixte.pointsScore = 20;
+	mixte.pointsScore = 15;
 	mixte.vitesseMin = 500.0;
 	mixte.vitesseMax = 1250.0;
 	mixte.frequenceSpawn = 2.5;
@@ -417,7 +444,7 @@ void Jeu::initialiserCiblesParDefaut()
 	DefinitionTarget legendaire;
 	legendaire.type = TypeTarget::LEGENDAIRE;
 	legendaire.tailleRelative = 0.15;
-	legendaire.pointsScore = 50;
+	legendaire.pointsScore = 100;
 	legendaire.vitesseMin = 420.0;
 	legendaire.vitesseMax = 2050.0;
 	legendaire.frequenceSpawn = 5.0;
@@ -515,26 +542,13 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 
 void Jeu::UpdateWave(qint64 tempsMs)
 {
-	if (prochaineWave == 0) {
-		prochaineWave = tempsMs + INTERVALLE_WAVE;
-
+	if (randomiser->DemarrerWave(tempsMs)) {
+		maxCiblesSimultanees = 10;
+		randomiser->setFrequenceSpawn(100);
 	}
-
-	if (enWave) {
-		if (tempsMs >= prochaineWave) {
-			enWave = false;
-			maxCiblesSimultanees = 5;
-			randomiser->setFrequenceSpawn(1000);
-			prochaineWave = tempsMs + INTERVALLE_WAVE;
-		}
-	}
-	else {
-		if (tempsMs >= prochaineWave) {
-			enWave = true;
-			maxCiblesSimultanees = 10;
-			randomiser->setFrequenceSpawn(100);
-			prochaineWave = tempsMs + DUREE_WAVE;
-		}
+	else if (!randomiser->EnWave() && maxCiblesSimultanees == 10) {
+		maxCiblesSimultanees = 5;
+		randomiser->setFrequenceSpawn(1000);
 	}
 }
 
@@ -562,7 +576,7 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		if (tempsEcoule < 0 || tempsEcoule >= epf.getDuree()) continue;
 
 		double t = double(tempsEcoule) / double(epf.getDuree());
-		int alpha = (t < 0.66) ? 255 : int(255.0 * (1.0 - (t - 0.66) / 0.34));
+		int alpha = (t < 0.90) ? 255 : int(255.0 * (1.0 - (t - 0.90) / 0.10));
 		alpha = qBound(0, alpha, 255);
 
 		QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(
@@ -570,7 +584,7 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		);
 		if (!pix || pix->isNull()) continue;
 
-		int largeur = epf.getLargeur();
+		int largeur = epf.getLargeur(tailleEcran.width());
 		QRect dest(
 			static_cast<int>(epf.position.x() - largeur / 2),
 			static_cast<int>(epf.position.y() - largeur / 2),
@@ -582,4 +596,26 @@ void Jeu::dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs)
 		painter.drawPixmap(dest, *pix);
 		painter.restore();
 	}
+}
+
+void Jeu::jouerAnimationExplosionFireball(QPointF position, QSizeF taille, const QString& cheminSprite, int colonnes, int lignes, qint64 dureeMs, qint64 tempsMs) {
+
+	AnimationExplosionFireball anim;
+	anim.position = position;
+	anim.taille = taille;
+	anim.tempsDebut = tempsMs;
+	anim.dureeMs = dureeMs;
+	anim.initialise = true;
+
+	QString cheminResolu = QDir::currentPath() + cheminSprite;
+	QSharedPointer<QPixmap> pix = SpriteManager::instance().getPixmap(cheminResolu);
+	if (pix && !pix->isNull()) {
+		SpriteSheet sheet(pix, colonnes, lignes);
+		anim.sprite.setSprite(sheet);
+		anim.sprite.setCycle(dureeMs);
+			
+	}
+
+	ExplosionFireball.append(anim);
+
 }

@@ -140,7 +140,7 @@ void EcranJeu::initMinuterie()
 void EcranJeu::showEvent(QShowEvent* e)
 {
     QWidget::showEvent(e);
-
+    
     if (overlay && fadeInAnim) {
         overlay->setGeometry(rect());
         overlay->setAlpha(255);
@@ -151,7 +151,12 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
 
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes,compteurPowerUp);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes,compteurPowerUp, gestionnaireAudio);
+
+
+        if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {
+            jeu->setFacteurVitesse(0.75);
+        }
 
         switch (configurationPartie.difficulte) {
             case DifficultePartie::CHAOS:

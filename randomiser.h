@@ -59,6 +59,14 @@ public:
 	TypeLouche choisirTypeBushLouche() const;
 	int choisirIndexBush(int nombreBush) const;
 
+	bool DemarrerWave(qint64 tempsMs);
+	bool EnWave() const { 
+		return enWave; 
+	}
+
+	void setFacteurVitesse(double facteur) {
+		facteurVitesse = facteur;
+	}
 
 private:
 	double calculerFacteurVitesse(qint64 tempsMs) const;
@@ -96,6 +104,14 @@ private:
 	const qint64 INTERVALLE_DIFFICULTE = 15000;
 	const double MULTIPLICATEUR_PALIER = 1.15;
 	const double FACTEUR_MAX = 3;
+	bool enWave = false;
+	qint64 prochaineWave = 0;
+	static constexpr qint64 DUREE_WAVE = 10000;
+	static constexpr qint64 VARIATION_WAVE = 15000;
+	static constexpr qint64 VARIATION_DUREE_WAVE = 3000;
+	static constexpr qint64 INTERVALLE_WAVE = 20000;
+
+	double facteurVitesse = 1.0;
 };
 
 #endif

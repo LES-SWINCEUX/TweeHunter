@@ -37,19 +37,31 @@ struct Enpleineface {
 	bool initialise = false;
 
 	qint64 getDuree() const {
-		return 2000 * niveau;
+		return (1000 * niveau);
 	}
-	int getLargeur() const {
-		return 200 * niveau;
+	int getLargeur(double largeurEcran) const {
+		return static_cast<int>(largeurEcran * 0.15 * niveau);
 	}
 
 };
+
+struct AnimationExplosionFireball {
+
+	QPointF position;
+	QSizeF taille;
+	Sprite sprite;
+	qint64 tempsDebut = 0;
+	qint64 dureeMs = 1000;
+	bool initialise = false;
+
+};
+
 
 class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr, GestionnaireAudio* gestionnaireAudio = nullptr);
 
 	~Jeu();
 
@@ -107,6 +119,10 @@ public:
 		onMoteurDemande = callback;
 	}
 
+	void setFacteurVitesse(double facteur) {
+		if (randomiser) randomiser->setFacteurVitesse(facteur);
+	}
+
 private:
 	void nettoyerCiblesInactives();
 	void initialiserCiblesParDefaut();
@@ -147,8 +163,6 @@ private:
 
 	QList<IndicateurScore> indicateurs;
 
-	qint64 prochaineWave= 0;
-
 	QSizeF tailleEcran;
 	QList<Enpleineface> enpleineface;
 
@@ -160,6 +174,10 @@ private:
 	const qint64 INTERVALLE_WAVE = 30000;
 
 	const QString CHEMIN_DESTRUCTION = "/images/sprites/Explosion.png";
+
+	QList<AnimationExplosionFireball> ExplosionFireball;
+
+	void jouerAnimationExplosionFireball(QPointF position, QSizeF taille, const QString& cheminSprite, int colonnes, int lignes, qint64 dureeMs, qint64 tempsMs);
 };
 
 #endif
