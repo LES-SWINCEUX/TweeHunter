@@ -77,7 +77,11 @@ void EcranJeu::initAudio()
     }
 
     gestionnaireAudio->stopAndClearMusic();
-    gestionnaireAudio->setPlaylist({ QDir::currentPath() + "/sounds/jeu/track_1.mp3" });
+    QStringList playlist;
+    for (int i = 1; i <= NOMBRE_TRACK_MUSIQUE; i++) {
+        playlist.append((QDir::currentPath() + "/sounds/jeu/track_%1.mp3").arg(i));
+    }
+    gestionnaireAudio->setPlaylist(playlist);
     gestionnaireAudio->playMusic();
 
     estompeMusique = new QPropertyAnimation(gestionnaireAudio, "musicVolume", this);
