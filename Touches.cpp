@@ -571,7 +571,7 @@ void Touches::envoyerFinPartie() {
 
     QJsonObject obj;
     obj["type"] = "config";
-    obj["Swince"] = 1;
+    obj["swince"] = 1;
     QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
