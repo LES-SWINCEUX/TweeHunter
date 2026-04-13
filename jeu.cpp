@@ -2,8 +2,8 @@
 
 QSharedPointer<QPixmap> Jeu::spriteDestruction = nullptr;
 
-Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, Armes* A, CompteurPowerUp* C, GestionnaireAudio* gestionnaireAudio)
-	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran)
+Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* compteurVies, ModeJeu mode, TypeManette selectionManette, Armes* A, CompteurPowerUp* C, GestionnaireAudio* gestionnaireAudio)
+	: randomiser(nullptr), score(0), ciblesTouchees(0), ciblesManquees(0), maxCiblesSimultanees(4), enPause(false), modeActuel(mode), tailleEcran(tailleEcran), selectionManette(selectionManette)
 {
 	this->gestionnaireAudio = gestionnaireAudio;
 	armes = A;
@@ -179,6 +179,7 @@ void Jeu::update(qint64 tempsMs)
 	}
 
 	nettoyerIndicateurs(tempsMs);
+	nettoyerIndicateursPowerUp(tempsMs);
 }
 
 void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
@@ -213,6 +214,7 @@ void Jeu::dessiner(QPainter& painter, qint64 tempsMs)
 	}
 
 	dessinerIndicateurs(painter, tempsMs);
+	dessinerIndicateursPowerUp(painter, tempsMs);
 	dessinerEnpleinefaces(painter, tempsMs);
 }
 bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
@@ -264,7 +266,14 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 
 			}
 			if(cible->getType() == TypeTarget::LEGENDAIRE) {
-				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + armes->addPowerUp());
+				int gain = armes->addPowerUp();
+				compteurPowerUp->setPowerUp(compteurPowerUp->getPowerUp() + gain);
+
+				IndicateurPowerUp indicPU;
+				indicPU.position = cible->getBounds().center() + QPointF(0, -40);
+				indicPU.quantite = gain;
+				indicPU.tempsDebut = tempsMs;
+				indicateursPowerUp.append(indicPU);
 			}
 
 			compteurPoints->setPoints(score);
@@ -407,6 +416,30 @@ void Jeu::ajouterTypeCible(const DefinitionTarget& definition)
 	}
 }
 
+void Jeu::spawnerLegendaire(qint64 tempsMs)
+{
+	if (!randomiser) { 
+		return; 
+	}
+
+	if ((int)ciblesActives.size() >= maxCiblesSimultanees) { 
+		return; 
+	}
+
+	DefinitionTarget def;
+	def.type = TypeTarget::LEGENDAIRE;
+	def.tailleRelative = 0.15;
+	def.pointsScore = 100;
+	def.vitesseMin = 420.0;
+	def.vitesseMax = 2050.0;
+	def.frequenceSpawn = 5.0;
+
+	Target* cible = randomiser->genererTargetDeType(def, modeActuel, tempsMs);
+	if (cible) {
+		ciblesActives.append(cible);
+	}
+}
+
 void Jeu::setModeJeu(ModeJeu mode)
 {
 	modeActuel = mode;
@@ -441,14 +474,16 @@ void Jeu::initialiserCiblesParDefaut()
 	mixte.frequenceSpawn = 2.5;
 	ajouterTypeCible(mixte);
 
-	DefinitionTarget legendaire;
-	legendaire.type = TypeTarget::LEGENDAIRE;
-	legendaire.tailleRelative = 0.15;
-	legendaire.pointsScore = 100;
-	legendaire.vitesseMin = 420.0;
-	legendaire.vitesseMax = 2050.0;
-	legendaire.frequenceSpawn = 5.0;
-	ajouterTypeCible(legendaire);
+	if (selectionManette != TypeManette::CUSTOM) {
+		DefinitionTarget legendaire;
+		legendaire.type = TypeTarget::LEGENDAIRE;
+		legendaire.tailleRelative = 0.15;
+		legendaire.pointsScore = 100;
+		legendaire.vitesseMin = 420.0;
+		legendaire.vitesseMax = 2050.0;
+		legendaire.frequenceSpawn = 5.0;
+		ajouterTypeCible(legendaire);
+	}
 
 	DefinitionTarget bonus;
 	bonus.type = TypeTarget::BONUS;
@@ -537,6 +572,62 @@ void Jeu::dessinerIndicateurs(QPainter& painter, qint64 tempsMs)
 
 		painter.setPen(couleurTexte);
 		painter.drawText(QRectF(pos.x() - 60, pos.y() - 20, 120, 40), Qt::AlignCenter, texte);
+	}
+}
+
+void Jeu::nettoyerIndicateursPowerUp(qint64 tempsMs)
+{
+	auto it = indicateursPowerUp.begin();
+	while (it != indicateursPowerUp.end()) {
+		if (tempsMs - it->tempsDebut >= IndicateurPowerUp::DUREE_MS) {
+			it = indicateursPowerUp.erase(it);
+		} else {
+			++it;
+		}
+	}
+}
+
+void Jeu::dessinerIndicateursPowerUp(QPainter& painter, qint64 tempsMs)
+{
+	if (indicateursPowerUp.isEmpty()) {
+		return;
+	}
+
+	static QFont font = []() {
+		QFont f;
+		f.setFamily("Press Start 2P");
+		f.setPixelSize(26);
+		f.setBold(true);
+		f.setStyleStrategy(QFont::NoAntialias);
+		return f;
+	}();
+
+	painter.setFont(font);
+
+	for (const IndicateurPowerUp& indic : indicateursPowerUp) {
+		qint64 tempsEcoule = tempsMs - indic.tempsDebut;
+		if (tempsEcoule < 0 || tempsEcoule >= IndicateurPowerUp::DUREE_MS) {
+			continue;
+		}
+
+		double t = double(tempsEcoule) / double(IndicateurPowerUp::DUREE_MS);
+		double decalageY = -70.0 * t;
+
+		int alpha = (t < 0.6) ? 255 : int(255.0 * (1.0 - (t - 0.6) / 0.4));
+		alpha = qBound(0, alpha, 255);
+
+		QColor couleur(255, 210, 50, alpha);
+
+		QString texte = QString("+%1").arg(indic.quantite);
+
+		QPointF pos = indic.position + QPointF(0, decalageY);
+
+		QColor ombre(0, 0, 0, alpha / 2);
+		painter.setPen(ombre);
+		painter.drawText(QRectF(pos.x() - 70 + 2, pos.y() - 20 + 2, 140, 40), Qt::AlignCenter, texte);
+
+		painter.setPen(couleur);
+		painter.drawText(QRectF(pos.x() - 70, pos.y() - 20, 140, 40), Qt::AlignCenter, texte);
 	}
 }
 

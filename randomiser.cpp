@@ -86,6 +86,29 @@ Target* Randomiser::genererTarget(ModeJeu mode)
 	return cible;
 }
 
+Target* Randomiser::genererTargetDeType(const DefinitionTarget& def, ModeJeu mode, qint64 tempsMs)
+{
+	tempsCourant = tempsMs;
+
+	Bord bordDepart = choisirBordAleatoire();
+	QPointF pointDepart = choisirPointDepart(bordDepart);
+	Bord bordArrivee = choisirBordOppose(bordDepart);
+	QPointF pointArrivee = choisirPointArrivee(bordArrivee);
+	TypeTrajectoire traj = choisirTrajectoire();
+
+	double facteur = calculerFacteurVitesse(tempsMs) * facteurVitesse;
+	Mouvement* mouvement = new Mouvement(pointDepart, pointArrivee, choisirVitesse(def.vitesseMin * facteur, def.vitesseMax * facteur), traj);
+
+	QSizeF taillePixels(tailleEcran.width() * def.tailleRelative, tailleEcran.height() * def.tailleRelative);
+
+	Target* cible = new TargetLegendaire(mouvement, taillePixels, mode);
+
+	if (bordDepart == Bord::DROITE) {
+		cible->setMiroir(true);
+	}
+	return cible;
+}
+
 QPointF Randomiser::choisirPointDepart(Bord bord) const
 {
 	std::uniform_real_distribution<double> dist(0.0, 1.0);

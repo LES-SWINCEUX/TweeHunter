@@ -36,6 +36,7 @@ public:
 
 	bool doitGenererTarget(qint64 tempsMs);
 	Target* genererTarget(ModeJeu mode);
+	Target* genererTargetDeType(const DefinitionTarget& def, ModeJeu mode, qint64 tempsMs);
 
 	void setFrequenceSpawn(qint64 intervalMs) {
 		intervalSpawn = intervalMs;

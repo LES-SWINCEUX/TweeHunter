@@ -1,31 +1,40 @@
 #ifndef JEU_H
 #define JEU_H
 
+#include <QList>
+#include <QSizeF>
+#include <QTimer>
+#include <QPainter>
+#include <iostream>
+#include <QPainterPath>
+#include <functional>
+#include <QFont>
+#include <QColor>
+
+#include "modejeu.h"
+#include "bush.h"
+#include "bush_louche.h"
+#include "gestionnaire_audio.h"
+#include "Armes.h"
 #include "target.h"
 #include "randomiser.h"
 #include "compteur_points.h"
 #include "compteur_balles.h"
 #include "compteur_vies.h"
 #include "compteur_powerup.h"
-#include <QList>
-#include <QSizeF>
-#include <QTimer>
-#include <QPainter>
-#include <iostream>
-#include "modejeu.h"
-#include <QPainterPath>
-#include "bush.h"
-#include "bush_louche.h"
-#include "gestionnaire_audio.h"
-#include "Armes.h"
-#include <functional>
-#include <QFont>
-#include <QColor>
+#include "configuration_partie.h"
 
 struct IndicateurScore {
 	QPointF position;
 	int points;
 	qint64  tempsDebut;
+	static const qint64 DUREE_MS = 1200;
+};
+
+struct IndicateurPowerUp {
+	QPointF position;
+	int quantite;
+	qint64 tempsDebut;
 	static const qint64 DUREE_MS = 1200;
 };
 
@@ -61,7 +70,7 @@ class Jeu
 {
 
 public:
-	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, Armes* A = nullptr, CompteurPowerUp* C=nullptr, GestionnaireAudio* gestionnaireAudio = nullptr);
+	Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBalles* compteurBalles, CompteurVies* vies, ModeJeu mode = ModeJeu::PLUS_18, TypeManette selectionManette = TypeManette::CLAVIER_SOURIS, Armes* A = nullptr, CompteurPowerUp* C=nullptr, GestionnaireAudio* gestionnaireAudio = nullptr);
 
 	~Jeu();
 
@@ -123,15 +132,20 @@ public:
 		if (randomiser) randomiser->setFacteurVitesse(facteur);
 	}
 
+	// Spawn immédiat d'une cible légendaire (déclenché par détection de muon)
+	void spawnerLegendaire(qint64 tempsMs);
+
 private:
 	void nettoyerCiblesInactives();
 	void initialiserCiblesParDefaut();
 
 	void dessinerEnpleinefaces(QPainter& painter, qint64 tempsMs);
 	void dessinerIndicateurs(QPainter& painter, qint64 tempsMs);
+	void dessinerIndicateursPowerUp(QPainter& painter, qint64 tempsMs);
 
 	void nettoyerEnpleinefaces(qint64 tempsMs);
 	void nettoyerIndicateurs(qint64 tempsMs);
+	void nettoyerIndicateursPowerUp(qint64 tempsMs);
 	void UpdateWave(qint64 tempsMs);
 
 	static QSharedPointer<QPixmap> spriteDestruction;
@@ -152,16 +166,18 @@ private:
 	bool enWave = false;
 
 	ModeJeu modeActuel;
-
-	QList<Bush*> bushes;
+	TypeManette selectionManette;
 	BushLouche* bushLoucheActif = nullptr;
 	GestionnaireAudio* gestionnaireAudio = nullptr;
 	Armes* armes = nullptr;
 	CompteurPowerUp* compteurPowerUp = nullptr;
+	ConfigurationPartie configurationPartie;
 
 	std::function<void()> onMoteurDemande;
 
+	QList<Bush*> bushes;
 	QList<IndicateurScore> indicateurs;
+	QList<IndicateurPowerUp> indicateursPowerUp;
 
 	QSizeF tailleEcran;
 	QList<Enpleineface> enpleineface;
