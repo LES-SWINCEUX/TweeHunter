@@ -550,6 +550,19 @@ void Touches::envoyerMoteur()
     serial.write(msg);
 }
 
+void Touches::envoyerScores(int score)
+{
+    if (!serial.isOpen()) {
+        return;
+    }
+
+    QJsonObject obj;
+    obj["type"] = "config";
+    obj["score"] = score;
+    QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
+    serial.write(msg);
+}
+
 void Touches::envoyerFinPartie() {
 
     if (!serial.isOpen()) {

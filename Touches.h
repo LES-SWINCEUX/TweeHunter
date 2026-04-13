@@ -67,6 +67,7 @@ public:
 
     void envoyerNbBalles(int nbBalles);
 	void envoyerMoteur();
+	void envoyerScores(int score);
     void envoyerRaw(const QByteArray& data);
 	void envoyerFinPartie();
 

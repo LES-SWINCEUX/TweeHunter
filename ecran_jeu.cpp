@@ -75,6 +75,7 @@ void EcranJeu::initHUD()
 
     if (touches) {
         connect(compteurBalles, &CompteurBalles::ballesChanged, touches, &Touches::envoyerNbBalles);
+        connect(compteurPoints, &CompteurPoints::scoreChanged, touches, &Touches::envoyerScores);
     }
 }
 
