@@ -35,13 +35,21 @@ void EcranJeu::initReticuleEtArmes()
     armes->setFenetre(this);
     maxBalles = armes->nbMunitions();
 
-    connect(touches, &Touches::tireDemande,     this, &EcranJeu::tire);
-    connect(touches, &Touches::reloadDemande,   this, &EcranJeu::rechargerArme);
-    connect(touches, &Touches::pauseDemande,    this, &EcranJeu::mettreEnPause);
-    connect(touches, &Touches::powerUpDemande,  this, &EcranJeu::Power);
+    connect(touches, &Touches::tireDemande, this, &EcranJeu::tire);
+    connect(touches, &Touches::reloadDemande, this, &EcranJeu::rechargerArme);
+    connect(touches, &Touches::pauseDemande, this, &EcranJeu::mettreEnPause);
+    connect(touches, &Touches::powerUpDemande, this, &EcranJeu::Power);
     connect(touches, &Touches::joystickDeplace, this, [this](float dx, float dy, float deltaMs) {
         reticule->applyJoystick(this, dx, dy, deltaMs);
     });
+
+    if (configurationPartie.manette == TypeManette::CUSTOM) {
+        connect(touches, &Touches::detectionMuon, this, [this]() {
+            if (jeu && !enPause) {
+                jeu->spawnerLegendaire(tempsJeuMs);
+            }
+        });
+    }
 }
 
 void EcranJeu::initHUD()
@@ -151,7 +159,7 @@ void EcranJeu::showEvent(QShowEvent* e)
     }
 
     if (!jeu) {
-        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, armes,compteurPowerUp, gestionnaireAudio);
+        jeu = new Jeu(size(), compteurPoints, compteurBalles, compteurVies, configurationPartie.modeJeu, configurationPartie.manette, armes,compteurPowerUp, gestionnaireAudio);
 
 
         if (configurationPartie.manette != TypeManette::CLAVIER_SOURIS) {

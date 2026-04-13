@@ -7,6 +7,8 @@
 #include <QMap>
 #include <QSettings>
 #include <QSoundEffect>
+#include <algorithm>
+#include <random>
 
 enum AudioMode { MUSIQUE, SFX };
 
