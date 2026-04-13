@@ -134,6 +134,7 @@ void EcranJeu::initMinuterie()
     frameTimer.start();
     tempsJeuMs = 0;
 
+    timer.setTimerType(Qt::PreciseTimer);
     timer.setInterval(1000 / 60);
     connect(&timer, &QTimer::timeout, this, &EcranJeu::tick);
     timer.start();
@@ -550,6 +551,7 @@ void EcranJeu::PowerChoose(PowerUpType PowerUp) {
     case PowerUpType::MITRAILLETTE:
         if (timerPowerUp == nullptr) {
             timerPowerUp = new QTimer(this);
+            timerPowerUp->setTimerType(Qt::PreciseTimer);
         }
     
         compteur = 0;

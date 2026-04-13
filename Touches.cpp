@@ -136,9 +136,9 @@ void Touches::mettreAJour()
     if (joystickOfficiel && gamepad) {
         SDL_UpdateGamepads();
     }
-    if (joystickPerso) {
-        lirePerso();
-    }
+    // lirePerso() est deja appele via le signal donneesRecues du SerialReaderThread.
+    // L'appeler ici en plus viderait le buffer avant que le slot queued soit traite,
+    // ce qui ferait manquer des messages comme "muon".
 }
 
 bool Touches::haut() const
@@ -499,8 +499,8 @@ void Touches::envoyerMoteur()
     }
 
     QJsonObject obj;
-    obj["type"] = "commande";
-    obj["Start_Moteur"] = 1;
+    obj["type"] = "config";
+    obj["moteur"] = 1;
 	QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
@@ -513,7 +513,7 @@ void Touches::envoyerFinPartie() {
 
     QJsonObject obj;
     obj["type"] = "config";
-    obj["swince"] = 1;
+    obj["Swince"] = 1;
     QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }

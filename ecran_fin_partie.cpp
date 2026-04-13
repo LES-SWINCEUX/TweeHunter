@@ -92,6 +92,7 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
             touches->lireNavigation();
         }
     });
+    timerManette.setTimerType(Qt::PreciseTimer);
     timerManette.setInterval(16);
 
     if (touches) {

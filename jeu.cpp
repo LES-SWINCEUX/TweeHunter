@@ -509,7 +509,7 @@ void Jeu::initialiserCiblesParDefaut()
 	water.pointsScore = 0;
 	water.vitesseMin = 500.0;
 	water.vitesseMax = 1000.0;
-	water.frequenceSpawn = 10.0;
+	water.frequenceSpawn = 10000000000000.0;
 	ajouterTypeCible(water);
 
 	DefinitionTarget gator;

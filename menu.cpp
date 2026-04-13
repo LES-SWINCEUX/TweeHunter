@@ -71,6 +71,7 @@ MenuPrincipal::MenuPrincipal(GestionnaireAudio* gestionnaireAudio, bool restartM
             touches->lireNavigation();
         }
     });
+    timerManette.setTimerType(Qt::PreciseTimer);
     timerManette.setInterval(16);
     timerManette.start();
 
@@ -206,6 +207,7 @@ void MenuPrincipal::resizeEvent(QResizeEvent* e)
 }
 
 void MenuPrincipal::configuerAnimationTitre() {
+    timerAnimationTitre.setTimerType(Qt::PreciseTimer);
     timerAnimationTitre.setInterval(INTERVALE_TITRE_MS);
 
     connect(&timerAnimationTitre, &QTimer::timeout, this, [this]() {

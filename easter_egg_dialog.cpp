@@ -43,6 +43,7 @@ EasterEggDialog::EasterEggDialog(int indexCanette, QWidget* parent)
     );
 
     connect(&timerAnim, &QTimer::timeout, this, [this]() { update(); });
+    timerAnim.setTimerType(Qt::PreciseTimer);
     timerAnim.setInterval(16);
     timerAnim.start();
 

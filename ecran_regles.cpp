@@ -43,10 +43,12 @@ EcranRegles::EcranRegles(GestionnaireAudio* gestionnaireAudio,
     fadeOutAnim->setDuration(500);
 
     timerAnimation = new QTimer(this);
+    timerAnimation->setTimerType(Qt::PreciseTimer);
     timerAnimation->setInterval(33);
     connect(timerAnimation, &QTimer::timeout, this, &EcranRegles::mettreAJourAnimation);
 
     timerManette = new QTimer(this);
+    timerManette->setTimerType(Qt::PreciseTimer);
     timerManette->setInterval(16);
     connect(timerManette, &QTimer::timeout, this, &EcranRegles::tickManette);
 
