@@ -34,7 +34,7 @@ Touches::Touches(): joystickPerso(false), middleX(0), middleY(0)
         if (serial.open(NativeSerialPort::ReadWrite)) {
             joystickPerso = true;
             connect(serial.getReader(), &SerialReaderThread::donneesRecues,
-                this, &Touches::lirePerso, Qt::QueuedConnection);
+                this, &Touches::lirePerso, Qt::DirectConnection);
         }
     }
 
@@ -85,34 +85,17 @@ void Touches::lirePerso() {
         QJsonObject obj = doc.object();
 
         if (obj["type"] == "joystick") {
+            QMutexLocker lock(&persoMutex);
             pendingX = obj["x"].toInt();
             pendingY = 1023 - obj["y"].toInt();
             hasNewJoystick = true;
         }
         else if (obj["type"] == "event") {
-            if (obj["btn"].toInt() == 1) {
-                gachette = true;
-            }
-            else {
-                gachette = false;
-            }
-
-            if (obj["btn1"].toInt() == 1) {
-                reload = true;
-            }
-            else {
-                reload = false;
-            }
-
-            if (obj["btn2"].toInt() == 1) {
-                accelerometre = true;
-            }
-            else {
-                accelerometre = false;
-            }
-
+            QMutexLocker lock(&persoMutex);
+            gachette = (obj["btn"].toInt() == 1);
+            reload = (obj["btn1"].toInt() == 1);
+            accelerometre = (obj["btn2"].toInt() == 1);
             encodeur = obj["encodeur"].toInt();
-
             if (encodeur != 0) {
                 lastEncodeur = encodeur;
             }
@@ -124,10 +107,13 @@ void Touches::lirePerso() {
         }
     }
 
-    if (hasNewJoystick) {
-        x = pendingX;
-        y = pendingY;
-        hasNewJoystick = false;
+    {
+        QMutexLocker lock(&persoMutex);
+        if (hasNewJoystick) {
+            x = pendingX;
+            y = pendingY;
+            hasNewJoystick = false;
+        }
     }
 }
 
@@ -136,9 +122,9 @@ void Touches::mettreAJour()
     if (joystickOfficiel && gamepad) {
         SDL_UpdateGamepads();
     }
-    // lirePerso() est deja appele via le signal donneesRecues du SerialReaderThread.
-    // L'appeler ici en plus viderait le buffer avant que le slot queued soit traite,
-    // ce qui ferait manquer des messages comme "muon".
+    if (joystickPerso) {
+        lirePerso();
+    }
 }
 
 bool Touches::haut() const
@@ -235,11 +221,13 @@ bool Touches::customDroite() const
 
 float Touches::customAxeX() const
 {
+    QMutexLocker lock(&persoMutex);
     return std::clamp((float(x) - 512.0f) / 512.0f, -1.0f, 1.0f);
 }
 
 float Touches::customAxeY() const
 {
+    QMutexLocker lock(&persoMutex);
     return std::clamp((float(y) - 512.0f) / 512.0f, -1.0f, 1.0f);
 }
 
@@ -294,11 +282,20 @@ void Touches::lireNavigation()
     }
 
     if (joystickPerso) {
-        const bool ch = customHaut();
-        const bool cb = customBas();
-        const bool cg = customGauche();
-        const bool cd = customDroite();
-        const bool co = customConfirmer();
+        int snapX, snapY;
+        bool snapGachette, snapReload;
+        {
+            QMutexLocker lock(&persoMutex);
+            snapX = x; snapY = y;
+            snapGachette = gachette; snapReload = reload;
+        }
+
+        const bool ch = snapY < SEUIL_HAUT_CUSTOM;
+        const bool cb = snapY > SEUIL_BAS_CUSTOM;
+        const float axX = std::clamp((float(snapX) - 512.0f) / 512.0f, -1.0f, 1.0f);
+        const bool cg = axX < -DEAD_ZONE_CUSTOM;
+        const bool cd = axX > DEAD_ZONE_CUSTOM;
+        const bool co = snapGachette;
 
         const bool enDeadZone = !cg && !cd && !ch && !cb;
 
@@ -307,23 +304,23 @@ void Touches::lireNavigation()
         }
 
         if (!navVerrouJoystickCustom) {
-            if (ch && !navCustomHautPrecedent) { 
-                emit naviguerHaut();   
-                navVerrouJoystickCustom = true; 
+            if (ch && !navCustomHautPrecedent) {
+                emit naviguerHaut();
+                navVerrouJoystickCustom = true;
             }
 
-            if (cb && !navCustomBasPrecedent) { 
+            if (cb && !navCustomBasPrecedent) {
                 emit naviguerBas();
                 navVerrouJoystickCustom = true;
             }
             if (cg && !navCustomGauchePrecedent) {
-                emit naviguerGauche(); 
-                navVerrouJoystickCustom = true; 
+                emit naviguerGauche();
+                navVerrouJoystickCustom = true;
             }
 
-            if (cd && !navCustomHautPrecedent) { 
-                emit naviguerDroite(); 
-                navVerrouJoystickCustom = true; 
+            if (cd && !navCustomDroitePrecedent) {
+                emit naviguerDroite();
+                navVerrouJoystickCustom = true;
             }
         }
 
@@ -334,6 +331,7 @@ void Touches::lireNavigation()
         navCustomHautPrecedent = ch;
         navCustomBasPrecedent = cb;
         navCustomGauchePrecedent = cg;
+        navCustomDroitePrecedent = cd;
         navCustomOkPrecedent = co;
     }
 }
@@ -382,24 +380,39 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
             return;
         }
 
-        if (customConfirmer() && !reload) {
+        int snapX, snapY;
+        bool snapGachette, snapReload, snapAccelerometre;
+        int snapEncodeur;
+        {
+            QMutexLocker lock(&persoMutex);
+            snapX = x; snapY = y;
+            snapGachette = gachette;
+            snapReload = reload;
+            snapAccelerometre = accelerometre;
+            snapEncodeur = encodeur;
+        }
+
+        const float snapAxeX = std::clamp((float(snapX) - 512.0f) / 512.0f, -1.0f, 1.0f);
+        const float snapAxeY = std::clamp((float(snapY) - 512.0f) / 512.0f, -1.0f, 1.0f);
+
+        if (snapGachette && !snapReload) {
             if (!gachetteTirPrecedente) {
                 emit tireDemande();
             }
             gachetteTirPrecedente = true;
-        } else if (!customConfirmer()) {
+        } else if (!snapGachette) {
             gachetteTirPrecedente = false;
         }
 
-        if (reload && getAccelerometre()) {
+        if (snapReload && snapAccelerometre) {
             emit reloadDemande();
         }
 
-        if (reload && getEncodeur() != 0) {
+        if (snapReload && snapEncodeur != 0) {
             emit pauseDemande();
         }
 
-        if (customConfirmer() && reload) {
+        if (snapGachette && snapReload) {
             if (!powerUpActif) {
                 powerUpActif = true;
                 emit powerUpDemande();
@@ -408,7 +421,7 @@ void Touches::lireJeu(TypeManette manette, qint64 deltaMs)
             powerUpActif = false;
         }
 
-        emit joystickDeplace(customAxeX(), customAxeY(), float(deltaMs));
+        emit joystickDeplace(snapAxeX, snapAxeY, float(deltaMs));
         break;
     }
     default:
@@ -454,6 +467,7 @@ void Touches::verifierConnexion()
 
 int Touches::useLastEncodeur()
 {
+    QMutexLocker lock(&persoMutex);
     int temp = lastEncodeur;
     if (temp != 0) {
         lastEncodeur = 0;
@@ -462,12 +476,43 @@ int Touches::useLastEncodeur()
 }
 
 int Touches::getxPerso() const {
+    QMutexLocker lock(&persoMutex);
     return x;
 }
 
-
 int Touches::getyPerso() const {
+    QMutexLocker lock(&persoMutex);
     return y;
+}
+
+bool Touches::getGachette() const {
+    QMutexLocker lock(&persoMutex);
+    return gachette;
+}
+
+bool Touches::getReload() const {
+    QMutexLocker lock(&persoMutex);
+    return reload;
+}
+
+bool Touches::getAccelerometre() const {
+    QMutexLocker lock(&persoMutex);
+    return accelerometre;
+}
+
+int Touches::getEncodeur() const {
+    QMutexLocker lock(&persoMutex);
+    return encodeur;
+}
+
+bool Touches::customConfirmer() const {
+    QMutexLocker lock(&persoMutex);
+    return gachette;
+}
+
+bool Touches::customRetour() const {
+    QMutexLocker lock(&persoMutex);
+    return reload;
 }
 
 void Touches::envoyerNbBalles(int nbBalles)
