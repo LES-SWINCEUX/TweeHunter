@@ -50,6 +50,10 @@ void EcranJeu::initReticuleEtArmes()
             }
         });
     }
+
+    if (touches) {
+        touches->envoyerArme(configurationPartie.arme);
+    }
 }
 
 void EcranJeu::initHUD()
@@ -75,6 +79,7 @@ void EcranJeu::initHUD()
 
     if (touches) {
         connect(compteurBalles, &CompteurBalles::ballesChanged, touches, &Touches::envoyerNbBalles);
+        connect(compteurPoints, &CompteurPoints::scoreChanged, touches, &Touches::envoyerScores);
     }
 }
 
