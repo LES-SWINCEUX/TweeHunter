@@ -493,8 +493,8 @@ void Touches::envoyerMoteur()
     }
 
     QJsonObject obj;
-    obj["type"] = "config";
-    obj["moteur"] = 1;
+    obj["type"] = "commande";
+    obj["Start_Moteur"] = 1;
 	QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
@@ -507,7 +507,7 @@ void Touches::envoyerFinPartie() {
 
     QJsonObject obj;
     obj["type"] = "config";
-    obj["Swince"] = 1;
+    obj["swince"] = 1;
     QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
