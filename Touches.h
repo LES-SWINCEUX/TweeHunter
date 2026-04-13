@@ -83,6 +83,8 @@ signals:
 	void naviguerConfirmer();
 	void naviguerRetour();
 
+	void detectionMuon();
+
 private:
 	bool gachetteTirPrecedente = false;
 	bool gachettePowerUpPrecedente = false;

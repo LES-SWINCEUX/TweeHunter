@@ -117,6 +117,11 @@ void Touches::lirePerso() {
                 lastEncodeur = encodeur;
             }
         }
+        else if (obj["type"] == "muon") {
+            if (obj["Buff_Muons"].toInt() == 1) {
+                emit detectionMuon();
+            }
+        }
     }
 
     if (hasNewJoystick) {
@@ -250,9 +255,11 @@ void Touches::lireNavigation()
         const bool ok = confirmer();
         const bool re = retour();
 
-        // Dead zone joystick pour éviter les répétitions
         const bool enDeadZone = std::abs(axeX()) < DEAD_ZONE_STANDARD && std::abs(axeY()) < DEAD_ZONE_STANDARD;
-        if (enDeadZone) navVerrouJoystick = false;
+
+        if (enDeadZone) {
+            navVerrouJoystick = false;
+        }
 
         if (h && !navHautPrecedent) {
             emit naviguerHaut();
@@ -286,7 +293,6 @@ void Touches::lireNavigation()
         navRetourPrecedent = re;
     }
 
-    // --- Manette custom ---
     if (joystickPerso) {
         const bool ch = customHaut();
         const bool cb = customBas();
