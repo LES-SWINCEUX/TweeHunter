@@ -50,10 +50,6 @@ void EcranJeu::initReticuleEtArmes()
             }
         });
     }
-
-    if (touches) {
-        touches->envoyerArme(configurationPartie.arme);
-    }
 }
 
 void EcranJeu::initHUD()
