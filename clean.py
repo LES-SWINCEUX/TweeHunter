@@ -7,6 +7,9 @@ DIR_NAMES = {"debug", "release", "SDL3"}
 
 EXACT_FILE_NAMES = {
     ".qmake.stash",
+    "Makefile",
+    "Makefile.Debug",
+    "Makefile.Release",
 }
 
 FILE_SUFFIXES = {

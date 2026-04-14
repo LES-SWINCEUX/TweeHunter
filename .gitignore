@@ -7,6 +7,9 @@ moc_*.h
 ui_*.h
 qrc_*.cpp
 *.zip
+Makefile
+Makefile.Debug
+Makefile.Release
 
 ##############################
 # Dossier de génération
