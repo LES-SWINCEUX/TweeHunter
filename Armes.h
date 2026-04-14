@@ -25,6 +25,8 @@ public:
 	int addPowerUp();
 	int getMult() { return mult; }
 	void setMult(int value) { mult = value; }
+	void reset7();
+
 
 	int getArmeActuelle() const {
 		return ArmeActuelle;
@@ -42,6 +44,9 @@ private:
 	PowerUpType PowerActuelle = PowerUpType::GRENADE;
 	QWidget* p = nullptr;
 	int mult = 1;
+
+	int x7[3] = { -1, -1, -1 };
+	int y7[3] = { -1, -1, -1 };
 };
 
 #endif

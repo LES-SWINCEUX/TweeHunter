@@ -3,7 +3,8 @@
 
 Armes::Armes(ConfigurationPartie configuration)
 {
-	ArmeActuelle = configuration.arme;
+	//ArmeActuelle = configuration.arme;
+	ArmeActuelle = 7;
 	PowerActuelle = configuration.powerUp;
 }
 
@@ -67,6 +68,19 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 		// Swince : comportement temporaire en attendant un réticule dédié
 		Hitbox.addRect(x-(largeur/2), y-(hauteur/2), largeur, hauteur);
 		return Hitbox;
+	case 7:
+		//cout << "Nouvelle arme sélectionnée" << endl;
+
+		for (int i = 0; i < 3; i++) {
+			if (x7[i] == -1 && y7[i] == -1) {
+				x7[i] = x;
+				y7[i] = y;
+				Hitbox.addEllipse(QPointF(x7[i], y7[i]), 30, 30);
+				break;
+			}
+			Hitbox.addEllipse(QPointF(x7[i], y7[i]), 30, 30);
+		}
+		return Hitbox;
 	default:
 		return Hitbox;
 	}
@@ -87,6 +101,8 @@ int Armes::nbMunitions() const
 		return 9;
 	case 6:
 		return 8;
+	case 7:
+		return 3;
 	default:
 		return 0;
 	}
@@ -119,6 +135,14 @@ int Armes::addPowerUp() {
 		return 1;
 	default:
 		return 0;
+	}
+}
+
+void Armes::reset7()
+{
+	for (int i = 0; i < 3; i++) {
+		x7[i] = -1;
+		y7[i] = -1;
 	}
 }
 

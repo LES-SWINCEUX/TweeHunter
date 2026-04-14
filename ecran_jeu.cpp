@@ -364,6 +364,10 @@ void EcranJeu::rechargerArme()
         gestionnaireAudio->playSfx("reload");
     }
 
+    if(armes->getArmeActuelle()==7){
+        armes->reset7();
+	}
+
     compteurBalles->setBalles(maxBalles);
     emit ballesChanged(maxBalles);
 }
