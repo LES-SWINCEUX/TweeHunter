@@ -179,7 +179,8 @@ private:
         "/images/sprites/jimador.png",
         "/images/sprites/guiness.png",
         "/images/sprites/creme_menthe.png",
-        "/images/sprites/baileys.png"
+        "/images/sprites/baileys.png",
+        "/images/sprites/rona.png"
     };
 
     const QVector<QString> SPRITES_DEBUFF_MOINS_18 = {

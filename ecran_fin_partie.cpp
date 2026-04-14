@@ -35,7 +35,7 @@ EcranFinPartie::EcranFinPartie(GestionnaireAudio* gestionnaireAudio, QWidget* pa
 
     champNom = new QLineEdit(this);
     champNom->setPlaceholderText("...");
-    champNom->setMaxLength(10);
+    champNom->setMaxLength(12);
     champNom->setAlignment(Qt::AlignHCenter);
     champNom->setStyleSheet(
         "QLineEdit {"
