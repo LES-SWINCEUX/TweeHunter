@@ -3,7 +3,7 @@
 
 const QVector<QString> TargetDebuff::spritesPlus18 = {
 	"/images/sprites/jack_daniels.png",
-	//"/images/sprites/grey_goose.png",
+	"/images/sprites/grey_goose.png",
 	"/images/sprites/jimador.png",
 	"/images/sprites/guiness.png",
 	"/images/sprites/creme_menthe.png",
