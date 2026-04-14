@@ -575,3 +575,12 @@ void Touches::envoyerFinPartie() {
     QByteArray msg = QJsonDocument(obj).toJson(QJsonDocument::Compact) + "\n";
     serial.write(msg);
 }
+
+void Touches::vibreManette(uint16_t low_freq, uint16_t high_freq, uint32_t dureeMs)
+{
+    if (!gamepad) {
+        return;
+    }
+
+    SDL_RumbleGamepad(gamepad, low_freq, high_freq, dureeMs);
+}

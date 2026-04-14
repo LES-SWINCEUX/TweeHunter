@@ -183,7 +183,13 @@ void EcranJeu::showEvent(QShowEvent* e)
         }
 
         jeu->setOnMoteurDemande([this]() {
-            if (touches) touches->envoyerMoteur();
+            if (touches && configurationPartie.manette == TypeManette::CUSTOM) {
+                touches->envoyerMoteur();
+            }
+
+            if (touches && configurationPartie.manette == TypeManette::STANDARD) {
+                touches->vibreManette(0xFFFF, 0xFFFF, 1000);
+            }
         });
     }
 

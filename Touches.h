@@ -71,6 +71,8 @@ public:
     void envoyerRaw(const QByteArray& data);
 	void envoyerFinPartie();
 
+	void vibreManette(uint16_t low_freq, uint16_t high_freq, uint32_t dureeMs);
+
 signals:
 	void tireDemande();
 	void reloadDemande();
