@@ -9,6 +9,8 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 	posY = pos.y();
 
 	choixTir = choix;
+	choixTir = 7;
+
 
 	setAttribute(Qt::WA_TransparentForMouseEvents);
 	setAttribute(Qt::WA_NoSystemBackground);
@@ -16,6 +18,9 @@ Reticule::Reticule(QWidget* parent, const QPoint& pos, int choix, TypeManette ma
 	setAttribute(Qt::WA_StaticContents);
 
 	ChangeReticule(parent, choixTir);
+
+	if (parent)
+		setGeometry(0, 0, parent->width(), parent->height());
 }
 
 void Reticule::ChangeReticule(QWidget* parent, int choix)
@@ -25,10 +30,34 @@ void Reticule::ChangeReticule(QWidget* parent, int choix)
 	choixTir = choix;
 	image = QPixmap(QString::fromStdString(getPath(choix)));
 
-	setFixedSize(image.size());
-	resize(parent->size());
-
 	setPosition(pos);
+}
+
+void Reticule::resetReticuleSuppl() {
+	image1= QPixmap();
+	image2= QPixmap();
+	image3 = QPixmap();
+}
+
+
+void Reticule::ajoutReticule(QWidget* parent, QPaintEvent*,int x, int y) {
+	if (image1.isNull()) {
+		image1 = QPixmap(QString::fromStdString(getPath(choixTir)));
+		pos1 = QPoint(x - image1.width() / 2, y - image1.height() / 2);
+
+		std::cout << "ajout reticule 1" << std::endl;
+		
+	}
+	else if (image2.isNull()) {
+		image2 = QPixmap(QString::fromStdString(getPath(choixTir)));
+		pos2 = QPoint(x - image2.width() / 2, y - image2.height() / 2);
+
+	}
+	else if (image3.isNull()) {
+		image3 = QPixmap(QString::fromStdString(getPath(choixTir)));
+		pos3 = QPoint(x - image3.width() / 2, y - image3.height() / 2);
+	}
+	update();
 }
 
 std::string Reticule::getPath(int choix) const
@@ -47,7 +76,6 @@ void Reticule::setPosition(const QPoint& pos)
 	posX = pos.x() - image.width() / 2;
 	posY = pos.y() - image.height() / 2;
 
-	move(posX, posY);
 	update();
 }
 
@@ -59,7 +87,6 @@ void Reticule::moveJoystick(float dx, float dy, QWidget* parent)
 	posY += int(dy * vitesse);
 
 	bornerPosition(parent);
-	move(posX, posY);
 	update();
 }
 
@@ -95,7 +122,7 @@ void Reticule::applyJoystick(QWidget* parent, float dx, float dy, float deltaMs)
 		posY += moveY;
 
 		bornerPosition(parent);
-		move(posX, posY);
+		update();
 	}
 }
 
@@ -108,7 +135,20 @@ void Reticule::bornerPosition(QWidget* parent)
 void Reticule::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
-	painter.drawPixmap(0, 0, image);
+	painter.drawPixmap(posX, posY, image);
+	if (!image1.isNull())
+		painter.drawPixmap(pos1, image1);
+	if (!image2.isNull())
+		painter.drawPixmap(pos2, image2);
+	if (!image3.isNull())
+		painter.drawPixmap(pos3, image3);
+}
+
+void Reticule::resizeEvent(QResizeEvent* event)
+{
+	QWidget::resizeEvent(event);
+	if (parentWidget())
+		setGeometry(0, 0, parentWidget()->width(), parentWidget()->height());
 }
 
 int Reticule::getX() const

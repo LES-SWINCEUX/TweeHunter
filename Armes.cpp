@@ -80,6 +80,7 @@ QPainterPath Armes::Hitbox(int choix, int x, int y)
 			}
 			Hitbox.addEllipse(QPointF(x7[i], y7[i]), 30, 30);
 		}
+		Hitbox.addEllipse(QPointF(x, y), 30, 30);
 		return Hitbox;
 	default:
 		return Hitbox;
@@ -102,7 +103,7 @@ int Armes::nbMunitions() const
 	case 6:
 		return 8;
 	case 7:
-		return 3;
+		return 6;
 	default:
 		return 0;
 	}

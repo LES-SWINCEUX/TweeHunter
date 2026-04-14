@@ -342,6 +342,9 @@ void EcranJeu::tire()
         return;
     }
 
+    if (armes->getArmeActuelle() == 7) {
+		reticule->ajoutReticule(this, nullptr, reticule->getX(), reticule->getY());
+    }
     bool cibleTouchee = jeu->Tirer(reticule->getX(), reticule->getY(), tempsJeuMs);
 
     compteurBalles->setBalles(balles - 1);
@@ -366,6 +369,7 @@ void EcranJeu::rechargerArme()
 
     if(armes->getArmeActuelle()==7){
         armes->reset7();
+		reticule->resetReticuleSuppl();
 	}
 
     compteurBalles->setBalles(maxBalles);
