@@ -88,6 +88,7 @@ EcranParametres::EcranParametres(GestionnaireAudio* gestionnaireAudio, Touches* 
             touches->lireNavigation();
         }
         });
+    timerManette.setTimerType(Qt::PreciseTimer);
     timerManette.setInterval(16);
     timerManette.start();
 

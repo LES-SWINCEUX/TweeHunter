@@ -28,6 +28,8 @@ public:
     float getEchelle() const { return echelle; }
 
     QSize basePanelSize() const { return tailleSprite; }
+signals:
+    void scoreChanged(int score);
 
 protected:
     void paintEvent(QPaintEvent*) override;

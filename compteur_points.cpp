@@ -53,6 +53,8 @@ void CompteurPoints::setPoints(int value)
         value = NOMBRE_POINTS_MAX;
     }
 
+    emit scoreChanged(value);
+
     if (!estAnime) {
         points = value;
         pointsCible = value;

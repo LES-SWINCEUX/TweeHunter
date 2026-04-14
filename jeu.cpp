@@ -33,10 +33,6 @@ Jeu::Jeu(const QSizeF& tailleEcran, CompteurPoints* compteurPoints, CompteurBall
 	));
 
 	if (gestionnaireAudio) {
-		gestionnaireAudio->addSfx("louche_1", QDir::currentPath() + "/sounds/louche1.wav", 2);
-		gestionnaireAudio->addSfx("louche_2", QDir::currentPath() + "/sounds/louche2.wav", 2);
-		gestionnaireAudio->addSfx("bonus_3", QDir::currentPath() + "/sounds/bonus3.wav", 2);
-		gestionnaireAudio->addSfx("disparait", QDir::currentPath() + "/sounds/destruction.wav", 4);
 		gestionnaireAudio->addSfx("fireball", QDir::currentPath() + "/sounds/sfx/fireball.wav", 10);
 	}
 
@@ -310,21 +306,6 @@ bool Jeu::verifierCollisions(const QPainterPath& cercleReticule, qint64 tempsMs)
 		compteurPoints->setPoints(score);
 	}
 	return aTouche;
-
-		//if (gestionnaireAudio) {
-		//	switch (bushLoucheActif->getType()) {
-		//	case TypeLouche::LOUCHE_1:
-		//		gestionnaireAudio->playSfx("louche_1");
-		//		break;
-		//	case TypeLouche::LOUCHE_2:
-		//		gestionnaireAudio->playSfx("louche_2");
-		//		break;
-		//	case TypeLouche::BONUS_3:
-		//		gestionnaireAudio->playSfx("bonus_3");
-		//		break;
-		//	}
-		//}
-
 }
 
 
@@ -419,10 +400,6 @@ void Jeu::ajouterTypeCible(const DefinitionTarget& definition)
 void Jeu::spawnerLegendaire(qint64 tempsMs)
 {
 	if (!randomiser) { 
-		return; 
-	}
-
-	if ((int)ciblesActives.size() >= maxCiblesSimultanees) { 
 		return; 
 	}
 
@@ -704,7 +681,6 @@ void Jeu::jouerAnimationExplosionFireball(QPointF position, QSizeF taille, const
 		SpriteSheet sheet(pix, colonnes, lignes);
 		anim.sprite.setSprite(sheet);
 		anim.sprite.setCycle(dureeMs);
-			
 	}
 
 	ExplosionFireball.append(anim);

@@ -7,6 +7,7 @@ DecorationMenu::DecorationMenu(QWidget* parent) : QWidget(parent)
     tempsEcouleAnimation.start();
 
     connect(&timerAnimation, &QTimer::timeout, this, [this]() { update(); });
+    timerAnimation.setTimerType(Qt::PreciseTimer);
     setFPS(fps);
     setNombreImages(6);
 }

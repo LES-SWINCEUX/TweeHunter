@@ -27,8 +27,10 @@ void SerialReaderThread::run()
     while (!m_stop.loadRelaxed()) {
         bytesRead = 0;
         if (ReadFile(handle, tmp, sizeof(tmp), &bytesRead, nullptr) && bytesRead > 0) {
-            QMutexLocker locker(&mutex);
-            sharedBuffer.append(tmp, (int)bytesRead);
+            {
+                QMutexLocker locker(&mutex);
+                sharedBuffer.append(tmp, (int)bytesRead);
+            }
             emit donneesRecues();
         }
     }
@@ -52,8 +54,10 @@ void SerialReaderThread::run()
         if (ret > 0) {
             ssize_t n = ::read(fd, tmp, sizeof(tmp));
             if (n > 0) {
-                QMutexLocker locker(&mutex);
-                sharedBuffer.append(tmp, (int)n);
+                {
+                    QMutexLocker locker(&mutex);
+                    sharedBuffer.append(tmp, (int)n);
+                }
                 emit donneesRecues();
             }
         }

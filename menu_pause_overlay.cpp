@@ -26,6 +26,7 @@ MenuPauseOverlay::MenuPauseOverlay(GestionnaireAudio* gestionnaireAudio, QWidget
             touches->lireNavigation();
         }
     });
+    timerManette.setTimerType(Qt::PreciseTimer);
     timerManette.setInterval(16);
 
     if (touches) {
@@ -125,6 +126,7 @@ void MenuPauseOverlay::initialiserManette()
 }
 
 void MenuPauseOverlay::configuerAnimationTitre() {
+    timerAnimationTitre.setTimerType(Qt::PreciseTimer);
     timerAnimationTitre.setInterval(INTERVALE_TITRE_MS);
 
     connect(&timerAnimationTitre, &QTimer::timeout, this, [this]() {

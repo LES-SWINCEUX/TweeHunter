@@ -3,6 +3,7 @@
 
 #include <SDL3/SDL.h>
 #include <QTimer>
+#include <QMutex>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -47,8 +48,8 @@ public:
 	bool customBas() const;
 	bool customGauche() const;
 	bool customDroite() const;
-	bool customConfirmer() const { return gachette; }
-	bool customRetour()   const { return reload; }
+	bool customConfirmer() const;
+	bool customRetour() const;
 
 	float customAxeX() const;
 	float customAxeY() const;
@@ -57,15 +58,16 @@ public:
 	int getxPerso() const;
 	int getyPerso() const;
 
-	bool getGachette() const { return gachette; }
-	bool getReload() const { return reload; }
-	bool getAccelerometre() const { return accelerometre; }
-	int getEncodeur() const { return encodeur; }
+	bool getGachette() const;
+	bool getReload() const;
+	bool getAccelerometre() const;
+	int getEncodeur() const;
 
 	int useLastEncodeur();
 
     void envoyerNbBalles(int nbBalles);
 	void envoyerMoteur();
+	void envoyerScores(int score);
     void envoyerRaw(const QByteArray& data);
 	void envoyerFinPartie();
 
@@ -102,6 +104,7 @@ private:
 	bool navCustomHautPrecedent = false;
 	bool navCustomBasPrecedent = false;
 	bool navCustomGauchePrecedent = false;
+	bool navCustomDroitePrecedent = false;
 	bool navCustomOkPrecedent = false;
 	bool navVerrouJoystickCustom = false;
 
@@ -111,6 +114,8 @@ private:
 	SDL_Gamepad* gamepad = nullptr;
 	int middleX = 0;
 	int middleY = 0;
+
+	mutable QMutex persoMutex;
 
 	int x = 500;
 	int y = 500;
